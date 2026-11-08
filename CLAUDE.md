@@ -25,6 +25,9 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
    - **Testing & Local:** Always use PostgreSQL in Docker for all tests and local development.
    - **Neon `dev` branch:** Only after all tests and features are verified and passing cleanly in Docker Postgres, move to Neon on a branch named `dev`.
    - **`main` branch:** Only after everything is thoroughly verified and passing on the `dev` branch, promote and apply changes to `main`.
+6. **Main branch protection gate (🛡️).**
+   - Never push directly to `main` until the owner explicitly accepts and approves that exact action.
+   - Keep work on dedicated feature or phase branches (e.g. `phase-1-completed`, `dev`).
 
 ## Stack (do not swap without an ADR)
 - Monorepo: npm workspaces (no Nx or Turborepo). `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
@@ -52,17 +55,19 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
 When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 
 ## Never
+- Never push to `main` until the owner explicitly accepts and approves that exact push.
+- Never run git commit, push, branch, merge, rebase or reset without the owner's explicit approval for that exact action.
+- Never mark a step or phase done without running and passing both unit and integration tests.
+- Never apply database changes directly to Neon or `main`—always validate in Docker Postgres first, promote to Neon `dev` branch, and only then merge to `main`.
 - Never query tenant data without `tenant_id`. Use the tenant-scoped Prisma extension; raw queries must filter `tenant_id` by hand.
 - Never trust tenant ID, user ID, role, device or limits sent by the client.
 - Never send correct answers to a student before the configured review release.
 - Never store raw tokens, codes or device secrets. Store hashes only. Never log them.
 - Never store file or video binaries on the VPS or in Postgres.
 - Never add Redis, BullMQ, microservices or Kubernetes without an ADR.
-- Never run git commit, push, branch, merge, rebase or reset without the owner's explicit approval for that exact action.
-- Never mark a step or phase done without running and passing both unit and integration tests.
-- Never apply database changes directly to Neon or `main`—always validate in Docker Postgres first, promote to Neon `dev` branch, and only then merge to `main`.
 
 ## Always
+- Never push to `main` without explicit owner acceptance.
 - Business logic in services, not controllers.
 - Transactions for multi-record writes (enrollment, code redemption, login device check, exam submit).
 - An audit log entry for every admin action.
