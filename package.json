@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --build",
+    "typecheck": "npm run build -w @itqan/shared && npm run typecheck -w @itqan/database && npm run typecheck -w @itqan/auth && npm run typecheck -w @itqan/api && npm run typecheck -w @itqan/web",
     "build": "npm run build -w @itqan/shared && npm run build -w @itqan/api && npm run build -w @itqan/web",
     "test": "vitest run",
     "test:watch": "vitest"
