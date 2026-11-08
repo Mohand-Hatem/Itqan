@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 
+# SSL Certificates and Keys
+nginx/certs/*.crt
+nginx/certs/*.key
+
 # Personal Claude Code settings
 .claude/settings.local.json
 
