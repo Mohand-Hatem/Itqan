@@ -1,153 +1,155 @@
-# Task list: Itqan MVP
+# Itqan MVP: phases and steps
 
-Each task: acceptance criteria (AC), how to verify, dependencies, size. Requirement IDs refer to [../docs/02-srs.md](../docs/02-srs.md).
+Rules: [../CLAUDE.md § Workflow rules](../CLAUDE.md). Brief each step and wait for approval. 🎨 = UI step (follows `docs/11-design.md`). 🔑 = needs credentials in `.env`. Requirement IDs refer to [../docs/02-srs.md](../docs/02-srs.md).
 
-## Phase 1: Foundation
+Each line: **step**, then *Done when* (the check that proves it works).
 
-- [ ] **Task 1: Monorepo scaffold** · M · deps: none
-  - AC: pnpm workspaces with `apps/web`, `apps/api`, `packages/{shared,database,auth}`; `lint`, `typecheck`, `test`, `build` scripts at root; GitHub Actions runs them.
-  - Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` pass locally and in CI.
+## Phase 0: Planning and tooling ✅
+- [x] **0.1** Product, requirements and design docs (`docs/`)
+- [x] **0.2** ADRs 001–007
+- [x] **0.3** GitHub repo `Mohand-Hatem/Itqan`
+- [x] **0.4** MCP servers, skills and plugin (`docs/10-dev-setup.md`)
+- [x] **0.5** Phases, steps and workflow rules
 
-- [ ] **Task 2: Database base schema** · M · deps: 1
-  - AC: Prisma schema for `tenants`, Better Auth tables (+ extra user/session fields), `memberships`, `audit_logs`; first migration on a Neon dev branch; seed creates super admin + one tenant.
-  - Verify: `prisma migrate dev` and seed run clean; tables visible in Neon.
+## Phase 1: Foundation (1 week)
+- [ ] **1.1** pnpm workspace and folder layout (`apps/web`, `apps/api`, `packages/shared`, `packages/database`, `packages/auth`). *Done when:* `pnpm install` succeeds at the root.
+- [ ] **1.2** Shared TypeScript, ESLint and Prettier config. *Done when:* `pnpm lint` and `pnpm typecheck` pass.
+- [ ] **1.3** Scaffold Next.js app (App Router, TypeScript, Tailwind). *Done when:* the dev server renders a page.
+- [ ] **1.4** Scaffold NestJS app with `GET /api/health`. *Done when:* it returns 200.
+- [ ] **1.5** `packages/shared` with Zod, imported by both apps. *Done when:* a shared schema validates in web and api.
+- [ ] **1.6** Test runner (Vitest) with one passing test per app and package. *Done when:* `pnpm test` is green.
+- [ ] **1.7** GitHub Actions CI: lint, typecheck, test, build. *Done when:* CI is green on push.
+- [ ] **1.8** Dockerfiles for web and api. *Done when:* both images build locally.
+- [ ] **1.9** docker-compose + Nginx routing (`/api/auth/*` and pages → web, `/api/*` → api, SSE buffering off). *Done when:* the local stack serves both apps on one port.
+- [ ] **1.10** 🔑 Staging on the VPS with Cloudflare wildcard DNS and origin certificate. *Done when:* `https://demo.staging.<root>/api/health` returns 200.
 
-- [ ] **Task 3: Tenant resolution and isolation** · M · deps: 2 · FR-T01, NFR-01
-  - AC: NestJS middleware resolves the tenant from the host into AsyncLocalStorage; Prisma extension injects `tenant_id` on reads and writes of tenant models; unknown host → 404.
-  - Verify: test creates two tenants and proves tenant A cannot read or write B's rows through the extension.
+**Checkpoint 1:** CI green · staging reachable · owner review.
 
-- [ ] **Task 4: Staging deployment** · M · deps: 1
-  - AC: Docker Compose (nginx, web, api) on the VPS; wildcard `*.staging.<root>` via Cloudflare; env vars documented in `.env.example`.
-  - Verify: `https://demo.staging.<root>` serves the web app and `/api/health` returns 200.
+## Phase 2: Database and tenancy (1 week)
+- [ ] **2.1** 🔑 Neon project with a dev branch; `DATABASE_URL` and `DIRECT_URL` in `.env`. *Done when:* Prisma connects.
+- [ ] **2.2** Prisma in `packages/database` with one shared client. *Done when:* `prisma generate` works and both apps import the client.
+- [ ] **2.3** Base schema: `tenants`, `memberships`, `audit_logs`. *Done when:* the first migration applies.
+- [ ] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). *Done when:* an unknown host returns 404.
+- [ ] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. *Done when:* unit tests show the filter applied.
+- [ ] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). *Done when:* the test proves tenant A cannot read or write B's rows.
+- [ ] **2.7** Seed script: first tenant and super admin placeholder. *Done when:* `pnpm db:seed` runs clean twice.
+- [ ] **2.8** Audit log service (FR-L01). *Done when:* a test writes and reads an entry.
+- [ ] **2.9** Staging database branch and `prisma migrate deploy` in the deploy flow. *Done when:* staging is migrated.
 
-### Checkpoint: Foundation
-- [ ] CI green · [ ] isolation test green · [ ] staging reachable · [ ] owner review
+**Checkpoint 2:** isolation tests green · owner review.
 
-## Phase 2: Auth and devices (highest risk)
+## Phase 3: Design system and app shell (1.5 weeks)
+- [ ] **3.1** 🎨 **Design gate:** the owner teaches the design method. *Done when:* the method is written in `docs/11-design.md` and approved.
+- [ ] **3.2** 🎨 Design tokens (color, type, spacing, radius) with per-tenant brand variables. *Done when:* tokens drive Tailwind and change per tenant.
+- [ ] **3.3** 🎨 Arabic and Latin fonts, next-intl with `ar` (default) and `en`, RTL (NFR-04). *Done when:* switching language flips the direction correctly.
+- [ ] **3.4** 🎨 shadcn/ui with base components themed. *Done when:* a component page renders correctly in RTL and LTR.
+- [ ] **3.5** 🎨 Layouts: public, student (`/learn`), staff (`/manage`), super admin. *Done when:* each shell navigates.
+- [ ] **3.6** Host-based middleware (tenant vs admin host) and branding loader. *Done when:* tenant name, logo and colors apply.
+- [ ] **3.7** 🎨 Loading, empty, error, 404 and blocked pages. *Done when:* each exists in both languages.
+- [ ] **3.8** Accessibility and responsive audit of the shell (NFR-05). *Done when:* the `impeccable` audit shows no critical issues.
 
-- [ ] **Task 5: Better Auth login and i18n shell** · M · deps: 3 · FR-A01, FR-A02, NFR-04
-  - AC: email/password login, required email verification and reset via Resend; `/login`, `/forgot-password`, `/reset-password` in Arabic (RTL) and English with next-intl; SPF/DKIM/DMARC set on the sending domain.
-  - Verify: register a seeded user, verify email, log in, reset password on staging in both languages.
+**Checkpoint 3:** shell reviewed on phone and desktop · owner review.
 
-- [ ] **Task 6: MFA for staff** · S · deps: 5 · FR-A03
-  - AC: TOTP enrolment forced for teacher, assistant and super admin before any `/manage` or admin page.
-  - Verify: a staff user without TOTP is redirected to enrolment; with TOTP, login requires a code.
+## Phase 4: Authentication (1.5 weeks)
+- [ ] **4.1** 🔑 Better Auth in `packages/auth` with the Prisma adapter; `BETTER_AUTH_SECRET`. *Done when:* auth tables migrate.
+- [ ] **4.2** Next.js route handler `/api/auth/*` behind Nginx. *Done when:* sign-in works with curl on the local stack.
+- [ ] **4.3** 🔑 Resend, sending domain (SPF, DKIM, DMARC) and email templates in Arabic and English. *Done when:* a test email lands in the inbox, not spam.
+- [ ] **4.4** Email verification and password reset (FR-A01, FR-A02). *Done when:* both flows work on staging.
+- [ ] **4.5** 🎨 Login, forgot-password and reset-password pages. *Done when:* they work in both languages.
+- [ ] **4.6** TOTP MFA enforced for staff and super admin (FR-A03). *Done when:* staff without TOTP are sent to enrolment.
+- [ ] **4.7** NestJS session guard using the shared auth instance. *Done when:* requests without a session get 401.
+- [ ] **4.8** Access guards: user status, membership status, paused roles, role, with reason codes (FR-T03). *Done when:* a test covers each reason code.
+- [ ] **4.9** `GET /me` and a frontend auth context with TanStack Query. *Done when:* layouts show the signed-in user.
+- [ ] **4.10** Rate limits on auth endpoints. *Done when:* tests hit each limit.
 
-- [ ] **Task 7: NestJS auth and access guards** · M · deps: 5 · FR-T03
-  - AC: guards for session, user status, membership status, `paused_roles`, role; failures return the `reason` codes from system design §3.
-  - Verify: tests for each reason code; suspended user and paused role get 403 with the right code.
+**Checkpoint 4:** login, reset and MFA work on staging · owner review.
 
-- [ ] **Task 8: Device binding and one-session login** · L · deps: 7 · FR-D01–D04, D07, D08
-  - AC: login algorithm from `05-auth-devices.md §3` inside one transaction with row lock; device cookie set on parent domain; every student request checks device cookie = `session.device_id`.
-  - Verify: tests for first login binds; second browser → `DEVICE_LIMIT`; second approved device while first is signed in → `SESSION_ON_OTHER_DEVICE`; two parallel logins → only one session; same device on another tenant → allowed.
+## Phase 5: Devices and sessions (1.5 weeks)
+- [ ] **5.1** Spike: can Better Auth run our check before creating a session? *Done when:* the choice (hook or custom endpoint) is recorded as ADR-008.
+- [ ] **5.2** `devices` table, extra session fields, device cookie helpers (hash, constant-time compare). *Done when:* unit tests pass.
+- [ ] **5.3** Login algorithm in one transaction with a row lock (FR-D01–D04, D07, D08). *Done when:* tests pass for first-bind, `DEVICE_LIMIT`, `SESSION_ON_OTHER_DEVICE`, parallel logins, and same device on another tenant.
+- [ ] **5.4** Per-request device guard. *Done when:* a copied session cookie without the device cookie fails.
+- [ ] **5.5** 🎨 Blocked screens with reason messages. *Done when:* every reason shows the right message in both languages.
+- [ ] **5.6** `support_requests` table and device-change request with pending device cookie (FR-D03). *Done when:* a request is created from the blocked screen.
+- [ ] **5.7** Sign-out-other-device request (FR-D05). *Done when:* a request is created from the blocked screen.
+- [ ] **5.8** 🎨 `/manage/requests` with approve and reject (FR-D06). *Done when:* a Playwright test with two browsers passes the full flow.
+- [ ] **5.9** Staff actions: revoke device, force sign-out, `max_devices`, suspend membership, all audited. *Done when:* tests show sessions end and audit entries exist.
+- [ ] **5.10** 🎨 Student devices page. *Done when:* the student sees their own devices.
 
-- [ ] **Task 9: Device-change and sign-out requests** · M · deps: 8 · FR-D03, D05, D06
-  - AC: `/blocked` screens with both request actions (password re-check, rate-limited); pending device cookie; `/manage/requests` with approve and reject; approval revokes the old device or sessions as specified.
-  - Verify: end-to-end on staging with two browsers: request → approve → new browser logs in, old one is out.
+**Checkpoint 5:** anti-sharing rules proven with two real browsers on staging · owner review.
 
-- [ ] **Task 10: Staff device and session actions** · S · deps: 8 · FR-D02, D06, FR-L01
-  - AC: revoke device, force sign-out, change `max_devices`, suspend membership; each writes an audit entry.
-  - Verify: tests that each action ends sessions and logs the audit entry.
+## Phase 6: Access and people (2 weeks)
+- [ ] **6.1** Courses API (create, edit, publish, archive, soft delete; teacher-only delete). *Done when:* API and isolation tests pass.
+- [ ] **6.2** 🎨 Course list and course form. *Done when:* staff manage courses in the UI.
+- [ ] **6.3** Invitations API: create, resend, revoke, check, register, accept, with atomic redemption (FR-E01, E03). *Done when:* tests pass for expired, reused, revoked, wrong email and parallel redeem.
+- [ ] **6.4** 🎨 `/join` page with guardian consent (FR-A06). *Done when:* a new student registers from an email link.
+- [ ] **6.5** Access code batches: generate, CSV shown once, revoke (FR-E02). *Done when:* tests pass and stored codes are hashed.
+- [ ] **6.6** 🎨 Register with code and redeem in account. *Done when:* a parallel double-redeem test gives one success.
+- [ ] **6.7** Enrollments: add and terminate (teacher, super admin) (FR-E04, E05). *Done when:* a terminated student gets 403 on course content.
+- [ ] **6.8** 🎨 Students list and detail (courses, devices, sessions, grades, payments). *Done when:* staff can find and manage a student.
+- [ ] **6.9** 🎨 Payments API and page; assistants view-only (FR-E06). *Done when:* permission tests pass per role.
+- [ ] **6.10** 🎨 Assistant management (teacher only). *Done when:* the teacher adds and removes an assistant.
+- [ ] **6.11** 🎨 Super admin: tenant list with usage, create tenant (FR-T02, T05). *Done when:* a new tenant subdomain works.
+- [ ] **6.12** 🎨 Super admin: pause roles, suspend users, soft delete (FR-T03, T04). *Done when:* pausing students ends their sessions and the teacher still works.
 
-### Checkpoint: Auth and devices
-- [ ] All device and session tests green · [ ] manual two-browser test on staging · [ ] owner review
+**Checkpoint 6:** a real student can join by invitation or code, log in on one device, and be removed · owner review.
 
-## Phase 3: Access
+## Phase 7: Content and media (2.5 weeks)
+- [ ] **7.1** 🔑 R2 buckets (private, public), API keys and CORS. *Done when:* a presigned PUT works from the browser.
+- [ ] **7.2** Upload API: presign, confirm, MIME and size allow-list, `media_assets` (FR-C03). *Done when:* tests pass and disallowed types are rejected.
+- [ ] **7.3** 🎨 Upload component with progress. *Done when:* a 500 MB MP4 uploads on staging.
+- [ ] **7.4** Content tree API: create, rename, move, reorder, publish, soft delete, restore, depth ≤ 5 (FR-C01, C02). *Done when:* tests pass for cycles and depth.
+- [ ] **7.5** 🎨 Tree editor with drag and drop. *Done when:* the teacher builds a course tree in both languages.
+- [ ] **7.6** Content access API: signed URLs after enrollment and publish checks (FR-C06). *Done when:* a non-enrolled student gets 403 and view-only files get no download URL.
+- [ ] **7.7** 🎨 Student course page: tree and viewer layout. *Done when:* a student navigates a course.
+- [ ] **7.8** 🎨 PDF viewer and download policy (FR-C04). *Done when:* view-only PDFs show no download button.
+- [ ] **7.9** 🎨 Video player with URL refresh and moving watermark (FR-C05). *Done when:* a long video plays past URL expiry and shows the watermark.
+- [ ] **7.10** Progress tracking and resume (FR-C07). *Done when:* a video resumes where the student stopped.
+- [ ] **7.11** Tenant settings API with Zod schema and HTML sanitizing (FR-T06). *Done when:* script tags are stripped in a test.
+- [ ] **7.12** 🎨 Settings page and public pages (landing, about, how-it-works). *Done when:* changing branding updates the public site.
 
-- [ ] **Task 11: Courses CRUD** · S · deps: 7
-  - AC: create, edit, publish, archive, soft-delete courses; teacher-only delete.
-  - Verify: API tests incl. tenant isolation; list page in `/manage/courses`.
+**Checkpoint 7:** the teacher builds a full course and a student studies it on staging · owner review.
 
-- [ ] **Task 12: Invitations and enrollments** · M · deps: 8, 11 · FR-E01, E03, E04, A05, A06
-  - AC: create, resend, revoke invitations; `/join` validates on GET and redeems only on POST in one transaction; existing users accept after login; guardian consent stored.
-  - Verify: tests for expired, reused, revoked and wrong-email tokens; parallel redeem → one success.
+## Phase 8: Exams (2.5 weeks)
+- [ ] **8.1** Question banks and questions API (FR-X01). *Done when:* CRUD and isolation tests pass.
+- [ ] **8.2** 🎨 Question editor. *Done when:* all three question types can be created.
+- [ ] **8.3** Quiz API: settings, targets, manual and random selection (FR-X02, X03). *Done when:* validation tests pass.
+- [ ] **8.4** 🎨 Quiz builder. *Done when:* the teacher creates a scheduled quiz.
+- [ ] **8.5** Attempt start: selection, shuffle, snapshot, deadline, device tie (FR-X05, X10). *Done when:* tests pass for the window, max attempts and other-device rejection.
+- [ ] **8.6** Autosave and linear navigation rules (FR-X04). *Done when:* late and out-of-order answers are rejected.
+- [ ] **8.7** Submit, auto-submit after deadline, server grading (FR-X06). *Done when:* grading tests pass for all types.
+- [ ] **8.8** Answer-leak test suite. *Done when:* no student response contains correct answers before release.
+- [ ] **8.9** 🎨 Exam-taking page with server-timed countdown and autosave status. *Done when:* a full attempt works in both languages.
+- [ ] **8.10** Grade release and review modes (FR-X07, X08). *Done when:* a test covers each mode, including the all-submitted fallback.
+- [ ] **8.11** 🎨 Results pages for students and staff. *Done when:* each sees the right level of detail.
+- [ ] **8.12** Rescue actions: extend time, move attempt to a new device (FR-X09). *Done when:* both are audited and tested.
+- [ ] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). *Done when:* p95 is under target on staging.
 
-- [ ] **Task 13: Access codes** · M · deps: 12 · FR-E02, E03
-  - AC: batch generation with CSV shown once; HMAC storage; register-with-code and redeem-in-account; revoke batch.
-  - Verify: tests for double redeem in parallel, revoked code, rate limit.
+**Checkpoint 8:** a real exam runs end to end on staging · owner review.
 
-- [ ] **Task 14: Students, enrollment removal, payments** · M · deps: 12 · FR-E05, E06
-  - AC: students list and detail; add course; terminate enrollment (teacher, super admin) with SSE-ready event hook; payments create and list (assistant view-only).
-  - Verify: terminated student gets 403 on course content; payment permissions tested per role.
+## Phase 9: Notifications and engagement (1.5 weeks)
+- [ ] **9.1** Notifications table and service: row written in the transaction, email and push sent after commit (FR-N01). *Done when:* tests pass.
+- [ ] **9.2** SSE endpoint with in-memory map, 5 streams per user, control events (FR-N02). *Done when:* a revoked device is sent to `/blocked` at once.
+- [ ] **9.3** 🎨 Bell and notifications page. *Done when:* a grade release appears in an open tab within 2 s.
+- [ ] **9.4** 🔑 Firebase project, FCM web push, service worker, tokens per device (FR-N03). *Done when:* push arrives with the site closed and stops after the device is revoked.
+- [ ] **9.5** Email notifications for important types in both languages. *Done when:* each type sends the right email.
+- [ ] **9.6** 🎨 Announcements, tenant-wide or per course (FR-N04). *Done when:* only enrolled students get course announcements.
+- [ ] **9.7** 🎨 Lesson Q&A with staff hide and delete (FR-C08). *Done when:* hidden posts are invisible to students.
+- [ ] **9.8** 🎨 General support requests (FR-N05). *Done when:* a student opens one and staff answer it.
+- [ ] **9.9** 🎨 Analytics overview with plain SQL (FR-L02). *Done when:* numbers match seeded data in a test.
+- [ ] **9.10** 🎨 Audit log page with filters. *Done when:* the teacher filters by actor, action and date.
 
-- [ ] **Task 15: Super admin site** · M · deps: 7 · FR-T02–T05
-  - AC: `admin.<root>` with tenant list and usage, create tenant, pause any mix of roles, suspend users, soft delete.
-  - Verify: pausing students ends their sessions and shows `TENANT_PAUSED`; teacher still works.
+**Checkpoint 9:** notifications work online, offline and by email · owner review.
 
-### Checkpoint: Access
-- [ ] A real student can be invited or use a code, log in on one device, and be removed · [ ] owner review
+## Phase 10: Hardening and launch (1.5 weeks)
+- [ ] **10.1** Scheduled jobs: cleanup, grade-release notifications, pending uploads, 30-day tenant purge. *Done when:* running each job twice gives the same result.
+- [ ] **10.2** Security headers and CSP. *Done when:* a header scan passes.
+- [ ] **10.3** 🔑 Sentry on both apps with scrubbing, plus an uptime monitor (NFR-07). *Done when:* a test error appears in Sentry with no secrets.
+- [ ] **10.4** 🔑 Nightly `pg_dump` to a separate R2 bucket and a restore rehearsal (NFR-06). *Done when:* a restore is documented.
+- [ ] **10.5** Full `security-audit` skill run and fixes. *Done when:* no open high findings.
+- [ ] **10.6** Dependency audit and secret scanning in CI. *Done when:* both are green.
+- [ ] **10.7** Privacy policy and terms, with legal review for minors. *Done when:* both are published.
+- [ ] **10.8** 🔑 Production: Neon production project, production stack on the VPS, DNS. *Done when:* production health checks pass.
+- [ ] **10.9** Onboard the first teacher and run a smoke test. *Done when:* the teacher, one assistant and one student complete the main flows.
 
-## Phase 4: Content
-
-- [ ] **Task 16: R2 uploads** · M · deps: 11 · FR-C03
-  - AC: presign and confirm endpoints; MIME and size allow-list; pending cleanup job.
-  - Verify: upload a PDF and an MP4 on staging; disallowed type rejected; object lands under `tenants/{id}/`.
-
-- [ ] **Task 17: Course tree editor** · L · deps: 16 · FR-C01, C02
-  - AC: create, rename, move (dnd-kit), reorder, publish, soft-delete, restore; depth ≤ 5; attach assets.
-  - Verify: tests for move cycles and depth limit; manual drag-and-drop in Arabic and English.
-
-- [ ] **Task 18: Student course view and documents** · M · deps: 17, 14 · FR-C04, C06
-  - AC: `/learn/courses/...` with tree and viewer; PDF.js for PDFs; downloads only when allowed; unpublished items hidden.
-  - Verify: non-enrolled student gets 403; view-only file has no download URL in the API response.
-
-- [ ] **Task 19: Video playback and progress** · M · deps: 18 · FR-C05, C07
-  - AC: signed URL (4 h) with refresh on 403; moving watermark; progress and resume position saved.
-  - Verify: video plays and resumes; watermark shows student name and email.
-
-- [ ] **Task 20: Tenant settings and public site** · M · deps: 16 · FR-T06
-  - AC: settings form (branding, social and contact links, pages, locale, timezone, device default); public landing, about, how-it-works; rich text sanitized.
-  - Verify: changing the logo and colors updates the site; script tags in pages are stripped.
-
-### Checkpoint: Content
-- [ ] Teacher builds a full course and a student studies it on staging · [ ] owner review
-
-## Phase 5: Exams
-
-- [ ] **Task 21: Question banks** · M · deps: 11 · FR-X01
-  - AC: global and course banks; single, multiple, true/false editor with marks, difficulty, explanation, tags, image.
-  - Verify: CRUD tests and tenant isolation.
-
-- [ ] **Task 22: Quiz builder** · M · deps: 21, 17 · FR-X02, X03
-  - AC: settings, targets (course, chapter, lecture nodes), manual and random selection, release modes.
-  - Verify: validation tests (close after open, random count ≤ pool size).
-
-- [ ] **Task 23: Attempts and grading** · L · deps: 22, 8 · FR-X04–X06, X10
-  - AC: start with snapshot and deadline; autosave; submit and auto-submit after deadline + grace; server grading; attempt tied to device.
-  - Verify: tests for answer leak (no `is_correct` in any student response), late answers rejected, max attempts, other-device rejected.
-
-- [ ] **Task 24: Release, results and rescue** · M · deps: 23 · FR-X07–X09
-  - AC: four grade-release modes computed on read; review modes and review time; results pages for students and staff; extend time and move-device actions.
-  - Verify: tests per release mode incl. the all-submitted fallback at close time.
-
-### Checkpoint: Exams
-- [ ] Load test: 300 simulated students start one quiz within a minute on staging · [ ] owner review
-
-## Phase 6: Engagement and launch
-
-- [ ] **Task 25: Notifications and SSE** · M · deps: 7 · FR-N01, N02
-  - AC: notifications table, `/api/sse` with in-memory map (max 5 streams per user), bell with unread count; control events trigger `/blocked` or refreshes; Nginx buffering off.
-  - Verify: grade release shows in an open tab within 2 s; revoked device is sent to `/blocked` at once.
-
-- [ ] **Task 26: Push and email notifications** · M · deps: 25 · FR-N03
-  - AC: FCM token per device, deleted on revoke; push and email for the important types in the user's language.
-  - Verify: push arrives with the site closed on Android/desktop Chrome; revoked device gets none.
-
-- [ ] **Task 27: Announcements, Q&A, general support** · M · deps: 25, 18 · FR-N04, N05, C08
-  - AC: tenant and course announcements; lesson comments with staff hide/delete; general support requests.
-  - Verify: hidden comment invisible to students; announcement creates notifications for enrolled students only.
-
-- [ ] **Task 28: Analytics and audit views** · S · deps: 14, 23 · FR-L01, L02
-  - AC: overview numbers with plain SQL; audit log page with filters (teacher, super admin).
-  - Verify: numbers match seeded data in a test.
-
-- [ ] **Task 29: Scheduled jobs** · S · deps: 12, 16, 24, 15
-  - AC: cleanup of expired invitations and sessions, pending assets, grade-release notifications, 30-day tenant purge; all idempotent.
-  - Verify: running each job twice gives the same result in tests.
-
-- [ ] **Task 30: Launch hardening** · M · deps: all
-  - AC: security headers and CSP; Sentry on both apps with scrubbing; uptime monitor; nightly `pg_dump` to separate bucket with a rehearsed restore; privacy policy and terms; security checklist in `docs/09-security.md §5` complete.
-  - Verify: checklist signed off by the owner; restore rehearsal documented.
-
-### Checkpoint: Launch
-- [ ] All SRS MVP requirements met · [ ] production deploy · [ ] first teacher onboarded
+**Checkpoint 10:** all MVP requirements in the SRS met · launched.

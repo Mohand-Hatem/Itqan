@@ -2,6 +2,23 @@
 
 Read `docs/00-index.md` first. The docs are the source of truth; if code and docs disagree, stop and ask.
 
+## Workflow rules (everyone, every step)
+Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
+
+1. **Step gate.** Before starting a step, post this brief and stop:
+   ```text
+   Step X.Y — <name>
+   What:           what this step builds
+   How:            the approach and the files it touches
+   Why:            the benefit once it's done
+   How it works:   the mechanism, in plain words
+   Needs from you: credentials or decisions (or "nothing")
+   Done when:      how we check it worked
+   ```
+   Start only after the owner's explicit approval. One approval covers one step. After the step, report the result and tick it in `tasks/todo.md`.
+2. **Design gate (🎨).** At step 3.1, stop and say "Design gate reached": the owner teaches the project's design method, which is then written to `docs/11-design.md`. Every later 🎨 step follows that doc. If a screen needs something the doc doesn't cover, stop again. Never choose styling, colors or layout on your own.
+3. **Credentials gate (🔑).** When a step needs a secret: stop, add the variable names to `.env.example` with empty values, explain in 2–3 lines where to get each value, and wait until the owner confirms they put the real values in `.env`. Never ask for secrets in chat, never print them, never commit them.
+
 ## Stack (do not swap without an ADR)
 - Monorepo: pnpm workspaces. `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
 - Prisma + Neon PostgreSQL. One Prisma client shared by the app and Better Auth.
