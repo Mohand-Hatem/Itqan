@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Lint, Typecheck, Test, Build
+    name: Lint, Typecheck, Test, Build, Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -39,3 +39,22 @@ jobs:
 
       - name: Build applications and packages
         run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image for Web
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          tags: itqan-web:test
+
+      - name: Build Docker image for API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          tags: itqan-api:test

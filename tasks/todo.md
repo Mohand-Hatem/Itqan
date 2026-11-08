@@ -20,7 +20,7 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [x] **1.4** Scaffold NestJS app with `GET /api/health`. _Done when:_ it returns 200.
 - [x] **1.5** `packages/shared` with Zod, imported by both apps. _Done when:_ a shared schema validates in web and api.
 - [x] **1.6** Test runner (Vitest) with one passing test per app and package. _Done when:_ `npm test` is green.
-- [ ] **1.7** GitHub Actions CI: lint, typecheck, test, build. _Done when:_ CI is green on push.
+- [x] **1.7** GitHub Actions CI: lint, typecheck, test, build. _Done when:_ CI is green on push.
 - [ ] **1.8** Dockerfiles for web and api. _Done when:_ both images build locally.
 - [ ] **1.9** docker-compose + Nginx routing (`/api/auth/*` and pages → web, `/api/*` → api, SSE buffering off). _Done when:_ the local stack serves both apps on one port.
 - [ ] **1.10** 🔑 Staging on the VPS with Cloudflare wildcard DNS and origin certificate. _Done when:_ `https://demo.staging.<root>/api/health` returns 200.
