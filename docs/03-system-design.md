@@ -91,10 +91,17 @@ Hostinger VPS (Docker Compose)
   nginx    TLS from Cloudflare origin cert; routes by path
   web      Next.js (standalone build)
   api      NestJS
-External: Neon (prod + staging branch), R2, Resend, FCM, Sentry, uptime monitor
+External: Neon (`main` for production, `dev` for testing), R2, Resend, FCM, Sentry, uptime monitor
 ```
 
-- **Environments:** `staging` (Neon branch, separate compose stack, `*.staging.<root-domain>`) and `production`.
+- **Environments** (ADR-009):
+
+  | Environment | Where | When | Database |
+  |---|---|---|---|
+  | Local | docker-compose on the developer's machine (Postgres, web, api, nginx); tenants via `<slug>.localhost` | Every step and all tests | Docker Postgres |
+  | Preview | Vercel (web) + Render free Docker service (api); `/api/*` reaches the API through Next.js rewrites; one demo tenant via `PREVIEW_TENANT_SLUG` | Teacher demo before buying the server (step 10.6) | Neon `dev` |
+  | Staging | VPS, `docker-compose.staging.yml`, `*.staging.<root-domain>` | After the teacher approves (step 10.8) | Neon `dev` |
+  | Production | VPS, production compose stack, `*.<root-domain>` | Launch (step 10.12) | Neon `main` |
 - **DNS:** wildcard `*.<root-domain>` proxied by Cloudflare.
 - **Email:** SPF, DKIM and DMARC on the sending domain. Emails show the tenant's name as the sender name.
 - **Backups:** Neon point-in-time restore plus a nightly `pg_dump` to a separate R2 bucket. Restore tested monthly.
