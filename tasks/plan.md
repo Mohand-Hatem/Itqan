@@ -1,4 +1,4 @@
-# Implementation plan: teacher-lms MVP
+# Implementation plan: Itqan MVP
 
 ## Overview
 A multi-tenant LMS on one deployment. The first release serves one teacher. The highest-risk parts (tenant isolation, device binding, one-session rule) are built first so they fail early. Tasks live in [todo.md](todo.md).
@@ -31,7 +31,7 @@ Each phase ends with a checkpoint: tests green, staging deploy, owner review.
 | Legal issues with minors | Medium | Guardian consent, privacy policy, legal review (task 30) |
 
 ## Open questions
-1. Final brand name and root domain (repo stays `teacher-lms`).
+1. Root domain for the platform (brand name: Itqan).
 2. Sending email domain and sender address.
 3. Do teachers want per-assistant permission toggles? (MVP: fixed role.)
 4. Neon plan for production (free vs always-on) after the load test.

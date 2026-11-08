@@ -1,4 +1,4 @@
-# Task list: teacher-lms MVP
+# Task list: Itqan MVP
 
 Each task: acceptance criteria (AC), how to verify, dependencies, size. Requirement IDs refer to [../docs/02-srs.md](../docs/02-srs.md).
 

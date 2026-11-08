@@ -1,8 +1,8 @@
-# teacher-lms
+# Itqan (اتقان)
 
 A multi-tenant LMS where each teacher gets their own branded learning site: courses, protected videos and files, exams, and strict anti-account-sharing.
 
-`teacher-lms` is the working name of the repo. Each teacher's site shows its own name, logo, colors and contact links from tenant settings.
+Itqan is the platform name. Each teacher's site shows its own name, logo, colors and contact links from tenant settings.
 
 ## Status
 

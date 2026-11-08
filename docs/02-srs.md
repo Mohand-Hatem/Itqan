@@ -1,4 +1,4 @@
-# SRS: teacher-lms
+# SRS: Itqan
 
 IDs are stable; reference them in tasks and tests.
 

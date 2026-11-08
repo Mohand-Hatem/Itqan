@@ -1,4 +1,4 @@
-# PRD: teacher-lms
+# PRD: Itqan
 
 ## 1. Problem
 Independent teachers sell courses but have no affordable platform that:

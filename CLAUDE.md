@@ -1,4 +1,4 @@
-# Agent rules for teacher-lms
+# Agent rules for Itqan
 
 Read `docs/00-index.md` first. The docs are the source of truth; if code and docs disagree, stop and ask.
 
