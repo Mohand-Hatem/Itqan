@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.next/
+coverage/
+package-lock.json
+.claude/
+docs/
+tasks/
+*.md
