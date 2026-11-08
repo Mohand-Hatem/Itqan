@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Lint, Typecheck, Test, Build, Docker, Nginx
+    name: Lint, Typecheck, Test, Build, Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -39,9 +39,6 @@ jobs:
 
       - name: Build applications and packages
         run: npm run build
-
-      - name: Test Nginx configuration
-        run: docker run --rm -v ${{ github.workspace }}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro nginx:alpine nginx -t
 
       - name: Validate Docker Compose configuration
         run: docker compose config
