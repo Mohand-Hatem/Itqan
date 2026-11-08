@@ -20,7 +20,7 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
 3. **Credentials gate (🔑).** When a step needs a secret: stop, add the variable names to `.env.example` with empty values, explain in 2–3 lines where to get each value, and wait until the owner confirms they put the real values in `.env`. Never ask for secrets in chat, never print them, never commit them.
 
 ## Stack (do not swap without an ADR)
-- Monorepo: pnpm workspaces. `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
+- Monorepo: npm workspaces (no Nx or Turborepo). `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
 - Prisma + Neon PostgreSQL. One Prisma client shared by the app and Better Auth.
 - Better Auth for identity and sessions. NestJS owns all LMS authorization.
 - Cloudflare R2 for files and MP4 videos. Resend for email. FCM for push. SSE for real-time.

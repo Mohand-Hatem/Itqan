@@ -35,7 +35,7 @@ Passwords, session tokens, device secrets, invitation tokens, access codes, pres
 ## 5. Before launch
 - [ ] Tenant isolation test suite green.
 - [ ] Exam answer-leak tests green.
-- [ ] `pnpm audit` / Dependabot clean of high severity.
+- [ ] `npm audit` / Dependabot clean of high severity.
 - [ ] External penetration test or a focused review of auth, device and exam flows.
 - [ ] Restore from backup rehearsed.
 - [ ] Privacy policy and terms published (legal review for minors).

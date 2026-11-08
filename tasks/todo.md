@@ -12,12 +12,12 @@ Each line: **step**, then *Done when* (the check that proves it works).
 - [x] **0.5** Phases, steps and workflow rules
 
 ## Phase 1: Foundation (1 week)
-- [ ] **1.1** pnpm workspace and folder layout (`apps/web`, `apps/api`, `packages/shared`, `packages/database`, `packages/auth`). *Done when:* `pnpm install` succeeds at the root.
-- [ ] **1.2** Shared TypeScript, ESLint and Prettier config. *Done when:* `pnpm lint` and `pnpm typecheck` pass.
+- [ ] **1.1** npm workspaces and folder layout (`apps/web`, `apps/api`, `packages/shared`, `packages/database`, `packages/auth`). *Done when:* `npm install` succeeds at the root.
+- [ ] **1.2** Shared TypeScript, ESLint and Prettier config. *Done when:* `npm run lint` and `npm run typecheck` pass.
 - [ ] **1.3** Scaffold Next.js app (App Router, TypeScript, Tailwind). *Done when:* the dev server renders a page.
 - [ ] **1.4** Scaffold NestJS app with `GET /api/health`. *Done when:* it returns 200.
 - [ ] **1.5** `packages/shared` with Zod, imported by both apps. *Done when:* a shared schema validates in web and api.
-- [ ] **1.6** Test runner (Vitest) with one passing test per app and package. *Done when:* `pnpm test` is green.
+- [ ] **1.6** Test runner (Vitest) with one passing test per app and package. *Done when:* `npm test` is green.
 - [ ] **1.7** GitHub Actions CI: lint, typecheck, test, build. *Done when:* CI is green on push.
 - [ ] **1.8** Dockerfiles for web and api. *Done when:* both images build locally.
 - [ ] **1.9** docker-compose + Nginx routing (`/api/auth/*` and pages → web, `/api/*` → api, SSE buffering off). *Done when:* the local stack serves both apps on one port.
@@ -32,7 +32,7 @@ Each line: **step**, then *Done when* (the check that proves it works).
 - [ ] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). *Done when:* an unknown host returns 404.
 - [ ] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. *Done when:* unit tests show the filter applied.
 - [ ] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). *Done when:* the test proves tenant A cannot read or write B's rows.
-- [ ] **2.7** Seed script: first tenant and super admin placeholder. *Done when:* `pnpm db:seed` runs clean twice.
+- [ ] **2.7** Seed script: first tenant and super admin placeholder. *Done when:* `npm run db:seed` runs clean twice.
 - [ ] **2.8** Audit log service (FR-L01). *Done when:* a test writes and reads an entry.
 - [ ] **2.9** Staging database branch and `prisma migrate deploy` in the deploy flow. *Done when:* staging is migrated.
 
@@ -65,7 +65,7 @@ Each line: **step**, then *Done when* (the check that proves it works).
 **Checkpoint 4:** login, reset and MFA work on staging · owner review.
 
 ## Phase 5: Devices and sessions (1.5 weeks)
-- [ ] **5.1** Spike: can Better Auth run our check before creating a session? *Done when:* the choice (hook or custom endpoint) is recorded as ADR-008.
+- [ ] **5.1** Spike: can Better Auth run our check before creating a session? *Done when:* the choice (hook or custom endpoint) is recorded as ADR-009.
 - [ ] **5.2** `devices` table, extra session fields, device cookie helpers (hash, constant-time compare). *Done when:* unit tests pass.
 - [ ] **5.3** Login algorithm in one transaction with a row lock (FR-D01–D04, D07, D08). *Done when:* tests pass for first-bind, `DEVICE_LIMIT`, `SESSION_ON_OTHER_DEVICE`, parallel logins, and same device on another tenant.
 - [ ] **5.4** Per-request device guard. *Done when:* a copied session cookie without the device cookie fails.

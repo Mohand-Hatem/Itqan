@@ -4,7 +4,7 @@
 A multi-tenant LMS on one deployment. The first release serves one teacher. The work is split into 10 phases of small steps (about half a day each), listed in [todo.md](todo.md). Every step follows the three gates in [../CLAUDE.md](../CLAUDE.md): step approval, design (🎨) and credentials (🔑).
 
 ## Architecture decisions
-See [../docs/adr/](../docs/adr/). In short: shared multi-tenant DB (001), MP4 in R2 (002), no Redis/queue (003), cookie device binding (004), block-new-login single session (005), table + SSE + FCM notifications (006), global users with tenant memberships (007).
+See [../docs/adr/](../docs/adr/). In short: shared multi-tenant DB (001), MP4 in R2 (002), no Redis/queue (003), cookie device binding (004), block-new-login single session (005), table + SSE + FCM notifications (006), global users with tenant memberships (007), npm workspaces (008).
 
 ## Phases and estimates
 Estimates assume one full-time developer working with AI agents.
