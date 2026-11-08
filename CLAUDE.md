@@ -18,6 +18,13 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
    Start only after the owner's explicit approval. One approval covers one step. After the step, report the result and tick it in `tasks/todo.md`.
 2. **Design gate (🎨).** At step 3.1, stop and say "Design gate reached": the owner teaches the project's design method, which is then written to `docs/11-design.md`. Every later 🎨 step follows that doc. If a screen needs something the doc doesn't cover, stop again. Never choose styling, colors or layout on your own.
 3. **Credentials gate (🔑).** When a step needs a secret: stop, add the variable names to `.env.example` with empty values, explain in 2–3 lines where to get each value, and wait until the owner confirms they put the real values in `.env`. Never ask for secrets in chat, never print them, never commit them.
+4. **Testing gate (🧪, every step and phase).**
+   - After **every single step**, run both unit and integration tests. A step is not completed until all tests pass with zero errors or regressions.
+   - A phase is **never completed** until the complete unit and integration test suite covering the entire phase runs and passes 100% green.
+5. **Database promotion workflow (Docker → Neon `dev` → `main`).**
+   - **Testing & Local:** Always use PostgreSQL in Docker for all tests and local development.
+   - **Neon `dev` branch:** Only after all tests and features are verified and passing cleanly in Docker Postgres, move to Neon on a branch named `dev`.
+   - **`main` branch:** Only after everything is thoroughly verified and passing on the `dev` branch, promote and apply changes to `main`.
 
 ## Stack (do not swap without an ADR)
 - Monorepo: npm workspaces (no Nx or Turborepo). `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
@@ -52,6 +59,8 @@ When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 - Never store file or video binaries on the VPS or in Postgres.
 - Never add Redis, BullMQ, microservices or Kubernetes without an ADR.
 - Never run git commit, push, branch, merge, rebase or reset without the owner's explicit approval for that exact action.
+- Never mark a step or phase done without running and passing both unit and integration tests.
+- Never apply database changes directly to Neon or `main`—always validate in Docker Postgres first, promote to Neon `dev` branch, and only then merge to `main`.
 
 ## Always
 - Business logic in services, not controllers.
@@ -60,3 +69,5 @@ When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 - A tenant-isolation test for every new tenant-scoped endpoint.
 - Check current official docs for Better Auth, Prisma and Next.js before writing integration code.
 - Small, reviewable changes that follow `tasks/todo.md`.
+- Run unit and integration tests after every step and run full phase test suite before closing any phase.
+- Use Docker PostgreSQL for local testing, promote to Neon `dev` branch, and only promote to `main` when verified.
