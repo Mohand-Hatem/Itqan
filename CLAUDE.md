@@ -9,6 +9,17 @@ Read `docs/00-index.md` first. The docs are the source of truth; if code and doc
 - Cloudflare R2 for files and MP4 videos. Resend for email. FCM for push. SSE for real-time.
 - UI: Tailwind + shadcn/ui, TanStack Query, React Hook Form + Zod, next-intl (Arabic default, RTL).
 
+## Tools (setup: `docs/10-dev-setup.md`)
+| Job | Use |
+|---|---|
+| Any UI design, critique or polish | `impeccable` skill |
+| Motion and interaction details | `emil-design-eng`, `animate`, `review-animations` skills |
+| Security review (end of each phase) | `security-audit` skill |
+| Reviewing docs in `docs/` | `egm` plugin |
+| Better Auth, Next.js, shadcn questions | `better-auth`, `next-devtools`, `shadcn` MCPs before memory |
+| Checking a flow in the browser | `playwright` MCP |
+| Database work | `neon` MCP on dev branches only; schema changes via Prisma migrations |
+
 ## Never
 - Never query tenant data without `tenant_id`. Use the tenant-scoped Prisma extension; raw queries must filter `tenant_id` by hand.
 - Never trust tenant ID, user ID, role, device or limits sent by the client.

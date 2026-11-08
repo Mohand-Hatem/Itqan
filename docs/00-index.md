@@ -11,6 +11,7 @@
 | [07-api.md](07-api.md) | REST endpoints by module |
 | [08-frontend.md](08-frontend.md) | Routes, layouts, i18n/RTL |
 | [09-security.md](09-security.md) | Threat model and protection limits |
+| [10-dev-setup.md](10-dev-setup.md) | MCP servers, skills and plugins for developers |
 | [adr/](adr/) | Why each big decision was made |
 | [../tasks/plan.md](../tasks/plan.md) | Phases, risks, open questions |
 | [../tasks/todo.md](../tasks/todo.md) | Tasks with acceptance criteria |

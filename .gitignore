@@ -1,0 +1,16 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Impeccable engine binary (downloaded on first use, checksum-verified)
+.claude/skills/impeccable/scripts/bin/
+
+# Dependencies and builds
+node_modules/
+dist/
+.next/
+coverage/
