@@ -19,6 +19,14 @@
     "shadcn": {
       "command": "npx",
       "args": ["-y", "shadcn@latest", "mcp"]
+    },
+    "tanstack": {
+      "command": "npx",
+      "args": ["-y", "@tanstack/cli", "mcp"]
+    },
+    "nestjs-observe": {
+      "type": "http",
+      "url": "https://observe-api.nestjs.com/mcp"
     }
   }
 }

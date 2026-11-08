@@ -29,13 +29,20 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
 ## Tools (setup: `docs/10-dev-setup.md`)
 | Job | Use |
 |---|---|
-| Any UI design, critique or polish | `impeccable` skill |
-| Motion and interaction details | `emil-design-eng`, `animate`, `review-animations` skills |
-| Security review (end of each phase) | `security-audit` skill |
-| Reviewing docs in `docs/` | `egm` plugin |
-| Better Auth, Next.js, shadcn questions | `better-auth`, `next-devtools`, `shadcn` MCPs before memory |
+| Engineering workflow (spec, plan, build, test, review, ship) | `using-agent-skills` and its skills; `using-superpowers` for process discipline |
+| Writing code | `ponytail` plugin: smallest complete change |
+| Logic and bug fixes | `test-driven-development`, `systematic-debugging` |
+| Before saying "done" | `verification-before-completion` |
+| UI design, critique or polish | Follow `docs/11-design.md`; until it exists, `impeccable` |
+| Motion and interaction details | Emil's skills (`emil-design-eng`, `animate`, `review-animations`) |
+| Security review (end of each phase) | `security-audit`, `security-and-hardening` |
+| Docs and UI copy wording | `humanizer` plugin; `egm` to review docs in `docs/` |
+| Library questions | `better-auth`, `next-devtools`, `shadcn`, `tanstack` MCPs before memory |
 | Checking a flow in the browser | `playwright` MCP |
 | Database work | `neon` MCP on dev branches only; schema changes via Prisma migrations |
+| Understanding the codebase | `graphify` |
+
+When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 
 ## Never
 - Never query tenant data without `tenant_id`. Use the tenant-scoped Prisma extension; raw queries must filter `tenant_id` by hand.

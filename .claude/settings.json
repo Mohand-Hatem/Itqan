@@ -5,9 +5,23 @@
         "source": "github",
         "repo": "google/elephant-goldfish-model"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "humanizer": {
+      "source": {
+        "source": "github",
+        "repo": "blader/humanizer"
+      }
     }
   },
   "enabledPlugins": {
-    "egm@egm": true
+    "egm@egm": true,
+    "ponytail@ponytail": true,
+    "humanizer@humanizer": true
   }
 }
