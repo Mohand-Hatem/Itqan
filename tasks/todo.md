@@ -30,15 +30,15 @@ Staging on the VPS moved to step 10.8: no server or domain is bought until the t
 
 ## Phase 2: Database and tenancy (1 week)
 
-- [ ] **2.1** PostgreSQL in docker-compose for local work and tests; `DATABASE_URL` in `.env`. _Done when:_ Prisma connects to the Docker database.
-- [ ] **2.2** Prisma in `packages/database` with one shared client. _Done when:_ `prisma generate` works and both apps import the client.
-- [ ] **2.3** Base schema: `tenants`, `memberships`, `audit_logs`. _Done when:_ the first migration applies.
-- [ ] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). _Done when:_ an unknown host returns 404.
-- [ ] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. _Done when:_ unit tests show the filter applied.
-- [ ] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). _Done when:_ the test proves tenant A cannot read or write B's rows.
-- [ ] **2.7** Seed script: first tenant and super admin placeholder. _Done when:_ `npm run db:seed` runs clean twice.
-- [ ] **2.8** Audit log service (FR-L01). _Done when:_ a test writes and reads an entry.
-- [ ] **2.9** 🔑 Neon project with a `dev` branch (`DATABASE_URL` pooled, `DIRECT_URL`) and `prisma migrate deploy` promotion from Docker to Neon `dev`. _Done when:_ Neon `dev` is migrated after all tests pass on Docker Postgres.
+- [x] **2.1** PostgreSQL in docker-compose for local work and tests (`itqan` and `itqan_test`, port 5433); `DATABASE_URL` and `TEST_DATABASE_URL` in `.env`. _Done when:_ `npm run db:up` reports healthy and both databases answer `SELECT 1`.
+- [x] **2.2** Prisma in `packages/database` with one shared client. _Done when:_ `prisma generate` works, both apps import the client, and an integration test connects to the Docker database.
+- [x] **2.3** Base schema: `tenants`, `memberships`, `audit_logs`. _Done when:_ the first migration applies.
+- [x] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). _Done when:_ an unknown host returns 404.
+- [x] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. _Done when:_ unit tests show the filter applied.
+- [x] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). _Done when:_ the test proves tenant A cannot read or write B's rows.
+- [x] **2.7** Seed script: first tenant and super admin placeholder. _Done when:_ `npm run db:seed` runs clean twice.
+- [x] **2.8** Audit log service (FR-L01). _Done when:_ a test writes and reads an entry.
+- [x] **2.9** 🔑 Neon project with a `dev` branch (`DATABASE_URL` pooled, `DIRECT_URL`) and `prisma migrate deploy` promotion from Docker to Neon `dev`. _Done when:_ Neon `dev` is migrated after all tests pass on Docker Postgres.
 
 **Checkpoint 2:** isolation tests green · owner review.
 

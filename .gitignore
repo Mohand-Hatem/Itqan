@@ -19,3 +19,6 @@ dist/
 .next/
 coverage/
 *.tsbuildinfo
+
+# Prisma generated client (rebuilt by `npm run db:generate`)
+packages/database/src/generated/

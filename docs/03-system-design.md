@@ -30,6 +30,10 @@ flowchart LR
 - **Model:** shared database, `tenant_id` on every tenant-owned table.
 - **Resolution:** from `Host`. `drahmed.<root-domain>` → `tenants.slug = 'drahmed'`. `admin.<root-domain>` is the super admin site.
 - **Enforcement:** a Prisma client extension injects `tenant_id` into every query on tenant-owned models. The tenant comes from request context (AsyncLocalStorage), never from the client.
+  - `prisma` (scoped) is the default for app code. `systemPrisma` (raw) is only for code with no request: seed, scheduled jobs, tenant lookup by host.
+  - Reads and writes get `tenantId = <current tenant>`; creates set it; a different tenant in the arguments, or moving a row to another tenant, throws `TENANT_MISMATCH`. A tenant-owned query with no context throws `NO_TENANT_CONTEXT`; an operation the extension cannot scope throws `UNSUPPORTED_OPERATION`. The super admin context passes through.
+  - Limits: raw SQL (`$queryRaw`) is not covered, so filter `tenant_id` by hand. Nested relation reads are safe because their parent row is scoped. Queries are lazy, so await them inside the request.
+  - `TENANT_MODELS` lists tenant-owned models; a unit test fails if a model with `tenantId` is missing from it.
 - **Later:** Postgres RLS as a second lock. Custom domains through Cloudflare for SaaS.
 - **Identity:** `users` are global (one per email). `memberships` link a user to a tenant with a role and status.
 - **Sessions:** cookies are host-only, so each tenant subdomain has its own session. The device cookie is set on the parent domain so a device is recognized across tenants (see ADR-004).

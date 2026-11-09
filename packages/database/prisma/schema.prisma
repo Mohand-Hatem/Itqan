@@ -1,0 +1,86 @@
+// Itqan database schema. Source of truth for columns: docs/04-database.md.
+// Conventions: UUIDv7 ids, snake_case tables and columns, UTC timestamptz.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  teacher
+  assistant
+  student
+}
+
+enum TenantStatus {
+  active
+  deleted
+}
+
+enum MembershipStatus {
+  active
+  suspended
+}
+
+model Tenant {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  slug        String       @unique
+  name        String
+  status      TenantStatus @default(active)
+  pausedRoles Role[]       @default([]) @map("paused_roles")
+  settings    Json         @default("{}")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?    @map("deleted_at") @db.Timestamptz
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model Membership {
+  id                String           @id @default(uuid(7)) @db.Uuid
+  tenantId          String           @map("tenant_id") @db.Uuid
+  // Foreign key to the Better Auth users table is added in step 4.1.
+  userId            String           @map("user_id") @db.Uuid
+  role              Role
+  status            MembershipStatus @default(active)
+  guardianConsentAt DateTime?        @map("guardian_consent_at") @db.Timestamptz
+  phone             String?
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+// Insert-only: application code never updates or deletes rows (step 2.8).
+model AuditLog {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  // Null for platform (super admin) actions.
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  // Null for system jobs. Foreign key to users is added in step 4.1.
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  meta        Json     @default("{}")
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}

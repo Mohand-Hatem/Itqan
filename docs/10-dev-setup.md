@@ -64,3 +64,22 @@ Everything below is committed, so a fresh clone gets it. You only approve, sign 
 | TanStack AI MCP docs page | For apps built with TanStack AI. Replaced by the `tanstack` docs MCP above. |
 
 Add a new skill, plugin or MCP only with a one-line reason in this file.
+
+## 6. Local database and promotion
+
+Order (CLAUDE.md): **Docker → Neon `dev` → Neon `main`**. Postgres 18 everywhere (Docker, CI, Neon).
+
+| Command | What it does |
+|---|---|
+| `npm run db:up` / `db:down` | Start / stop Postgres 18 in Docker (port 5433, databases `itqan` and `itqan_test`) |
+| `npm run db:migrate` | Create and apply a migration on the local `itqan` database (run it in your own terminal: it is interactive) |
+| `npm run db:seed` | Create the `demo` tenant if missing (safe to repeat) → `demo.localhost` |
+| `npm test` | Applies migrations to `itqan_test`, then runs every unit and integration test |
+| `npm run db:promote:dev` | Full test suite on Docker → `migrate deploy` to Neon `dev` (direct URL) → `migrate status` → test query (pooled URL). Stops at the first failure; never resets or drops data |
+
+`.env` rules:
+- `DATABASE_URL` and `TEST_DATABASE_URL` always point at **Docker**. Tests refuse any database not named `itqan_test`.
+- `NEON_DEV_DATABASE_URL` (pooled, host has `-pooler`) and `NEON_DEV_DIRECT_URL` (direct) point at the Neon **`dev`** branch, with `sslmode=verify-full`.
+- The production (`main`) URL is **not** kept in `.env` until step 10.12.
+
+Getting the Neon dev URLs: Neon console → project **Itqan** → branch `dev` → Connect, once with connection pooling on and once off. Or with the CLI: `npx neon@latest login`, then `npx neon@latest connection-string dev --project-id raspy-hill-22852603` (add `--pooled` for the pooled one). Paste into `.env` only.

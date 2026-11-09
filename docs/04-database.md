@@ -81,7 +81,7 @@ erDiagram
 |---|---|---|
 | `announcements` **T** | course_id (nullable), title, body, published_at, created_by | Creates notifications on publish. |
 | `notifications` **T** | user_id, type, title, body, data `jsonb`, read_at | Index (user_id, read_at). |
-| `audit_logs` **T** | actor_user_id, action, target_type, target_id, meta `jsonb`, ip, user_agent | Append-only; no update or delete in code. Super admin entries use `tenant_id` null. |
+| `audit_logs` **T** | actor_user_id, action, target_type, target_id, meta `jsonb`, ip, user_agent | Append-only: a Postgres trigger rejects every UPDATE; rows are deleted only by the tenant purge cascade. Written through `AuditService` (tenant, ip, user agent from the request; secret-looking `meta` keys redacted). Super admin entries use `tenant_id` null. |
 
 ## Rules
 - Soft delete (`deleted_at`) for courses, content items, questions and tenants. Everything else is hard-deleted or status-changed.

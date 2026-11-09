@@ -1,11 +1,36 @@
 {
   "name": "@itqan/database",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "prebuild": "prisma generate",
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "pretypecheck": "prisma generate",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed": "prisma db seed",
+    "promote": "node scripts/promote.mjs"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "dotenv": "^18.0.9",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "prisma": "^7.10.1",
+    "tsx": "^4.23.15"
   }
 }

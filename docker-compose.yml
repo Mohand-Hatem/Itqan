@@ -31,3 +31,27 @@ services:
       - web
       - api
     restart: unless-stopped
+
+  # Local development and tests only (profile "local"): staging and production use Neon.
+  # Same major version as the Neon project (Postgres 18). Postgres 18 images keep data under /var/lib/postgresql.
+  postgres:
+    image: postgres:18-alpine
+    profiles: ["local"]
+    environment:
+      POSTGRES_USER: itqan
+      POSTGRES_PASSWORD: itqan
+      POSTGRES_DB: itqan
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itqan -d itqan"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:

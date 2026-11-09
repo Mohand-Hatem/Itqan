@@ -21,6 +21,7 @@ COPY . .
 ENV NODE_ENV=production
 
 RUN npm run build -w @itqan/shared
+RUN npm run build -w @itqan/database
 RUN npm run build -w @itqan/api
 
 # Stage 3: Runner
@@ -34,6 +35,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
+COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 

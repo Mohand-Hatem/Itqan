@@ -11,19 +11,31 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "npm run build -w @itqan/shared && npm run typecheck -w @itqan/database && npm run typecheck -w @itqan/auth && npm run typecheck -w @itqan/api && npm run typecheck -w @itqan/web",
-    "build": "npm run build -w @itqan/shared && npm run build -w @itqan/api && npm run build -w @itqan/web",
+    "typecheck": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run typecheck -w @itqan/auth && npm run typecheck -w @itqan/api && npm run typecheck -w @itqan/web",
+    "build": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run build -w @itqan/api && npm run build -w @itqan/web",
+    "pretest": "npm run build -w @itqan/shared && npm run build -w @itqan/database",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose stop postgres",
+    "db:generate": "npm run generate -w @itqan/database",
+    "db:migrate": "npm run migrate -w @itqan/database",
+    "db:seed": "npm run seed -w @itqan/database",
+    "db:promote:dev": "npm run promote -w @itqan/database -- dev"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.6",
+    "dotenv": "^18.0.9",
     "eslint": "^10.14.0",
     "eslint-plugin-import-x": "^4.18.0",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
     "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true
   }
 }
