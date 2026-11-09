@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إنشاء حساب بالكود · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan test screen: student registration with a course access code.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  [data-state="used"] #b-used { display: flex; animation: pop .4s var(--ease-out); }
+  [data-state="sent"] .form-view { display: none; }
+  .sent-view { display: none; text-align: center; }
+  [data-state="sent"] .sent-view { display: grid; gap: 14px; justify-items: center; animation: enter .7s var(--ease-out) both; }
+  .sent-view svg { width: 150px; }
+  .sent-view .lead { margin: 0 auto 8px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row2 .field + .field { margin-top: 0; }
+  .form-view .field + .row2, .row2 + .field { margin-top: 18px; }
+  .consent { margin-top: 16px; }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } .row2 .field + .field { margin-top: 18px; } }
+
+  /* scene */
+  .ch { opacity: 0; animation: ch 6s infinite; }
+  @keyframes ch { 0% { opacity: 0; } 3%, 82% { opacity: 1; } 88%, 100% { opacity: 0; } }
+  .ticket { transform-box: view-box; transform-origin: 200px 160px; animation: ticket 4s ease-in-out infinite; }
+  @keyframes ticket { 50% { transform: rotate(-3deg) translateY(-6px); } }
+  .page { transform-box: view-box; transform-origin: 410px 0; animation: flip 3.2s var(--ease-out) infinite; }
+  @keyframes flip { 0%, 30% { transform: scaleX(1); } 60%, 100% { transform: scaleX(-1); } }
+  .march { stroke-dasharray: 6 8; animation: march 1.6s linear infinite; }
+  @keyframes march { to { stroke-dashoffset: -28; } }
+  .badge { transform-box: fill-box; transform-origin: center; animation: badge 6s var(--ease-spring) infinite; }
+  @keyframes badge { 0%, 50% { transform: scale(0); } 58%, 90% { transform: scale(1); } 100% { transform: scale(0); } }
+</style>
+</head>
+<body data-state="idle" data-title-en="Create account with a code · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to the form">انتقل إلى النموذج</a>
+
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(60 22 22)"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(-60 22 22)"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Third year secondary">الصف الثالث الثانوي</span></span>
+  </a>
+  <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+</header>
+
+<main id="main" class="auth">
+  <section class="auth-card enter" aria-labelledby="t">
+    <div class="form-view">
+      <h1 id="t" data-en="Create your account with a code">أنشئ حسابك بكود الكورس</h1>
+      <p class="lead" data-en="Type the code your teacher gave you. The course opens as soon as you confirm your email.">اكتب الكود الذي استلمته من المدرس. الكورس يُفتح لك بمجرد تأكيد الإيميل.</p>
+
+      <div class="banner danger" id="b-used" role="alert">
+        <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><path d="M20 11v11" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="28" r="2" fill="#1A1712"/></svg>
+        <div><strong data-en="This code doesn't work">هذا الكود لا يعمل</strong><p data-en="It may be used already or typed wrong. Check it, or ask your teacher for a new one.">ربما استُخدم من قبل أو كُتب خطأ. راجعه، أو اطلب كودًا جديدًا من المدرس.</p></div>
+      </div>
+
+      <form data-fake="sent">
+        <div class="field">
+          <label class="label" for="code"><span data-en="Course code">كود الكورس</span></label>
+          <input class="input code" id="code" required minlength="14" autocomplete="off" placeholder="XXXX-XXXX-XXXX" aria-describedby="err-code hint-code">
+          <p class="hint" id="hint-code" data-en="12 letters and numbers, printed on your card.">12 حرفًا ورقمًا، مطبوعة على الكارت.</p>
+          <p class="err" id="err-code"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="The code has 12 characters">الكود 12 حرفًا</span></p>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label class="label" for="name"><span data-en="Full name">الاسم بالكامل</span></label>
+            <input class="input" id="name" required autocomplete="name" aria-describedby="err-name">
+            <p class="err" id="err-name"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Write your name">اكتب اسمك</span></p>
+          </div>
+          <div class="field">
+            <label class="label" for="email"><span data-en="Email">الإيميل</span></label>
+            <input class="input" id="email" type="email" required autocomplete="email" dir="ltr" placeholder="name@email.com" aria-describedby="err-email">
+            <p class="err" id="err-email"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Enter a valid email">اكتب إيميل صحيح</span></p>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="pw"><span data-en="Password">كلمة السر</span></label>
+          <div class="input-wrap">
+            <input class="input" id="pw" type="password" required minlength="8" autocomplete="new-password" aria-describedby="err-pw hint-pw">
+            <button class="peek" type="button" aria-pressed="false" aria-label="إظهار كلمة السر" data-en-aria-label="Show password">
+              <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-shut" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
+          <p class="hint" id="hint-pw" data-en="8 characters or more.">8 أحرف أو أكثر.</p>
+          <p class="err" id="err-pw"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Use at least 8 characters">استخدم 8 أحرف على الأقل</span></p>
+        </div>
+        <label class="check consent check-hit">
+          <input type="checkbox" id="consent" required aria-describedby="err-consent">
+          <span data-en="I'm 18 or older, or my parent or guardian agrees to this account.">عمري 18 سنة أو أكثر، أو وليّ أمري موافق على هذا الحساب.</span>
+        </label>
+        <p class="err" id="err-consent"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Tick this box to continue">ضع علامة هنا للمتابعة</span></p>
+        <div class="actions">
+          <button class="btn btn-block" type="submit"><span class="spin" aria-hidden="true"></span><span data-en="Create account and open course">أنشئ الحساب وافتح الكورس</span></button>
+        </div>
+      </form>
+      <p class="auth-foot"><span data-en="Already have an account?">عندك حساب بالفعل؟</span> <a href="login.html" data-en="Log in">سجّل الدخول</a><span aria-hidden="true">·</span><span data-en="Got an invitation email? Open the link inside it.">وصلتك دعوة على الإيميل؟ افتح الرابط الذي فيها.</span></p>
+    </div>
+
+    <div class="sent-view" role="status">
+      <svg viewBox="0 0 150 120" aria-hidden="true">
+        <rect x="14" y="30" width="122" height="80" rx="10" fill="#FFC22E" stroke="#1A1712" stroke-width="3"/>
+        <path d="M16 36l59 42 59-42" fill="none" stroke="#1A1712" stroke-width="3" stroke-linejoin="round"/>
+        <circle class="twinkle" cx="128" cy="22" r="6" fill="#E9502E"/><circle class="twinkle d2" cx="20" cy="14" r="4" fill="#2B5FE3"/>
+      </svg>
+      <h1 data-en="Check your email">افتح الإيميل</h1>
+      <p class="lead" data-en="We sent you a link. Open it to confirm your email, and the course opens right away.">أرسلنا لك رابطًا. افتحه لتأكيد الإيميل، والكورس يُفتح فورًا.</p>
+      <button class="btn btn-light btn-sm" type="button" onclick="itqanSetState('idle')" data-en="Use another email">استخدم إيميلًا آخر</button>
+    </div>
+  </section>
+
+  <aside class="auth-art enter d2" aria-label="رسم توضيحي" data-en-aria-label="Illustration">
+    <p class="art-say" data-en="One code, one course, yours for good.">كود واحد، كورس كامل، ملكك للأبد.</p>
+
+    <svg class="art-svg" viewBox="0 0 520 420" role="img" aria-labelledby="art-t">
+      <title id="art-t">طالب يرفع تذكرة عليها كود الكورس، وكتاب يقلب صفحاته</title>
+      <!-- dashed link ticket -> book -->
+      <path class="ink-thin march" d="M300 150 C 330 120, 350 120, 372 150"/>
+
+      <!-- open book (course) -->
+      <g class="float d2">
+        <path d="M352 218 L410 202 L468 218 L468 296 L410 280 L352 296 Z" fill="#FFFDF8" class="ink"/>
+        <path d="M410 202 V280" class="ink"/>
+        <path d="M364 228 l34 -8 M364 242 l34 -8 M364 256 l24 -6 M422 220 l34 8 M422 234 l34 8" class="ink-thin" stroke-width="2.2"/>
+        <path class="page ink" d="M410 202 L452 214 L452 286 L410 280Z" fill="#FFE9B0" stroke-width="2.6"/>
+        <path d="M352 296 L410 280 L468 296 L468 306 L410 292 L352 306Z" fill="#2B5FE3" class="ink" stroke-width="2.6"/>
+      </g>
+      <g class="badge"><circle cx="460" cy="186" r="20" fill="#3F9D7B" class="ink" stroke-width="2.6"/><path d="M450 186l7 7 13-14" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+      <!-- student (full body) -->
+      <g>
+        <!-- legs -->
+        <path d="M186 300 L178 372" stroke="#1A1712" stroke-width="26" stroke-linecap="round"/>
+        <path d="M218 300 L228 372" stroke="#1A1712" stroke-width="26" stroke-linecap="round"/>
+        <path d="M160 380 q4 -14 24 -12 l6 12z" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <path d="M222 368 q20 -2 26 12 h-30z" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <!-- torso -->
+        <path d="M150 300 C 146 228, 168 190, 202 186 C 236 190, 258 228, 254 300 Z" fill="#FFC22E" class="ink"/>
+        <path d="M188 190 Q202 202 216 190" fill="none" class="ink"/>
+        <path d="M150 288 h104" class="ink-thin" stroke-width="2.4"/>
+        <!-- head -->
+        <circle cx="171" cy="132" r="8" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <circle cx="233" cy="132" r="8" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <ellipse cx="202" cy="130" rx="31" ry="36" fill="#FFFDF8" class="ink"/>
+        <g fill="#1A1712" class="ink" stroke-width="2">
+          <circle cx="173" cy="106" r="15"/><circle cx="185" cy="89" r="17"/><circle cx="204" cy="83" r="18"/>
+          <circle cx="223" cy="89" r="16"/><circle cx="234" cy="106" r="13"/><circle cx="168" cy="122" r="8"/><circle cx="238" cy="120" r="8"/>
+        </g>
+        <g fill="none" stroke="#FFFDF8" stroke-width="1.6" stroke-linecap="round" opacity=".55">
+          <path d="M178 88a6 6 0 0 1 10 2"/><path d="M198 78a6 6 0 0 1 10 2"/><path d="M218 86a6 6 0 0 1 9 3"/>
+        </g>
+        <path d="M186 117 q5 -4 10 -1 M208 116 q5 -3 10 1" class="ink-thin" stroke-width="2.4"/>
+        <ellipse class="blink" cx="191" cy="128" rx="3" ry="3.6" fill="#1A1712"/>
+        <ellipse class="blink" cx="213" cy="128" rx="3" ry="3.6" fill="#1A1712"/>
+        <path d="M202 132 q-3 7 1 9" class="ink-thin" stroke-width="2.2"/>
+        <path d="M188 146 Q202 162 216 146 Z" fill="#1A1712" class="ink" stroke-width="2.4"/>
+      </g>
+
+      <!-- sleeves -->
+      <path d="M160 236 C 140 250, 118 246, 104 236" fill="none" stroke="#1A1712" stroke-width="26" stroke-linecap="round"/>
+      <path d="M160 236 C 140 250, 118 246, 104 236" fill="none" stroke="#FFC22E" stroke-width="20" stroke-linecap="round"/>
+      <path d="M244 236 C 264 250, 286 246, 300 236" fill="none" stroke="#1A1712" stroke-width="26" stroke-linecap="round"/>
+      <path d="M244 236 C 264 250, 286 246, 300 236" fill="none" stroke="#FFC22E" stroke-width="20" stroke-linecap="round"/>
+
+      <!-- ticket held up with both hands -->
+      <g class="ticket">
+        <path d="M104 196 h196 a8 8 0 0 1 8 8 v14 a12 12 0 0 0 0 24 v14 a8 8 0 0 1 -8 8 h-196 a8 8 0 0 1 -8 -8 v-14 a12 12 0 0 0 0 -24 v-14 a8 8 0 0 1 8 -8z" fill="#FFFDF8" class="ink"/>
+        <path d="M134 198 V262" stroke="#1A1712" stroke-width="2" stroke-dasharray="4 6"/>
+        <rect x="106" y="206" width="20" height="48" rx="4" fill="#FFC22E"/>
+        <text x="220" y="238" text-anchor="middle" direction="ltr" font-family="Readex Pro, sans-serif" font-weight="700" font-size="22" letter-spacing="2" fill="#1A1712">
+          <tspan class="ch" style="animation-delay:0s">K</tspan><tspan class="ch" style="animation-delay:.18s">R</tspan><tspan class="ch" style="animation-delay:.36s">M</tspan><tspan class="ch" style="animation-delay:.54s">4</tspan><tspan class="ch" style="animation-delay:.72s">-</tspan><tspan class="ch" style="animation-delay:.9s">7</tspan><tspan class="ch" style="animation-delay:1.08s">F</tspan><tspan class="ch" style="animation-delay:1.26s">Q</tspan><tspan class="ch" style="animation-delay:1.44s">2</tspan>
+        </text>
+        <path d="M150 252 h140" stroke="#1A1712" stroke-width="2" stroke-linecap="round" opacity=".25"/>
+        <!-- hands -->
+        <circle cx="98" cy="232" r="13" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <circle cx="306" cy="232" r="13" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+      </g>
+      <!-- sparkles + dots -->
+      <path class="twinkle ink" d="M80 120 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" fill="#FFFDF8" stroke-width="2"/>
+      <path class="twinkle d2" d="M330 70 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="#1A1712"/>
+      <circle class="twinkle d3" cx="470" cy="110" r="5" fill="#E9502E"/>
+      <circle class="twinkle" cx="40" cy="300" r="5" fill="#2B5FE3"/>
+      <circle class="twinkle d2" cx="300" cy="350" r="4" fill="#1A1712"/>
+      <path d="M110 392 H420" class="ink" stroke-width="3.5"/>
+    </svg>
+
+    <div class="note">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M5 9h24a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6v-3a2 2 0 0 1 2-2z" fill="#FFC22E" stroke="#1A1712" stroke-width="2.2"/><path d="M12 10v14" stroke="#1A1712" stroke-width="2" stroke-dasharray="2 3"/></svg>
+      <div><b data-en="Each code works once">كل كود يعمل مرة واحدة</b><span data-en="Keep it private until you use it.">احتفظ به لنفسك حتى تستخدمه.</span></div>
+    </div>
+  </aside>
+</main>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="idle" aria-pressed="true" data-en="Normal">عادي</button>
+  <button type="button" data-state="used" aria-pressed="false" data-en="Used code">كود مستخدم</button>
+  <button type="button" data-state="sent" aria-pressed="false" data-en="Email sent">تم الإرسال</button>
+  <a href="index.html" data-en="All screens">كل الشاشات</a>
+</nav>
+<script src="shared/itqan.js"></script>
+</body>
+</html>

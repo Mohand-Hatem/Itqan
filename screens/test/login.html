@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تسجيل الدخول · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan test screen: student login with one-device rule.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  /* states driven by body[data-state] */
+  [data-state="wrong"] #b-wrong, [data-state="device"] #b-device,
+  [data-state="session"] #b-session, [data-state="ok"] #b-ok { display: flex; animation: pop .4s var(--ease-out); }
+
+  /* scene motion */
+  .steam path { stroke-dasharray: 46; animation: steam 2.8s ease-in-out infinite; }
+  .steam path:nth-child(2) { animation-delay: -.9s; } .steam path:nth-child(3) { animation-delay: -1.8s; }
+  @keyframes steam { 0% { stroke-dashoffset: 46; opacity: 0; transform: translateY(6px); } 40% { opacity: 1; } 100% { stroke-dashoffset: -46; opacity: 0; transform: translateY(-10px); } }
+  .glow { animation: glow 3.2s ease-in-out infinite; }
+  @keyframes glow { 50% { opacity: .45; } }
+  .wave { transform-box: view-box; transform-origin: 322px 246px; animation: wave 2.6s var(--ease-out) infinite; }
+  @keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(-14deg); } 20%, 40% { transform: rotate(6deg); } }
+  .tick { stroke-dasharray: 40; stroke-dashoffset: 40; animation: tick 4s var(--ease-out) infinite; }
+  @keyframes tick { 0%, 15% { stroke-dashoffset: 40; } 35%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+  .march { stroke-dasharray: 6 8; animation: march 1.6s linear infinite; }
+  @keyframes march { to { stroke-dashoffset: -28; } }
+  .key { transform-box: fill-box; transform-origin: center; animation: key 4s ease-in-out infinite; }
+  @keyframes key { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(10deg); } }
+</style>
+</head>
+<body data-state="idle" data-title-en="Log in · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to the form">انتقل إلى النموذج</a>
+
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(60 22 22)"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(-60 22 22)"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Third year secondary">الصف الثالث الثانوي</span></span>
+  </a>
+  <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+</header>
+
+<main id="main" class="auth">
+  <section class="auth-card enter" aria-labelledby="t">
+    <h1 id="t" data-en="Log in">تسجيل الدخول</h1>
+    <p class="lead" data-en="Pick up your lectures and exams where you left off.">كمّل محاضراتك وامتحاناتك من حيث توقفت.</p>
+
+    <div class="banner danger" id="b-wrong" role="alert">
+      <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><path d="M20 11v11" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="28" r="2" fill="#1A1712"/></svg>
+      <div><strong data-en="Email or password is wrong">الإيميل أو كلمة السر غير صحيحة</strong><p data-en="Check both and try again, or reset your password.">راجع الاثنين وحاول مرة أخرى، أو أعد تعيين كلمة السر.</p></div>
+    </div>
+    <div class="banner" id="b-device" role="alert">
+      <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="19" rx="3" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><path d="M2 32h36" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/><path d="M16 15l8 7M24 15l-8 7" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div><strong data-en="This account is linked to another device.">هذا الحساب مربوط بجهاز آخر.</strong><p data-en="Ask your teacher to move your account to this device. You'll need your password.">اطلب من المدرس نقل حسابك إلى هذا الجهاز. ستحتاج كلمة السر.</p>
+      <a class="btn btn-sm btn-light" href="#" data-en="Request device change">اطلب تغيير الجهاز</a></div>
+    </div>
+    <div class="banner" id="b-session" role="alert">
+      <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><path d="M20 10v10l6 4" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div><strong data-en="Your account is signed in on another device.">حسابك مفتوح على جهاز آخر.</strong><p data-en="Sign out there first, or ask to end that session.">سجّل الخروج من هناك أولًا، أو اطلب إنهاء تلك الجلسة.</p>
+      <a class="btn btn-sm btn-light" href="#" data-en="Request sign-out of other device">اطلب الخروج من الجهاز الآخر</a></div>
+    </div>
+    <div class="banner" id="b-ok" role="status" style="background:var(--mint-tint);border-color:var(--mint)">
+      <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#3F9D7B" stroke="#1A1712" stroke-width="2.5"/><path d="M12 20l6 6 10-12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><strong data-en="You're in. Opening your courses…">تم الدخول. جاري فتح كورساتك…</strong><p data-en="This device is now your study device.">هذا الجهاز أصبح جهاز المذاكرة الخاص بك.</p></div>
+    </div>
+
+    <form data-fake="ok">
+      <div class="field">
+        <label class="label" for="email"><span data-en="Email">الإيميل</span></label>
+        <input class="input" id="email" type="email" required autocomplete="email" dir="ltr" placeholder="name@email.com" aria-describedby="err-email">
+        <p class="err" id="err-email"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Enter an email like name@email.com">اكتب إيميل صحيح مثل name@email.com</span></p>
+      </div>
+      <div class="field">
+        <label class="label" for="pw"><span data-en="Password">كلمة السر</span><a href="forgot-password.html" data-en="Forgot it?">نسيتها؟</a></label>
+        <div class="input-wrap">
+          <input class="input" id="pw" type="password" required minlength="8" autocomplete="current-password" aria-describedby="err-pw">
+          <button class="peek" type="button" aria-pressed="false" aria-label="إظهار كلمة السر" data-en-aria-label="Show password">
+            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-shut" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+          </button>
+        </div>
+        <p class="err" id="err-pw"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E9502E"/><path d="M8 4.5v4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.3" r="1" fill="#fff"/></svg><span data-en="Password is at least 8 characters">كلمة السر 8 أحرف على الأقل</span></p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-block" type="submit"><span class="spin" aria-hidden="true"></span><span data-en="Log in">دخول</span></button>
+      </div>
+    </form>
+
+    <p class="auth-foot"><span data-en="Got a course code?">معك كود كورس؟</span> <a href="signup.html" data-en="Create your account">أنشئ حسابك</a></p>
+  </section>
+
+  <aside class="auth-art enter d2" aria-label="رسم توضيحي" data-en-aria-label="Illustration">
+    <p class="art-say" data-en="Welcome back. Your desk is ready.">أهلًا بعودتك. مكتبك جاهز.</p>
+
+    <svg class="art-svg" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
+      <title id="art-t">طالب يلوّح من خلف لابتوب على مكتبه، مع فقاعة تفكير فيها جهاز وعلامة صح</title>
+      <!-- thought bubbles + dashed links (ref 02) -->
+      <path class="ink-thin march" d="M150 128 C 175 150, 200 150, 214 168" />
+      <path class="ink-thin march" d="M392 104 C 360 120, 330 128, 304 150" />
+      <g class="float">
+        <path d="M70 92c-6-24 22-38 40-24 8-20 44-18 50 4 22-4 34 22 18 36 10 18-10 34-28 26-10 16-40 16-50 0-22 8-40-12-30-42z" fill="#FFFDF8" class="ink"/>
+        <rect x="96" y="80" width="54" height="34" rx="4" fill="#FFC22E" class="ink-thin" stroke-width="2.5" style="fill:#FFC22E"/>
+        <path d="M88 120h70" class="ink-thin" stroke-width="2.5"/>
+        <path class="tick" d="M110 97l8 8 16-16" fill="none" stroke="#1A1712" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <g class="float d2">
+        <path d="M372 70c-4-18 18-30 32-18 8-14 34-12 38 4 18-2 26 18 12 28 6 16-10 26-24 20-8 12-30 12-38 0-16 4-28-14-20-34z" fill="#FFFDF8" class="ink"/>
+        <g class="key"><circle cx="402" cy="80" r="10" fill="none" class="ink" stroke-width="3"/><path d="M412 80h24M428 80v8M434 80v6" class="ink" fill="none"/></g>
+      </g>
+      <circle cx="176" cy="150" r="5" fill="#FFFDF8" class="ink" stroke-width="2"/><circle cx="194" cy="162" r="3" fill="#FFFDF8" class="ink" stroke-width="2"/>
+
+      <!-- lamp glow -->
+      <path class="glow" d="M420 206 L370 318 L470 318 Z" fill="#FFF3C4" opacity=".75"/>
+
+      <!-- student -->
+      <g>
+        <!-- waving arm (behind body) -->
+        <g class="wave">
+          <path d="M318 248 C 336 232, 350 210, 356 184" fill="none" stroke="#1A1712" stroke-width="27" stroke-linecap="round"/>
+          <path d="M318 248 C 336 232, 350 210, 356 184" fill="none" stroke="#FFC22E" stroke-width="21" stroke-linecap="round"/>
+          <path d="M346 186c-2-12 4-22 12-22s12 8 10 18c4-8 12-6 12 0 0 8-8 14-16 16-8 2-16-2-18-12z" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+          <path d="M346 198h22" class="ink-thin" stroke-width="2.5"/>
+        </g>
+        <path d="M188 318 C 186 262, 212 232, 260 228 C 308 232, 334 262, 332 318 Z" fill="#FFC22E" class="ink"/>
+        <path d="M244 230 Q260 242 276 230" fill="none" class="ink"/>
+        <path d="M214 286 q6 -14 4 -32 M306 286 q-6 -14 -4 -32" class="ink-thin" stroke-width="2.4"/>
+        <!-- head -->
+        <circle cx="229" cy="176" r="8" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <circle cx="291" cy="176" r="8" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+        <ellipse cx="260" cy="174" rx="31" ry="36" fill="#FFFDF8" class="ink"/>
+        <g fill="#1A1712" class="ink" stroke-width="2">
+          <circle cx="231" cy="150" r="15"/><circle cx="243" cy="133" r="17"/><circle cx="262" cy="127" r="18"/>
+          <circle cx="281" cy="133" r="16"/><circle cx="292" cy="150" r="13"/><circle cx="226" cy="166" r="8"/><circle cx="296" cy="164" r="8"/>
+        </g>
+        <g fill="none" stroke="#FFFDF8" stroke-width="1.6" stroke-linecap="round" opacity=".55">
+          <path d="M236 132a6 6 0 0 1 10 2"/><path d="M256 122a6 6 0 0 1 10 2"/><path d="M276 130a6 6 0 0 1 9 3"/><path d="M226 148a5 5 0 0 1 8 2"/>
+        </g>
+        <path d="M244 162 q5 -3 10 0 M266 162 q5 -3 10 0" class="ink-thin" stroke-width="2.4"/>
+        <ellipse class="blink" cx="249" cy="172" rx="3" ry="3.6" fill="#1A1712"/>
+        <ellipse class="blink" cx="271" cy="172" rx="3" ry="3.6" fill="#1A1712"/>
+        <path d="M260 176 q-3 7 1 9" class="ink-thin" stroke-width="2.2"/>
+        <path d="M249 192 Q260 202 272 191" fill="none" class="ink" stroke-width="2.8"/>
+      </g>
+
+      <!-- laptop (back of lid towards us) -->
+      <path d="M198 252 h124 a6 6 0 0 1 6 6 v60 h-136 v-60 a6 6 0 0 1 6 -6z" fill="#FFFDF8" class="ink"/>
+      <circle cx="260" cy="284" r="6" fill="#2B5FE3"/>
+
+      <!-- desk -->
+      <path d="M30 318 H490" class="ink" stroke-width="3.5"/>
+      <!-- plant -->
+      <g class="sway">
+        <path d="M86 272 C 60 250, 52 214, 62 186 C 82 206, 92 238, 86 272Z" fill="#6E8F57" class="ink" stroke-width="2.6"/>
+        <path d="M92 270 C 104 236, 128 214, 150 210 C 146 240, 122 262, 92 270Z" fill="#6E8F57" class="ink" stroke-width="2.6"/>
+        <path d="M88 270 C 86 230, 94 196, 110 176 C 120 206, 108 246, 88 270Z" fill="#6E8F57" class="ink" stroke-width="2.6"/>
+      </g>
+      <path d="M66 272 h48 l-6 46 h-36z" fill="#1A1712" class="ink"/>
+      <!-- mug + steam -->
+      <g class="steam" fill="none" stroke="#1A1712" stroke-width="2" stroke-linecap="round">
+        <path d="M150 268 c -6 -8 6 -14 0 -24"/><path d="M162 268 c -6 -8 6 -14 0 -24"/><path d="M174 268 c -6 -8 6 -14 0 -24"/>
+      </g>
+      <path d="M144 278 h38 v30 a8 8 0 0 1 -8 8 h-22 a8 8 0 0 1 -8 -8z" fill="#FFFDF8" class="ink"/>
+      <path d="M182 286 h6 a8 8 0 0 1 0 16 h-6" fill="none" class="ink"/>
+      <!-- books -->
+      <rect x="346" y="300" width="70" height="18" rx="3" fill="#FFC22E" class="ink" stroke-width="2.6"/>
+      <rect x="352" y="284" width="62" height="16" rx="3" fill="#2B5FE3" class="ink" stroke-width="2.6"/>
+      <rect x="348" y="268" width="66" height="16" rx="3" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+      <!-- lamp -->
+      <ellipse cx="462" cy="316" rx="22" ry="5" fill="#1A1712"/>
+      <path d="M462 312 L 478 252 L 446 214" fill="none" class="ink" stroke-width="4"/>
+      <circle cx="478" cy="252" r="5" fill="#1A1712"/>
+      <path d="M452 196 C 436 194, 414 204, 408 222 L 444 236 C 452 220, 456 208, 452 196Z" fill="#1A1712" class="ink"/>
+      <!-- confetti dots (ref 02) -->
+      <circle class="twinkle" cx="40" cy="60" r="5" fill="#2B5FE3"/>
+      <circle class="twinkle d2" cx="486" cy="40" r="5" fill="#E9502E"/>
+      <circle class="twinkle d3" cx="30" cy="230" r="4" fill="#1A1712"/>
+      <circle class="twinkle" cx="500" cy="170" r="4" fill="#FFFDF8"/>
+    </svg>
+
+    <div class="note">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="7" width="28" height="18" rx="3" fill="#FFC22E" stroke="#1A1712" stroke-width="2.2"/><path d="M1 29h32" stroke="#1A1712" stroke-width="2.2" stroke-linecap="round"/><path d="M11 16l4 4 8-8" fill="none" stroke="#1A1712" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><b data-en="One device per student">جهاز واحد لكل طالب</b><span data-en="Your first login saves this device as yours.">أول دخول يحفظ هذا الجهاز كجهازك.</span></div>
+    </div>
+  </aside>
+</main>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="idle" aria-pressed="true" data-en="Normal">عادي</button>
+  <button type="button" data-state="wrong" aria-pressed="false" data-en="Wrong password">كلمة سر خطأ</button>
+  <button type="button" data-state="device" aria-pressed="false" data-en="Other device">جهاز آخر</button>
+  <button type="button" data-state="session" aria-pressed="false" data-en="Open session">جلسة مفتوحة</button>
+  <a href="index.html" data-en="All screens">كل الشاشات</a>
+</nav>
+<script src="shared/itqan.js"></script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كيف تبدأ · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan test screen: how a student starts, in four steps.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .head { max-width: var(--page); margin: 0 auto; padding: 32px var(--gutter) 8px; text-align: center; }
+  .head h1 { font-size: clamp(36px, 4.6vw, 62px); font-weight: 800; }
+  .head p { color: var(--ink-2); max-width: 52ch; margin: 24px auto 0; font-size: 18px; }
+
+  .steps-wrap { position: relative; isolation: isolate; max-width: var(--page-text); margin: 0 auto; }
+  .steps { margin: 0; padding: 40px var(--gutter) 40px; list-style: none; display: grid; gap: 40px; }
+
+  .step + .step::before {
+    content: ""; display: block; grid-column: 1 / -1; height: 56px; margin: -28px auto 8px; width: 120px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 56'%3E%3Cpath d='M10 4 C 10 40, 110 16, 110 52' fill='none' stroke='%231A1712' stroke-width='2.4' stroke-dasharray='6 8' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .step:nth-child(odd)::before { transform: scaleX(-1); }
+  .step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: center; }
+  .step:nth-child(even) .tile { order: 2; }
+  .tile {
+    position: relative; background: var(--sun); border-radius: var(--r-panel); aspect-ratio: 6 / 5;
+    display: grid; place-items: center; padding: 22px; isolation: isolate; overflow: hidden;
+    transition: transform .3s var(--ease-out);
+  }
+  .step:nth-child(2) .tile { background: var(--paper); box-shadow: var(--shadow); }
+  .step:nth-child(4) .tile { background: var(--paper); box-shadow: var(--shadow); }
+  .tile svg { width: 100%; max-width: 460px; }
+  .step:hover .tile { transform: translateY(-3px) rotate(-.6deg); }
+  .num {
+    width: 54px; height: 54px; border-radius: 50%; border: 2.5px solid var(--ink); background: var(--sun);
+    display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 26px; margin-bottom: 16px;
+    box-shadow: 0 3px 0 var(--ink);
+  }
+  .step:nth-child(odd) .num { background: var(--paper); }
+  .txt h2 { font-size: clamp(26px, 2.8vw, 38px); font-weight: 800; }
+  .txt p { color: var(--ink-2); margin-top: 10px; max-width: 44ch; font-size: 17px; }
+  .txt .tip { margin-top: 16px; display: inline-flex; gap: 10px; align-items: center; background: var(--paper); border: 2px dashed var(--line); border-radius: 14px; padding: 8px 14px; font-size: 14.5px; color: var(--ink-2); }
+  .txt .tip svg { width: 22px; height: 22px; flex: none; }
+
+  .close { max-width: var(--page-text); margin: 20px auto 110px; padding: 0 var(--gutter); }
+  .close-in { background: var(--ink); color: var(--paper); border-radius: var(--r-panel); padding: clamp(28px, 4vw, 52px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 22px; }
+  .close h2 { font-size: clamp(26px, 3vw, 40px); color: var(--sun); }
+  .close p { color: #E8DEC8; margin-top: 6px; }
+  .close .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .close .btn { box-shadow: 0 3px 0 var(--sun); border-color: var(--sun); }
+  .close .btn-light { --bg: transparent; --fg: var(--paper); border-color: var(--paper); box-shadow: none; }
+  .close .btn-light:hover { background: rgba(255, 255, 255, .1); }
+
+  /* vignette motion */
+  .pass { animation: pass 3.6s var(--ease-out) infinite; }
+  @keyframes pass { 0%, 15% { transform: translateX(0); } 50%, 85% { transform: translateX(-92px); } 100% { transform: translateX(0); } }
+  .coin { transform-box: fill-box; transform-origin: center; animation: coin 3.6s var(--ease-spring) infinite; }
+  .coin.d2 { animation-delay: .25s; }
+  @keyframes coin { 0%, 40% { transform: translateY(14px) scale(0); } 55%, 85% { transform: translateY(0) scale(1); } 100% { transform: translateY(-10px) scale(0); } }
+  .typing { animation: typing 4s steps(9) infinite; }
+  @keyframes typing { 0% { width: 0; } 50%, 100% { width: 126px; } }
+  .ok { transform-box: fill-box; transform-origin: center; animation: ok 4s var(--ease-spring) infinite; }
+  @keyframes ok { 0%, 55% { transform: scale(0); } 65%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+  .shackle { animation: shackle 3s var(--ease-out) infinite; }
+  @keyframes shackle { 0%, 20% { transform: translateY(-9px); } 40%, 90% { transform: translateY(0); } 100% { transform: translateY(-9px); } }
+  .shield { transform-box: fill-box; transform-origin: center; animation: shield 3s ease-in-out infinite; }
+  @keyframes shield { 40% { transform: scale(1); } 50% { transform: scale(1.08); } 60% { transform: scale(1); } }
+  .nope { animation: nope 3s ease-in-out infinite; }
+  @keyframes nope { 0%, 30% { opacity: 1; } 50%, 90% { opacity: .35; } }
+  .nope .x { stroke-dasharray: 30; stroke-dashoffset: 30; animation: x 3s ease-in-out infinite; }
+  @keyframes x { 0%, 40% { stroke-dashoffset: 30; } 55%, 90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 30; } }
+  .cap { transform-box: fill-box; transform-origin: center; animation: cap 2.8s cubic-bezier(.5, 0, .5, 1) infinite; }
+  @keyframes cap { 0%, 100% { transform: translateY(0) rotate(0); } 45% { transform: translateY(-46px) rotate(-14deg); } 70% { transform: translateY(-34px) rotate(8deg); } }
+  .bar { animation: bar 4s linear infinite; transform-box: fill-box; transform-origin: 100% 50%; }
+  [dir="ltr"] .bar { transform-origin: 0 50%; }
+  @keyframes bar { from { transform: scaleX(.05); } to { transform: scaleX(1); } }
+
+  @media (max-width: 760px) {
+    .step { grid-template-columns: 1fr; }
+    .step:nth-child(even) .tile { order: 0; }
+    .steps { gap: 48px; }
+  }
+  @media (max-width: 520px) { .steps, .close, .head { padding-inline: 16px; } }
+</style>
+</head>
+<body data-title-en="How it works · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(60 22 22)"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(-60 22 22)"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Third year secondary">الصف الثالث الثانوي</span></span>
+  </a>
+  <div class="topbar-actions">
+    <button class="lang" type="button">English</button>
+    <a class="btn btn-sm" href="signup.html" data-en="I have a code">معي كود</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="head enter">
+    <h1><span data-en="From code to your first lecture,">من الكود لأول محاضرة</span><br><span class="swoosh"><span data-en="in four steps">في ٤ خطوات</span><svg viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 20 C 70 6, 160 4, 296 14"/></svg></span></h1>
+    <p data-en="No online payment and no long forms. You pay the teacher, get a code, and the course opens on your device.">لا دفع أونلاين ولا نماذج طويلة. تدفع للمدرس، تستلم كودًا، والكورس يُفتح على جهازك.</p>
+  </section>
+
+  <div class="steps-wrap">
+  <ol class="steps">
+
+    <!-- 1: pay the teacher, get the code -->
+    <li class="step">
+      <div class="tile">
+        <svg viewBox="0 0 380 300" role="img" aria-label="المدرس يسلّم الطالب كارت الكود" data-en-aria-label="The teacher hands the student a code card">
+          <!-- teacher arm (white sleeve, ref 05) from the right -->
+          <path d="M392 150 C 340 150, 300 156, 268 160" fill="none" stroke="#1A1712" stroke-width="40" stroke-linecap="round"/>
+          <path d="M392 150 C 340 150, 300 156, 268 160" fill="none" stroke="#FFFDF8" stroke-width="33" stroke-linecap="round"/>
+          <path d="M300 140 v40" class="ink-thin" stroke-width="2.4"/>
+          <!-- student arm (yellow sweater) from the left -->
+          <path d="M-12 170 C 40 170, 80 166, 112 162" fill="none" stroke="#1A1712" stroke-width="40" stroke-linecap="round"/>
+          <path d="M-12 170 C 40 170, 80 166, 112 162" fill="none" stroke="#FFC22E" stroke-width="33" stroke-linecap="round"/>
+          <path d="M80 148 v38" class="ink-thin" stroke-width="2.4"/>
+          <path d="M110 146 c 18 -6 30 2 30 16 0 14 -12 22 -30 16z" fill="#FFFDF8" class="ink" stroke-width="2.8"/>
+          <!-- the card travels from teacher to student -->
+          <g class="pass">
+            <g transform="rotate(-8 230 150)">
+              <rect x="196" y="122" width="96" height="58" rx="8" fill="#FFFDF8" class="ink"/>
+              <rect x="198" y="124" width="18" height="54" rx="6" fill="#1A1712"/>
+              <path d="M226 142 h52 M226 156 h36" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/>
+              <path d="M226 168 h44" stroke="#E9502E" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 4"/>
+            </g>
+          </g>
+          <path d="M276 144 c -18 -6 -30 2 -30 16 0 14 12 22 30 16z" fill="#FFFDF8" class="ink" stroke-width="2.8"/>
+          <!-- paid: coins pop -->
+          <g class="coin"><circle cx="300" cy="80" r="16" fill="#FFC22E" class="ink"/><path d="M300 72 v16 M295 76 h8 a3 3 0 0 1 0 6 h-6 a3 3 0 0 0 0 6 h8" fill="none" stroke="#1A1712" stroke-width="2.2" stroke-linecap="round"/></g>
+          <g class="coin d2"><circle cx="336" cy="100" r="12" fill="#FFC22E" class="ink" stroke-width="2.6"/></g>
+          <circle class="twinkle" cx="60" cy="60" r="5" fill="#2B5FE3"/><circle class="twinkle d2" cx="180" cy="250" r="5" fill="#E9502E"/><circle class="twinkle d3" cx="340" cy="250" r="4" fill="#FFFDF8"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="num" data-en="1">١</div>
+        <h2 data-en="Pay the teacher, get your code">ادفع للمدرس واستلم كودك</h2>
+        <p data-en="Pay Mr. Karim in cash or by transfer, the way you already do. You get a printed card with one code for one course.">ادفع لأ. كريم كاش أو تحويل، كما تفعل دائمًا. تستلم كارتًا مطبوعًا عليه كود واحد لكورس واحد.</p>
+        <span class="tip"><svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="#FFC22E" stroke="#1A1712" stroke-width="1.8"/><path d="M11 6.5v5.5M11 15v.5" stroke="#1A1712" stroke-width="2" stroke-linecap="round"/></svg><span data-en="Got an email invitation instead? Open its link and skip to step 3.">وصلتك دعوة على الإيميل؟ افتح الرابط وانتقل للخطوة ٣.</span></span>
+      </div>
+    </li>
+
+    <!-- 2: create the account with the code -->
+    <li class="step">
+      <div class="tile">
+        <svg viewBox="0 0 380 300" role="img" aria-label="لابتوب عليه نموذج يُكتب فيه الكود" data-en-aria-label="A laptop form with the code being typed in">
+          <rect x="70" y="40" width="240" height="160" rx="12" fill="#FFFDF8" class="ink"/>
+          <rect x="84" y="54" width="212" height="132" rx="6" fill="#FFF6E2"/>
+          <path d="M40 214 h300 l-18 26 h-264z" fill="#FFC22E" class="ink"/>
+          <path d="M170 214 h40" class="ink" stroke-width="3"/>
+          <!-- form -->
+          <path d="M110 76 h90" stroke="#1A1712" stroke-width="5" stroke-linecap="round"/>
+          <rect x="104" y="92" width="172" height="34" rx="8" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.4"/>
+          <clipPath id="type-clip"><rect class="typing" x="114" y="94" height="30" width="126"/></clipPath>
+          <text x="118" y="115" direction="ltr" font-family="Readex Pro, sans-serif" font-weight="700" font-size="15" letter-spacing="2" fill="#1A1712" clip-path="url(#type-clip)">KRM4-7FQ2</text>
+          <rect x="104" y="136" width="172" height="20" rx="6" fill="#FFFDF8" stroke="#EBDDBF" stroke-width="2"/>
+          <rect x="104" y="162" width="96" height="16" rx="8" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+          <g class="ok"><circle cx="290" cy="60" r="24" fill="#3F9D7B" class="ink"/><path d="M279 60l7 7 14 -15" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+          <circle class="twinkle" cx="40" cy="70" r="5" fill="#E9502E"/><circle class="twinkle d2" cx="350" cy="190" r="5" fill="#2B5FE3"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="num" data-en="2">٢</div>
+        <h2 data-en="Create your account with the code">أنشئ حسابك بالكود</h2>
+        <p data-en="Type the code, your name, email and a password. Confirm your email, and the course is yours for good.">اكتب الكود واسمك وإيميلك وكلمة سر. أكّد الإيميل، والكورس ملكك للأبد.</p>
+      </div>
+    </li>
+
+    <!-- 3: your device is your key -->
+    <li class="step">
+      <div class="tile">
+        <svg viewBox="0 0 380 300" role="img" aria-label="لابتوب عليه درع وقفل، وهاتف آخر مشطوب" data-en-aria-label="A laptop with a shield and lock, and a second phone crossed out">
+          <rect x="60" y="70" width="200" height="132" rx="12" fill="#FFFDF8" class="ink"/>
+          <path d="M34 214 h252 l-16 24 h-220z" fill="#FFFDF8" class="ink"/>
+          <g class="shield">
+            <path d="M160 92 l44 14 v30 c0 28 -20 44 -44 52 c-24 -8 -44 -24 -44 -52 v-30z" fill="#FFC22E" class="ink"/>
+            <rect x="144" y="132" width="32" height="26" rx="5" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+            <path class="shackle" d="M150 132 v-8 a10 10 0 0 1 20 0 v8" fill="none" class="ink" stroke-width="2.8"/>
+            <circle cx="160" cy="145" r="3" fill="#1A1712"/>
+          </g>
+          <g class="nope">
+            <rect x="296" y="96" width="54" height="96" rx="10" fill="#FFFDF8" class="ink"/>
+            <path d="M314 104 h18" class="ink" stroke-width="2.4"/>
+            <path class="x" d="M308 128 l30 30 M338 128 l-30 30" fill="none" stroke="#E9502E" stroke-width="5" stroke-linecap="round"/>
+          </g>
+          <circle class="twinkle" cx="40" cy="50" r="5" fill="#2B5FE3"/><circle class="twinkle d2" cx="330" cy="40" r="5" fill="#1A1712"/><circle class="twinkle d3" cx="30" cy="180" r="4" fill="#E9502E"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="num" data-en="3">٣</div>
+        <h2 data-en="This device becomes yours">هذا الجهاز يصبح جهازك</h2>
+        <p data-en="Your first login saves the device you use. Your account opens there only, so nobody can share it.">أول دخول يحفظ الجهاز الذي تستخدمه. حسابك يُفتح عليه فقط، فلا أحد يقدر يشاركك فيه.</p>
+        <span class="tip"><svg viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="5" width="16" height="10" rx="2" fill="#FFC22E" stroke="#1A1712" stroke-width="1.8"/><path d="M1.5 18h19" stroke="#1A1712" stroke-width="1.8" stroke-linecap="round"/></svg><span data-en="New laptop? Request a device change and your teacher approves it.">جهاز جديد؟ اطلب تغيير الجهاز ويوافق المدرس.</span></span>
+      </div>
+    </li>
+
+    <!-- 4: study and take exams -->
+    <li class="step">
+      <div class="tile">
+        <svg viewBox="0 0 380 300" role="img" aria-label="شاشة محاضرة فيديو، وورقة امتحان بدرجة كاملة، وقبعة تخرج تقفز" data-en-aria-label="A video lecture, an exam sheet with full marks, and a bouncing graduation cap">
+          <rect x="30" y="70" width="190" height="124" rx="12" fill="#1A1712" class="ink"/>
+          <circle cx="125" cy="124" r="24" fill="#FFC22E"/>
+          <path d="M118 112 v24 l20 -12z" fill="#1A1712"/>
+          <rect x="46" y="172" width="158" height="8" rx="4" fill="#5A5142"/>
+          <rect class="bar" x="46" y="172" width="158" height="8" rx="4" fill="#FFC22E"/>
+          <g transform="rotate(6 290 170)">
+            <rect x="236" y="100" width="112" height="150" rx="8" fill="#FFFDF8" class="ink"/>
+            <path d="M252 128 l5 5 10 -11 M252 160 l5 5 10 -11 M252 192 l5 5 10 -11" fill="none" stroke="#3F9D7B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M276 128 h52 M276 160 h44 M276 192 h50" stroke="#1A1712" stroke-width="3" stroke-linecap="round" opacity=".35"/>
+            <text x="292" y="236" text-anchor="middle" direction="ltr" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="800" font-size="22" fill="#E9502E">10/10</text>
+          </g>
+          <!-- graduation cap (ref 06) -->
+          <g class="cap">
+            <path d="M260 50 l50 -20 50 20 -50 20z" fill="#1A1712" class="ink"/>
+            <path d="M282 60 v18 c 0 8 56 8 56 0 v-18 l-28 10z" fill="#1A1712" class="ink"/>
+            <path d="M286 72 c 10 6 38 6 48 0" stroke="#FFC22E" stroke-width="4" fill="none"/>
+            <path d="M310 50 l34 10 v22" fill="none" stroke="#FFC22E" stroke-width="3" stroke-linecap="round"/>
+            <path d="M340 82 l4 14 4 -14z" fill="#FFC22E" stroke="#1A1712" stroke-width="1.5"/>
+          </g>
+          <circle class="twinkle" cx="40" cy="40" r="5" fill="#E9502E"/><circle class="twinkle d2" cx="220" cy="40" r="4" fill="#2B5FE3"/><circle class="twinkle d3" cx="200" cy="260" r="5" fill="#FFC22E"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="num" data-en="4">٤</div>
+        <h2 data-en="Watch, take exams, see your grade">ذاكر وامتحن واعرف درجتك</h2>
+        <p data-en="Watch the lectures as often as you like, take each exam on time, and see your grade when the teacher releases it.">شاهد المحاضرات كما تريد، وادخل كل امتحان في موعده، واعرف درجتك عندما يعلنها المدرس.</p>
+      </div>
+    </li>
+  </ol>
+  </div>
+
+  <section class="close" aria-labelledby="c">
+    <div class="close-in">
+      <div><h2 id="c" data-en="Got your code?">معك الكود؟</h2><p data-en="It takes about two minutes to start.">البداية تأخذ حوالي دقيقتين.</p></div>
+      <div class="cta">
+        <a class="btn" href="signup.html" data-en="Create your account">أنشئ حسابك</a>
+        <a class="btn btn-light" href="login.html" data-en="Log in">تسجيل الدخول</a>
+      </div>
+    </div>
+  </section>
+</main>
+<nav class="demo" aria-label="معاينة" data-en-aria-label="Preview">
+  <span data-en="Preview: how it works">معاينة: كيف تبدأ</span>
+  <a href="index.html" data-en="All screens">كل الشاشات</a>
+</nav>
+<script src="shared/itqan.js"></script>
+</body>
+</html>

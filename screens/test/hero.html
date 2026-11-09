@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الفيزياء مع أ. كريم · الصف الثالث الثانوي</title>
+<meta name="description" content="Itqan test screen: hero of a teacher's site.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .nav { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  .nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 12px; text-decoration: none; color: var(--ink-2); font-weight: 500; transition: background-color .18s, color .18s; }
+  .nav a:hover { background: var(--sun-tint); color: var(--ink); }
+  .nav a[aria-current] { color: var(--ink); font-weight: 700; }
+
+  .hero { max-width: var(--page); margin: 0 auto; padding: 4px var(--gutter) 0; }
+  .panel {
+    position: relative; isolation: isolate; overflow: hidden;
+    background: var(--sun); border-radius: 40px;
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 12px;
+    padding: clamp(28px, 4.5vw, 64px); padding-bottom: clamp(70px, 7vw, 100px);
+    min-height: min(640px, calc(100dvh - 150px));
+  }
+  .panel::before {
+    content: ""; position: absolute; inset: -20%; z-index: -1;
+    background: repeating-radial-gradient(circle at 26% 46%, transparent 0 52px, rgba(255, 255, 255, .24) 52px 54px);
+    mask-image: radial-gradient(circle at 26% 46%, #000 0 26%, transparent 60%);
+  }
+  .copy h1 { font-size: clamp(38px, 4.8vw, 80px); font-weight: 800; line-height: 1.12; }
+  .copy .lead { font-size: clamp(17px, 1.4vw, 19px); color: #3D3426; max-width: 40ch; margin: 30px 0 32px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn-dark { --bg: var(--ink); --fg: var(--sun); box-shadow: 0 3px 0 #000; }
+  .btn-dark:hover { background: #000; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; font-size: 15px; color: #3D3426; }
+  .facts span { display: inline-flex; align-items: center; gap: 8px; }
+  .facts svg { width: 20px; height: 20px; flex: none; }
+
+  .art { position: relative; }
+  .art svg { width: 100%; max-width: 720px; margin-inline: auto; }
+  .course {
+    position: absolute; inset-inline-start: 0; top: -6px; width: min(270px, 52%);
+    background: var(--paper); border-radius: 22px; padding: 14px; box-shadow: var(--shadow-lift);
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center;
+    text-decoration: none; transition: transform .25s var(--ease-out), box-shadow .25s;
+  }
+  .course:hover { transform: translateY(-3px); }
+  .course b { font-family: var(--f-display); font-size: 18px; line-height: 1.3; }
+  .course small { grid-column: 1; color: var(--ink-2); font-size: 13.5px; }
+  .course .icon-btn { grid-row: 1 / span 2; grid-column: 2; }
+
+  /* services strip (ref 01: round icon bubbles on a yellow band) */
+  .services {
+    position: relative; margin: -46px auto 0; max-width: var(--page); padding: 0 calc(var(--gutter) + 40px);
+  }
+  .strip {
+    background: var(--paper); border-radius: 999px; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 18px; padding: 14px 18px 14px 36px;
+  }
+  [dir="ltr"] .strip { padding: 14px 36px 14px 18px; }
+  .strip h2 { font-size: 22px; font-weight: 800; padding-inline: 18px 8px; white-space: nowrap; }
+  .strip ul { display: flex; gap: 10px; list-style: none; margin: 0; padding: 0; flex: 1; justify-content: space-between; }
+  .svc { position: relative; }
+  .svc button {
+    display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 6px 18px 6px 6px; border: 0; border-radius: 999px;
+    background: transparent; cursor: pointer; text-align: start; transition: background-color .25s var(--ease-out), transform .25s var(--ease-out);
+  }
+  [dir="rtl"] .svc button { padding: 6px 6px 6px 18px; }
+  .svc .bub { width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--sun-tint); display: grid; place-items: center; transition: transform .35s var(--ease-spring), background-color .25s; }
+  .svc .bub svg { width: 30px; height: 30px; }
+  .svc b { font-family: var(--f-display); font-size: 16.5px; line-height: 1.25; display: block; white-space: nowrap; }
+  .svc small { display: block; color: var(--ink-2); font-size: 13px; max-width: 22ch; line-height: 1.45; }
+  .svc button:hover, .svc button:focus-visible, .svc button[aria-pressed="true"] { background: var(--sun-tint); }
+  .svc button:hover .bub, .svc button:focus-visible .bub, .svc button[aria-pressed="true"] .bub { transform: translateY(-4px) rotate(-6deg); background: var(--sun); }
+
+  /* scene */
+  .chk { stroke-dasharray: 30; stroke-dashoffset: 30; animation: chk 6s var(--ease-out) infinite; }
+  @keyframes chk { 0%, 8% { stroke-dashoffset: 30; } 16%, 90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 30; } }
+  .climber { animation: climb 1.6s ease-in-out infinite; }
+  @keyframes climb { 50% { transform: translateY(-5px); } }
+  .cloud { animation: drift 18s ease-in-out infinite alternate; }
+  .cloud.d2 { animation-duration: 24s; animation-direction: alternate-reverse; }
+  @keyframes drift { to { transform: translateX(26px); } }
+  .rays path { stroke-dasharray: 10; animation: rays 1.8s ease-in-out infinite; }
+  @keyframes rays { 50% { stroke-dashoffset: 10; opacity: .2; } }
+
+  @media (max-width: 1000px) {
+    .nav { display: none; }
+    .strip { border-radius: 28px; flex-direction: column; align-items: stretch; padding: 22px; }
+    [dir="ltr"] .strip { padding: 22px; }
+    .strip ul { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 860px) {
+    .panel { grid-template-columns: 1fr; min-height: 0; }
+    .art { order: 2; }
+    .course { position: static; width: auto; margin-bottom: 12px; }
+  }
+  @media (max-width: 520px) {
+    .hero { padding-inline: 12px; }
+    .panel { border-radius: 30px; padding: 28px 20px 70px; }
+    .topbar .btn-ghost { display: none; }
+    .strip ul { grid-template-columns: 1fr; }
+    .services { padding: 0 12px; }
+    .svc b { white-space: normal; }
+  }
+</style>
+</head>
+<body data-title-en="Physics with Mr. Karim · Third year secondary">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(60 22 22)"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(-60 22 22)"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Third year secondary">الصف الثالث الثانوي</span></span>
+  </a>
+  <nav aria-label="الرئيسية" data-en-aria-label="Main">
+    <ul class="nav">
+      <li><a href="hero.html" aria-current="page" data-en="Home">الرئيسية</a></li>
+      <li><a href="#courses" data-en="Courses">الكورسات</a></li>
+      <li><a href="how-it-works.html" data-en="How it works">كيف تبدأ</a></li>
+      <li><a href="#contact" data-en="Contact">تواصل</a></li>
+    </ul>
+  </nav>
+  <div class="topbar-actions">
+    <button class="lang" type="button">English</button>
+    <a class="btn btn-ghost" href="login.html" data-en="Log in">دخول</a>
+    <a class="btn btn-sm" href="signup.html" data-en="I have a code">معي كود</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" aria-labelledby="h">
+    <div class="panel">
+      <div class="copy">
+        <h1 id="h" class="enter"><span data-en="Physics makes sense">الفيزياء تبقى أسهل</span><br><span class="swoosh"><span data-en="one step at a time">خطوة بخطوة</span><svg viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 20 C 70 6, 160 4, 296 14"/></svg></span></h1>
+        <p class="lead enter d1" data-en="Recorded lectures, exams that grade themselves, and a teacher who answers your questions. Get your code from Mr. Karim and start today.">محاضرات مسجّلة، وامتحانات تُصحَّح فورًا، ومدرس يرد على أسئلتك. استلم كودك من أ. كريم وابدأ اليوم.</p>
+        <div class="cta enter d2">
+          <a class="btn btn-dark" href="signup.html"><span data-en="Start with your code">ابدأ بكود الكورس</span><svg class="flip-rtl" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-light" href="login.html" data-en="Log in">تسجيل الدخول</a>
+        </div>
+        <div class="facts enter d3">
+          <span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#FFFDF8" stroke="#1A1712" stroke-width="1.8"/><path d="M8 6.5v7l5.5-3.5z" fill="#1A1712"/></svg><span data-en="Watch any time">شاهد في أي وقت</span></span>
+          <span><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="10" rx="2" fill="#FFFDF8" stroke="#1A1712" stroke-width="1.8"/><path d="M1 16.5h18" stroke="#1A1712" stroke-width="1.8" stroke-linecap="round"/></svg><span data-en="Your account, your device">حسابك على جهازك</span></span>
+        </div>
+      </div>
+
+      <div class="art enter d2">
+        <a class="course float" href="#courses">
+          <b data-en="Term one course">كورس الترم الأول</b>
+          <small data-en="24 lectures · 6 exams">٢٤ محاضرة · ٦ امتحانات</small>
+          <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+
+        <svg viewBox="0 0 560 470" role="img" aria-labelledby="art-t">
+          <title id="art-t">طالب يصعد درجات، كل درجة عليها علامة صح، نحو علم أحمر في الأعلى</title>
+          <defs>
+            <pattern id="stip" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.1" fill="#1A1712" opacity=".55"/></pattern>
+          </defs>
+          <!-- clouds (ref 04) -->
+          <g class="cloud"><path d="M410 120 a18 18 0 0 1 30 -14 a24 24 0 0 1 44 6 a16 16 0 0 1 8 30 h-74 a14 14 0 0 1 -8 -22z" fill="#FFFDF8" opacity=".8"/></g>
+          <g class="cloud d2"><path d="M70 230 a14 14 0 0 1 24 -10 a20 20 0 0 1 36 6 a12 12 0 0 1 6 24 h-60 a12 12 0 0 1 -6 -20z" fill="#FFFDF8" opacity=".7"/></g>
+
+          <!-- stairs: ascending toward reading direction end (left in RTL) -->
+          <g stroke="#1A1712" stroke-width="3" stroke-linejoin="round">
+            <rect x="200" y="380" width="292" height="60" rx="4" fill="#FFFDF8"/>
+            <path d="M462 381.5 h28.5 v57 h-28.5z" fill="url(#stip)" stroke="none"/>
+            <rect x="176" y="330" width="288" height="50" rx="4" fill="#FFFDF8"/>
+            <path d="M434 331.5 h28.5 v47 h-28.5z" fill="url(#stip)" stroke="none"/>
+            <rect x="152" y="282" width="284" height="48" rx="4" fill="#FFFDF8"/>
+            <path d="M406 283.5 h28.5 v45 h-28.5z" fill="url(#stip)" stroke="none"/>
+            <rect x="128" y="236" width="280" height="46" rx="4" fill="#FFFDF8"/>
+            <path d="M378 237.5 h28.5 v43 h-28.5z" fill="url(#stip)" stroke="none"/>
+            <rect x="104" y="192" width="276" height="44" rx="4" fill="#FFFDF8"/>
+            <path d="M350 193.5 h28.5 v41 h-28.5z" fill="url(#stip)" stroke="none"/>
+            <rect x="80" y="150" width="200" height="42" rx="4" fill="#FFFDF8"/>
+            <path d="M250 151.5 h28.5 v39 h-28.5z" fill="url(#stip)" stroke="none"/>
+          </g>
+          <!-- checkboxes + lines on each step -->
+          <g fill="#FFFDF8" stroke="#1A1712" stroke-width="2.4">
+            <rect x="222" y="398" width="24" height="24" rx="4"/><rect x="198" y="343" width="24" height="24" rx="4"/>
+            <rect x="174" y="294" width="24" height="24" rx="4"/><rect x="150" y="247" width="24" height="24" rx="4"/>
+            <rect x="126" y="202" width="24" height="24" rx="4"/><rect x="100" y="159" width="24" height="24" rx="4"/>
+          </g>
+          <g stroke-linecap="round" stroke-width="3.5">
+            <path d="M260 410 h120" stroke="#2B5FE3"/><path d="M236 355 h110" stroke="#E9502E"/>
+            <path d="M212 306 h120" stroke="#F2A60C"/><path d="M188 259 h100" stroke="#2B5FE3"/>
+            <path d="M164 214 h110" stroke="#E9502E"/><path d="M138 171 h80" stroke="#F2A60C"/>
+          </g>
+          <g stroke-linecap="round" stroke-width="2" stroke="#1A1712" opacity=".35">
+            <path d="M260 424 h70"/><path d="M236 368 h60"/><path d="M212 318 h70"/><path d="M188 271 h56"/><path d="M164 226 h60"/>
+          </g>
+          <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <path class="chk" d="M226 410 l6 6 12 -14" stroke="#2B5FE3" style="animation-delay:0s"/>
+            <path class="chk" d="M202 355 l6 6 12 -14" stroke="#E9502E" style="animation-delay:.5s"/>
+            <path class="chk" d="M178 306 l6 6 12 -14" stroke="#F2A60C" style="animation-delay:1s"/>
+            <path class="chk" d="M154 259 l6 6 12 -14" stroke="#2B5FE3" style="animation-delay:1.5s"/>
+            <path class="chk" d="M130 214 l6 6 12 -14" stroke="#E9502E" style="animation-delay:2s"/>
+          </g>
+
+          <!-- flag -->
+          <path d="M112 150 V64" stroke="#1A1712" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="112" cy="62" r="5" fill="#1A1712"/>
+          <path fill="#E9502E" stroke="#1A1712" stroke-width="2.6" stroke-linejoin="round" d="M112 68 C 92 62, 80 74, 62 70 L 70 86 L 62 102 C 80 106, 92 94, 112 100 Z">
+            <animate attributeName="d" dur="1.4s" repeatCount="indefinite" values="M112 68 C 92 62, 80 74, 62 70 L 70 86 L 62 102 C 80 106, 92 94, 112 100 Z;M112 68 C 94 76, 78 62, 62 72 L 70 88 L 62 104 C 78 96, 94 108, 112 100 Z;M112 68 C 92 62, 80 74, 62 70 L 70 86 L 62 102 C 80 106, 92 94, 112 100 Z"/>
+          </path>
+          <g class="rays" stroke="#1A1712" stroke-width="2.6" stroke-linecap="round"><path d="M134 50 l10 -10"/><path d="M140 70 h14"/><path d="M118 36 v-12"/></g>
+
+          <!-- climber: back view, backpack, reaching up the steps -->
+          <g class="climber">
+            <path d="M330 236 L316 236 L306 280" fill="none" stroke="#1A1712" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M350 238 L362 330" fill="none" stroke="#1A1712" stroke-width="18" stroke-linecap="round"/>
+            <path d="M290 282 q4 -12 20 -8 l4 8z" fill="#1A1712" stroke="#1A1712" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M352 330 q10 -8 26 -2 l2 4 h-28z" fill="#1A1712" stroke="#1A1712" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M314 176 Q 340 162, 364 176 L 368 240 Q 340 250, 312 240 Z" fill="#FFC22E" class="ink"/>
+            <!-- reaching arm -->
+            <path d="M320 186 C 304 196, 292 206, 282 214" fill="none" stroke="#1A1712" stroke-width="20" stroke-linecap="round"/>
+            <path d="M320 186 C 304 196, 292 206, 282 214" fill="none" stroke="#FFC22E" stroke-width="14" stroke-linecap="round"/>
+            <circle cx="278" cy="216" r="8" fill="#FFFDF8" class="ink" stroke-width="2.6"/>
+            <!-- backpack -->
+            <rect x="330" y="180" width="44" height="52" rx="12" fill="#1A1712" class="ink"/>
+            <path d="M338 204 h28" stroke="#FFFDF8" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+            <!-- head, three-quarter back -->
+            <ellipse cx="330" cy="144" rx="20" ry="24" fill="#FFFDF8" class="ink"/>
+            <g fill="#1A1712" class="ink" stroke-width="2">
+              <circle cx="344" cy="128" r="15"/><circle cx="356" cy="144" r="13"/><circle cx="338" cy="118" r="13"/>
+              <circle cx="324" cy="122" r="11"/><circle cx="350" cy="160" r="10"/><circle cx="340" cy="140" r="12"/>
+            </g>
+            <g fill="none" stroke="#FFFDF8" stroke-width="1.6" stroke-linecap="round" opacity=".55"><path d="M340 120a5 5 0 0 1 8 2"/><path d="M350 140a5 5 0 0 1 8 2"/></g>
+            <circle cx="319" cy="143" r="2.6" fill="#1A1712"/>
+            <path d="M312 134 q4 -3 9 -1" class="ink-thin"/>
+            <path d="M312 156 q5 3 9 0" class="ink-thin" stroke-width="2.2"/>
+          </g>
+
+          <!-- ground + dots -->
+          <path d="M30 440 H530" class="ink" stroke-width="3.5"/>
+          <path d="M40 440 c 6 -20 2 -30 -6 -40 M40 440 c 6 -14 14 -18 22 -20" class="ink-thin" stroke-width="2.4"/>
+          <path d="M520 440 c -6 -18 -2 -26 6 -34 M520 440 c -4 -12 -12 -16 -20 -18" class="ink-thin" stroke-width="2.4"/>
+          <circle class="twinkle" cx="40" cy="120" r="5" fill="#2B5FE3"/>
+          <circle class="twinkle d2" cx="520" cy="250" r="5" fill="#E9502E"/>
+          <circle class="twinkle d3" cx="230" cy="70" r="4" fill="#1A1712"/>
+          <circle class="twinkle" cx="500" cy="330" r="4" fill="#FFFDF8"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="services" aria-labelledby="sv">
+    <div class="strip enter d3">
+      <h2 id="sv" data-en="What you get">ماذا ستجد هنا</h2>
+      <ul>
+        <li class="svc"><button type="button" aria-pressed="true"><span class="bub"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="6" width="24" height="17" rx="4" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.2"/><path d="M13 11v7l6-3.5z" fill="#E9502E" stroke="#1A1712" stroke-width="1.6" stroke-linejoin="round"/></svg></span><span><b data-en="Video lectures">محاضرات فيديو</b><small data-en="Rewatch any part, as often as you need.">أعد أي جزء كلما احتجت.</small></span></button></li>
+        <li class="svc"><button type="button" aria-pressed="false"><span class="bub"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="6" y="3" width="18" height="24" rx="3" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.2"/><path d="M10 10l2 2 4-4M10 18l2 2 4-4" fill="none" stroke="#2B5FE3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 11h3M18 19h3" stroke="#1A1712" stroke-width="2" stroke-linecap="round"/></svg></span><span><b data-en="Instant grading">تصحيح فوري</b><small data-en="See your score when the exam closes.">اعرف درجتك عند غلق الامتحان.</small></span></button></li>
+        <li class="svc"><button type="button" aria-pressed="false"><span class="bub"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 7a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-9l-6 5v-5H7a3 3 0 0 1-3-3z" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4" fill="none" stroke="#1A1712" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="16" r="1.2" fill="#1A1712"/></svg></span><span><b data-en="Ask the teacher">اسأل المدرس</b><small data-en="Under every lesson, answered by Mr. Karim.">تحت كل درس، ويرد أ. كريم.</small></span></button></li>
+        <li class="svc"><button type="button" aria-pressed="false"><span class="bub"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="6" width="24" height="15" rx="3" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.2"/><path d="M1 25h28" stroke="#1A1712" stroke-width="2.2" stroke-linecap="round"/><rect x="11.5" y="12" width="7" height="6" rx="1.5" fill="#FFC22E" stroke="#1A1712" stroke-width="1.8"/><path d="M13 12v-1.5a2 2 0 0 1 4 0V12" fill="none" stroke="#1A1712" stroke-width="1.8"/></svg></span><span><b data-en="Locked to your device">مقفول على جهازك</b><small data-en="Nobody else can use your paid account.">لا أحد غيرك يستخدم حسابك.</small></span></button></li>
+      </ul>
+    </div>
+  </section>
+  <div style="height:40px" id="courses"></div>
+</main>
+<nav class="demo" aria-label="معاينة" data-en-aria-label="Preview">
+  <span data-en="Preview: hero only">معاينة: الواجهة فقط</span>
+  <a href="index.html" data-en="All screens">كل الشاشات</a>
+</nav>
+<script src="shared/itqan.js"></script>
+<script>
+  // one service bubble raised at a time (ref 01)
+  document.querySelectorAll('.svc button').forEach((b, _, all) => {
+    const pick = () => all.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    b.addEventListener('click', pick); b.addEventListener('mouseenter', pick); b.addEventListener('focus', pick);
+  });
+</script>
+</body>
+</html>
