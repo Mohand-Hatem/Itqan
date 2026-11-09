@@ -20,6 +20,7 @@ Domain=.<root-domain>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=400 days
 
 - `secret` = 32 random bytes (`crypto.randomBytes`), base64url. DB stores `sha256(secret)`; compare with `timingSafeEqual`.
 - The parent-domain cookie lets one laptop count as one device across all tenant subdomains.
+- On the Vercel preview the cookie is host-only (no `Domain`), because `vercel.app` cannot hold a parent-domain cookie (ADR-009).
 - Shortcut: custom domains (later) cannot share this cookie, so a device would bind per domain there. Revisit when custom domains ship.
 
 ## 3. Student login algorithm

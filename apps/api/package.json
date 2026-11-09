@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@itqan/database": "^0.1.0",
     "@itqan/shared": "^0.1.0",
     "@nestjs/common": "^12.4.0",
     "@nestjs/core": "^12.4.0",

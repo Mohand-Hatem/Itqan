@@ -15,6 +15,26 @@ jobs:
     name: Lint, Typecheck, Test, Build, Docker
     runs-on: ubuntu-latest
 
+    # Integration tests need Postgres; same image, database and port as local Docker.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: itqan
+          POSTGRES_PASSWORD: itqan
+          POSTGRES_DB: itqan_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U itqan -d itqan_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://itqan:itqan@localhost:5433/itqan_test
+      TEST_DATABASE_URL: postgresql://itqan:itqan@localhost:5433/itqan_test
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

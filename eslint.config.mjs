@@ -4,7 +4,14 @@ import importPlugin from "eslint-plugin-import-x";
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/.next/**", "**/coverage/**", "**/.claude/**"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "**/coverage/**",
+      "**/.claude/**",
+      "**/generated/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -35,5 +42,10 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  {
+    // Plain Node scripts (e.g. packages/database/scripts/promote.mjs).
+    files: ["**/*.mjs"],
+    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly" } },
   },
 );

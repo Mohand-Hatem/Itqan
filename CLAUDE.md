@@ -66,7 +66,7 @@ When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 - Business logic in services, not controllers.
 - Transactions for multi-record writes (enrollment, code redemption, login device check, exam submit).
 - An audit log entry for every admin action.
-- A tenant-isolation test for every new tenant-scoped endpoint.
+- A tenant-isolation test for every new tenant-scoped endpoint: copy the pattern in `apps/api/src/testing/isolation.int.spec.ts` (`createTwoTenants` + `createHttpTestApp().requestAs`). Every new tenant table gets a fixture in `packages/database/src/testing/fixtures.ts`, which adds it to the automatic isolation sweep.
 - Check current official docs for Better Auth, Prisma and Next.js before writing integration code.
 - Small, reviewable changes that follow `tasks/todo.md`.
 - Run unit and integration tests after every step and run full phase test suite before closing any phase.

@@ -23,21 +23,22 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [x] **1.7** GitHub Actions CI: lint, typecheck, test, build. _Done when:_ CI is green on push.
 - [x] **1.8** Dockerfiles for web and api. _Done when:_ both images build locally.
 - [x] **1.9** docker-compose + Nginx routing (`/api/auth/*` and pages → web, `/api/*` → api, SSE buffering off). _Done when:_ the local stack serves both apps on one port.
-- [x] **1.10** 🔑 Staging on the VPS with Cloudflare wildcard DNS and origin certificate. _Done when:_ `https://demo.staging.<root>/api/health` returns 200.
 
-**Checkpoint 1:** CI green · staging reachable · owner review.
+Staging on the VPS moved to step 10.8: no server or domain is bought until the teacher approves the preview (ADR-009). The staging compose file and scripts stay in the repo for that step.
+
+**Checkpoint 1:** CI green · local Docker stack serves both apps · owner review.
 
 ## Phase 2: Database and tenancy (1 week)
 
-- [ ] **2.1** 🔑 Neon project with a dev branch; `DATABASE_URL` and `DIRECT_URL` in `.env`. _Done when:_ Prisma connects.
-- [ ] **2.2** Prisma in `packages/database` with one shared client. _Done when:_ `prisma generate` works and both apps import the client.
-- [ ] **2.3** Base schema: `tenants`, `memberships`, `audit_logs`. _Done when:_ the first migration applies.
-- [ ] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). _Done when:_ an unknown host returns 404.
-- [ ] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. _Done when:_ unit tests show the filter applied.
-- [ ] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). _Done when:_ the test proves tenant A cannot read or write B's rows.
-- [ ] **2.7** Seed script: first tenant and super admin placeholder. _Done when:_ `npm run db:seed` runs clean twice.
-- [ ] **2.8** Audit log service (FR-L01). _Done when:_ a test writes and reads an entry.
-- [ ] **2.9** Staging database branch and `prisma migrate deploy` in the deploy flow. _Done when:_ staging is migrated.
+- [x] **2.1** PostgreSQL in docker-compose for local work and tests (`itqan` and `itqan_test`, port 5433); `DATABASE_URL` and `TEST_DATABASE_URL` in `.env`. _Done when:_ `npm run db:up` reports healthy and both databases answer `SELECT 1`.
+- [x] **2.2** Prisma in `packages/database` with one shared client. _Done when:_ `prisma generate` works, both apps import the client, and an integration test connects to the Docker database.
+- [x] **2.3** Base schema: `tenants`, `memberships`, `audit_logs`. _Done when:_ the first migration applies.
+- [x] **2.4** Request context (AsyncLocalStorage) and tenant resolver from `Host` with a 60 s cache (FR-T01). _Done when:_ an unknown host returns 404.
+- [x] **2.5** Prisma tenant extension that injects `tenant_id` on reads and writes. _Done when:_ unit tests show the filter applied.
+- [x] **2.6** Tenant isolation test harness with two tenant fixtures (NFR-01). _Done when:_ the test proves tenant A cannot read or write B's rows.
+- [x] **2.7** Seed script: first tenant and super admin placeholder. _Done when:_ `npm run db:seed` runs clean twice.
+- [x] **2.8** Audit log service (FR-L01). _Done when:_ a test writes and reads an entry.
+- [x] **2.9** 🔑 Neon project with a `dev` branch (`DATABASE_URL` pooled, `DIRECT_URL`) and `prisma migrate deploy` promotion from Docker to Neon `dev`. _Done when:_ Neon `dev` is migrated after all tests pass on Docker Postgres.
 
 **Checkpoint 2:** isolation tests green · owner review.
 
@@ -58,8 +59,8 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 
 - [ ] **4.1** 🔑 Better Auth in `packages/auth` with the Prisma adapter; `BETTER_AUTH_SECRET`. _Done when:_ auth tables migrate.
 - [ ] **4.2** Next.js route handler `/api/auth/*` behind Nginx. _Done when:_ sign-in works with curl on the local stack.
-- [ ] **4.3** 🔑 Resend, sending domain (SPF, DKIM, DMARC) and email templates in Arabic and English. _Done when:_ a test email lands in the inbox, not spam.
-- [ ] **4.4** Email verification and password reset (FR-A01, FR-A02). _Done when:_ both flows work on staging.
+- [ ] **4.3** 🔑 Resend with its test sender (no domain yet; verified domain in step 10.9) and email templates in Arabic and English. _Done when:_ a test email reaches the owner's inbox.
+- [ ] **4.4** Email verification and password reset (FR-A01, FR-A02). _Done when:_ both flows work on the local Docker stack.
 - [ ] **4.5** 🎨 Login, forgot-password and reset-password pages. _Done when:_ they work in both languages.
 - [ ] **4.6** TOTP MFA enforced for staff and super admin (FR-A03). _Done when:_ staff without TOTP are sent to enrolment.
 - [ ] **4.7** NestJS session guard using the shared auth instance. _Done when:_ requests without a session get 401.
@@ -67,11 +68,11 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [ ] **4.9** `GET /me` and a frontend auth context with TanStack Query. _Done when:_ layouts show the signed-in user.
 - [ ] **4.10** Rate limits on auth endpoints. _Done when:_ tests hit each limit.
 
-**Checkpoint 4:** login, reset and MFA work on staging · owner review.
+**Checkpoint 4:** login, reset and MFA work on the local Docker stack · owner review.
 
 ## Phase 5: Devices and sessions (1.5 weeks)
 
-- [ ] **5.1** Spike: can Better Auth run our check before creating a session? _Done when:_ the choice (hook or custom endpoint) is recorded as ADR-009.
+- [ ] **5.1** Spike: can Better Auth run our check before creating a session? _Done when:_ the choice (hook or custom endpoint) is recorded as the next ADR.
 - [ ] **5.2** `devices` table, extra session fields, device cookie helpers (hash, constant-time compare). _Done when:_ unit tests pass.
 - [ ] **5.3** Login algorithm in one transaction with a row lock (FR-D01–D04, D07, D08). _Done when:_ tests pass for first-bind, `DEVICE_LIMIT`, `SESSION_ON_OTHER_DEVICE`, parallel logins, and same device on another tenant.
 - [ ] **5.4** Per-request device guard. _Done when:_ a copied session cookie without the device cookie fails.
@@ -82,7 +83,7 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [ ] **5.9** Staff actions: revoke device, force sign-out, `max_devices`, suspend membership, all audited. _Done when:_ tests show sessions end and audit entries exist.
 - [ ] **5.10** 🎨 Student devices page. _Done when:_ the student sees their own devices.
 
-**Checkpoint 5:** anti-sharing rules proven with two real browsers on staging · owner review.
+**Checkpoint 5:** anti-sharing rules proven with two real browsers on the local Docker stack · owner review.
 
 ## Phase 6: Access and people (2 weeks)
 
@@ -105,7 +106,7 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 
 - [ ] **7.1** 🔑 R2 buckets (private, public), API keys and CORS. _Done when:_ a presigned PUT works from the browser.
 - [ ] **7.2** Upload API: presign, confirm, MIME and size allow-list, `media_assets` (FR-C03). _Done when:_ tests pass and disallowed types are rejected.
-- [ ] **7.3** 🎨 Upload component with progress. _Done when:_ a 500 MB MP4 uploads on staging.
+- [ ] **7.3** 🎨 Upload component with progress. _Done when:_ a 500 MB MP4 uploads to R2 from the local Docker stack.
 - [ ] **7.4** Content tree API: create, rename, move, reorder, publish, soft delete, restore, depth ≤ 5 (FR-C01, C02). _Done when:_ tests pass for cycles and depth.
 - [ ] **7.5** 🎨 Tree editor with drag and drop. _Done when:_ the teacher builds a course tree in both languages.
 - [ ] **7.6** Content access API: signed URLs after enrollment and publish checks (FR-C06). _Done when:_ a non-enrolled student gets 403 and view-only files get no download URL.
@@ -116,7 +117,7 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [ ] **7.11** Tenant settings API with Zod schema and HTML sanitizing (FR-T06). _Done when:_ script tags are stripped in a test.
 - [ ] **7.12** 🎨 Settings page and public pages (landing, about, how-it-works). _Done when:_ changing branding updates the public site.
 
-**Checkpoint 7:** the teacher builds a full course and a student studies it on staging · owner review.
+**Checkpoint 7:** a teacher account builds a full course and a student studies it on the local Docker stack · owner review.
 
 ## Phase 8: Exams (2.5 weeks)
 
@@ -132,9 +133,9 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 - [ ] **8.10** Grade release and review modes (FR-X07, X08). _Done when:_ a test covers each mode, including the all-submitted fallback.
 - [ ] **8.11** 🎨 Results pages for students and staff. _Done when:_ each sees the right level of detail.
 - [ ] **8.12** Rescue actions: extend time, move attempt to a new device (FR-X09). _Done when:_ both are audited and tested.
-- [ ] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on staging.
+- [ ] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on the local Docker stack against Neon `dev`.
 
-**Checkpoint 8:** a real exam runs end to end on staging · owner review.
+**Checkpoint 8:** a real exam runs end to end on the local Docker stack · owner review.
 
 ## Phase 9: Notifications and engagement (1.5 weeks)
 
@@ -151,16 +152,20 @@ Each line: **step**, then _Done when_ (the check that proves it works).
 
 **Checkpoint 9:** notifications work online, offline and by email · owner review.
 
-## Phase 10: Hardening and launch (1.5 weeks)
+## Phase 10: Preview, hardening and launch (2.5 weeks)
 
 - [ ] **10.1** Scheduled jobs: cleanup, grade-release notifications, pending uploads, 30-day tenant purge. _Done when:_ running each job twice gives the same result.
 - [ ] **10.2** Security headers and CSP. _Done when:_ a header scan passes.
-- [ ] **10.3** 🔑 Sentry on both apps with scrubbing, plus an uptime monitor (NFR-07). _Done when:_ a test error appears in Sentry with no secrets.
-- [ ] **10.4** 🔑 Nightly `pg_dump` to a separate R2 bucket and a restore rehearsal (NFR-06). _Done when:_ a restore is documented.
-- [ ] **10.5** Full `security-audit` skill run and fixes. _Done when:_ no open high findings.
-- [ ] **10.6** Dependency audit and secret scanning in CI. _Done when:_ both are green.
-- [ ] **10.7** Privacy policy and terms, with legal review for minors. _Done when:_ both are published.
-- [ ] **10.8** 🔑 Production: Neon production project, production stack on the VPS, DNS. _Done when:_ production health checks pass.
-- [ ] **10.9** Onboard the first teacher and run a smoke test. _Done when:_ the teacher, one assistant and one student complete the main flows.
+- [ ] **10.3** Full `security-audit` skill run and fixes. _Done when:_ no open high findings.
+- [ ] **10.4** Dependency audit and secret scanning in CI. _Done when:_ both are green.
+- [ ] **10.5** Privacy policy and terms, with legal review for minors. _Done when:_ both are written.
+- [ ] **10.6** 🔑 Teacher preview: Vercel (web), Render free Docker service (API), Neon `dev`; Next.js rewrites for `/api/*`, `PREVIEW_TENANT_SLUG` fallback, host-only device cookie (ADR-009). _Done when:_ the main teacher and student flows work on the preview link, and a test proves the fallback is off in production.
+- [ ] **10.7** Teacher demo on the preview. _Done when:_ the teacher approves going live, or the feedback is added as new steps.
+- [ ] **10.8** 🔑 Buy the VPS and root domain; Cloudflare wildcard DNS and origin certificate; VPS staging with `docker-compose.staging.yml` and the deploy scripts. _Done when:_ `https://demo.staging.<root>/api/health` returns 200.
+- [ ] **10.9** 🔑 Resend verified sending domain (SPF, DKIM, DMARC). _Done when:_ a test email lands in the inbox, not spam.
+- [ ] **10.10** 🔑 Sentry on both apps with scrubbing, plus an uptime monitor (NFR-07). _Done when:_ a test error appears in Sentry with no secrets.
+- [ ] **10.11** 🔑 Nightly `pg_dump` to a separate R2 bucket and a restore rehearsal (NFR-06). _Done when:_ a restore is documented.
+- [ ] **10.12** 🔑 Production: Neon `main`, production stack on the VPS, DNS; preview shut down. _Done when:_ production health checks pass.
+- [ ] **10.13** Onboard the first teacher and run a smoke test. _Done when:_ the teacher, one assistant and one student complete the main flows.
 
 **Checkpoint 10:** all MVP requirements in the SRS met · launched.

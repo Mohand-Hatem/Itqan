@@ -23,6 +23,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 RUN npm run build -w @itqan/shared
+RUN npm run build -w @itqan/database
 RUN npm run build -w @itqan/web
 
 # Stage 3: Runner

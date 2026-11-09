@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@itqan/database": "^0.1.0",
     "@itqan/shared": "^0.1.0",
     "next": "^16.4.5",
     "react": "^19.3.1",
