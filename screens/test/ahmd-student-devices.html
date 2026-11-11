@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أجهزتي وأمان الحساب · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan device management: single device binding, active sessions, and transfer request.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .device-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Hero intro */
+  .device-hero {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(24px, 4vw, 40px); box-shadow: var(--shadow); display: grid;
+    grid-template-columns: 1.2fr .8fr; gap: 32px; align-items: center;
+  }
+  .device-hero h1 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 800; }
+  .device-hero p { font-size: 16.5px; color: var(--ink-2); margin-top: 10px; line-height: 1.6; }
+
+  /* Device Card */
+  .active-device-card {
+    background: var(--cream); border: 2.5px solid var(--ink); border-radius: var(--r-card);
+    padding: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  }
+  .device-badge-active { background: var(--mint-tint); border: 1.5px solid var(--mint); color: var(--ink); padding: 4px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; }
+  
+  .device-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .meta-cell { background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+  .meta-cell small { display: block; color: var(--ink-2); font-size: 12.5px; }
+  .meta-cell b { font-size: 14.5px; color: var(--ink); font-family: var(--f-body); }
+
+  /* Transfer Request Box */
+  .transfer-box {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 28px; box-shadow: var(--shadow); display: grid; gap: 20px;
+  }
+  
+  /* Audit table */
+  .audit-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14.5px; }
+  .audit-table th { background: var(--cream); border-bottom: 2px solid var(--ink); padding: 12px 14px; text-align: start; font-family: var(--f-display); }
+  .audit-table td { padding: 12px 14px; border-bottom: 1.5px solid var(--line); }
+
+  /* Shield SVG animation */
+  .shield-pulse { animation: shieldGlow 3s ease-in-out infinite alternate; }
+  @keyframes shieldGlow { 0% { filter: drop-shadow(0 0 2px #FFC22E); } 100% { filter: drop-shadow(0 0 10px #FFC22E); } }
+
+  /* State driven views */
+  [data-state="pending"] #banner-pending { display: flex !important; }
+  [data-state="pending"] #transfer-form { opacity: .6; pointer-events: none; }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 850px) {
+    .device-hero { grid-template-columns: 1fr; }
+    .device-meta-grid { grid-template-columns: 1fr; }
+    .active-device-card { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="My Devices & Security · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to content">تخطّ إلى المحتوى</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-student-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Device Security">أمان الأجهزة</span></span>
+  </a>
+  <div class="topbar-actions">
+    <a class="btn btn-sm btn-ghost" href="ahmd-student-dashboard.html" data-en="← Dashboard">← لوحة التحكم</a>
+    <button class="lang" type="button">English</button>
+  </div>
+</header>
+
+<main id="main" class="device-layout">
+  
+  <!-- Pending Request Banner -->
+  <div class="banner" id="banner-pending" style="display:none; background:var(--sun-tint); border-color:var(--sun);" role="status">
+    <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><path d="M20 12v9l5 4" stroke="#1A1712" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <div>
+      <strong data-en="Device Transfer Request Pending Review">طلب نقل الحساب قيد المراجعة لدى المدرس</strong>
+      <p data-en="Your request submitted on Nov 10 is being reviewed by Mr. Karim's assistant. You will be notified once approved.">تم إرسال طلبك إلى إدارة المنصة. بمجرد الموافقة، سيتم تفعيل جهازك الجديد فورًا وتسجيل الخروج من هذا الجهاز.</p>
+    </div>
+  </div>
+
+  <!-- Hero Banner with Shield SVG -->
+  <section class="device-hero">
+    <div>
+      <span class="c-badge" style="background:var(--sun-tint); margin-bottom:12px; display:inline-block;" data-en="Single Device Protection (ADR-004)">حماية الحساب ضد المشاركة</span>
+      <h1 data-en="Your Authorized Study Device">جهاز المذاكرة المعتمد لحسابك</h1>
+      <p data-en="To ensure fair examination and prevent unauthorized account sharing, your account is bound to one device at a time.">
+        حفاظًا على تركيزك وأمان بياناتك الدراسية، يُسمح لحسابك بالدخول من جهاز واحد فقط معتمد. لا يمكنك فتح المحاضرات أو الامتحانات من جهازين في نفس الوقت.
+      </p>
+    </div>
+
+    <!-- Security Shield Character SVG -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 320 220" width="100%" height="auto" style="max-height:200px;" aria-hidden="true">
+        <!-- Shield -->
+        <g class="shield-pulse">
+          <path d="M160 30 Q220 25 240 70 Q240 140 160 190 Q80 140 80 70 Q100 25 160 30 Z" fill="#FFFDF8" stroke="#1A1712" stroke-width="3.5"/>
+          <path d="M160 42 Q210 38 226 76 Q226 132 160 176 Q94 132 94 76 Q110 38 160 42 Z" fill="#FFC22E"/>
+        </g>
+        
+        <!-- Padlock in Shield -->
+        <g transform="translate(160, 110)">
+          <rect x="-24" y="-12" width="48" height="38" rx="6" fill="#1A1712"/>
+          <path d="M-14 -12 v-14 a14 14 0 0 1 28 0 v14" fill="none" stroke="#1A1712" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="0" cy="5" r="4" fill="#FFC22E"/>
+          <path d="M0 8 v8" stroke="#FFC22E" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- Checkmark Badge -->
+        <circle cx="230" cy="65" r="18" fill="#3F9D7B" stroke="#1A1712" stroke-width="2.5"/>
+        <path d="M222 65 l5 5 10 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Active Bound Device Card -->
+  <section class="active-device-card">
+    <div style="display:flex; align-items:center; gap:18px;">
+      <div style="width:58px; height:58px; border-radius:14px; background:var(--paper); border:2.5px solid var(--ink); display:flex; align-items:center; justify-content:center; flex:none;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <h2 style="font-size:20px; font-weight:800;" data-en="HP Pavilion Laptop (Windows 11)">لابتوب HP Pavilion (Windows 11)</h2>
+          <span class="device-badge-active" data-en="Current Active Device">الجهاز الحالي المعتمد 🟢</span>
+        </div>
+        <p style="color:var(--ink-2); font-size:14.5px;" data-en="Google Chrome 124 · Cairo, Egypt">متصفح Google Chrome 124 · القاهرة، مصر</p>
+      </div>
+    </div>
+
+    <div>
+      <span class="c-badge" style="background:var(--paper); font-family:monospace; direction:ltr;" data-en="ID: dev_9f8a...3b21">dev_9f8a...3b21</span>
+    </div>
+  </section>
+
+  <!-- Device Details Grid -->
+  <div class="device-meta-grid">
+    <div class="meta-cell">
+      <small data-en="First Registered On:">تاريخ التوثيق الأول:</small>
+      <b data-en="12 September 2026">12 سبتمبر 2026 (مع أول تسجيل)</b>
+    </div>
+    <div class="meta-cell">
+      <small data-en="Last Active Session:">آخر نشاط:</small>
+      <b style="color:var(--mint);" data-en="Active right now">نشط الآن</b>
+    </div>
+    <div class="meta-cell">
+      <small data-en="IP Address:">عنوان الاتصال (IP):</small>
+      <b style="direction:ltr; display:inline-block;">156.204.18.92</b>
+    </div>
+  </div>
+
+  <!-- Request Transfer Section -->
+  <section class="transfer-box" id="transfer-form">
+    <div>
+      <h3 style="font-size:21px; font-weight:800;" data-en="Need to switch to a new laptop or phone?">تريد تغيير جهازك المعتمد إلى لابتوب أو هاتف آخر؟</h3>
+      <p style="color:var(--ink-2); font-size:15px; margin-top:6px;" data-en="Submit a device change request. Once approved by Mr. Karim, this device will be logged out and your new device will be authorized.">
+        يمكنك تقديم طلب نقل جهاز. بمجرد مراجعة المدرس للطلب، سيتم تحويل الترخيص للجهاز الجديد مباشرة.
+      </p>
+    </div>
+
+    <form data-fake="pending" style="display:grid; gap:16px;">
+      <div class="field">
+        <label class="label" for="reason"><span data-en="Reason for changing device">سبب طلب تغيير الجهاز</span></label>
+        <select class="input" id="reason" required>
+          <option value="" disabled selected data-en="Select reason...">اختر السبب...</option>
+          <option value="broken" data-en="Current device is damaged or in repair">الجهاز الحالي تالف أو في الصيانة</option>
+          <option value="new" data-en="Purchased a new computer for studies">اشتريت لابتوب جديد للمذاكرة</option>
+          <option value="emergency" data-en="Urgent temporary study circumstance">ظرف طارئ للاختبار</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label" for="notes"><span data-en="Additional details for the teacher">ملاحظات توضيحية للمدرس (اختياري)</span></label>
+        <textarea class="input" id="notes" rows="2" placeholder="اكتب تفاصيل جهازك الجديد..." data-en-placeholder="Describe your new device..."></textarea>
+      </div>
+
+      <button class="btn" type="submit" style="justify-self:start;" data-en="Submit Device Transfer Request">إرسال طلب نقل الحساب للمدرس</button>
+    </form>
+  </section>
+
+  <!-- Recent Logins Table -->
+  <section class="card">
+    <h3 style="font-size:19px; font-weight:800;" data-en="Recent Security Activity Log">سجل الدخول والنشاط الأمني</h3>
+    <table class="audit-table">
+      <thead>
+        <tr>
+          <th data-en="Action">العملية</th>
+          <th data-en="Device / Browser">الجهاز والمتصفح</th>
+          <th data-en="Location">المكان</th>
+          <th data-en="Time">التاريخ والوقت</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span style="color:var(--mint); font-weight:700;">● تسجيل دخول ناجح</span></td>
+          <td>Windows PC (Chrome 124)</td>
+          <td>القاهرة، مصر</td>
+          <td>اليوم، 10:14 ص</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--ink-2);">فحص مصادقة دوري</span></td>
+          <td>Windows PC (Chrome 124)</td>
+          <td>القاهرة، مصر</td>
+          <td>أمس، 06:40 م</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview States:">حالات المعاينة:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="normal" aria-pressed="true" data-en="Normal">الوضع الطبيعي</button>
+    <button type="button" data-state="pending" aria-pressed="false" data-en="Request Pending">طلب نقل معلّق</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+</body>
+</html>

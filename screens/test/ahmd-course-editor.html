@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محرر المنهج والكورسات · إدارة منصة إتقان</title>
+<meta name="description" content="Itqan course curriculum editor: drag-and-drop tree, video uploader with progress.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .editor-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Course header info */
+  .c-info-card {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: 24px 32px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  }
+  .c-info-card h1 { font-size: 26px; font-weight: 800; }
+
+  /* Tree Container */
+  .tree-container { display: grid; gap: 24px; }
+  
+  /* Chapter card */
+  .chapter-block {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .chapter-header-edit {
+    background: var(--cream); border-bottom: 2px solid var(--ink); padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .chapter-header-edit b { font-size: 18px; font-weight: 800; }
+  
+  /* Lesson items */
+  .items-list { list-style: none; margin: 0; padding: 10px 14px; display: grid; gap: 10px; }
+  .item-row {
+    background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px;
+    transition: transform .12s, border-color .12s;
+  }
+  .item-row:hover { border-color: var(--ink); transform: translateX(-4px); }
+  .item-grip { color: var(--ink-3); cursor: grab; font-size: 18px; user-select: none; }
+  .item-info { display: flex; align-items: center; gap: 12px; }
+  .item-icon { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
+  
+  /* Upload modal overlay */
+  .upload-modal {
+    position: fixed; inset: 0; background: rgba(26,23,18,.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .upload-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 580px; width: 100%; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+  .drop-zone {
+    border: 2.5px dashed var(--ink); border-radius: 16px; background: var(--cream);
+    padding: 36px 20px; text-align: center; cursor: pointer; transition: background .15s; margin: 20px 0;
+  }
+  .drop-zone:hover { background: var(--sun-tint); }
+
+  /* Progress Bar */
+  .progress-bar-box { margin-top: 16px; }
+  .p-track { height: 14px; background: var(--cream); border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+  .p-fill { height: 100%; width: 68%; background: var(--mint); border-inline-end: 2px solid var(--ink); transition: width .3s; }
+
+  /* States */
+  [data-state="upload"] .upload-modal { display: flex; }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 800px) {
+    .c-info-card { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body data-state="tree" data-title-en="Course Curriculum Editor · Itqan Management">
+<a class="skip" href="#main" data-en="Skip to editor">تخطّ إلى محرر المنهج</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-teacher-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#1A1712"/><path d="M13 30 L22 13 L31 30" fill="none" stroke="#FFC22E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 25 l3.5 3.5 6.5 -7" fill="none" stroke="#FFFDF8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span><span class="brand-name" data-en="Itqan · Curriculum Editor">إتقان · محرر المنهج</span><span class="brand-sub" data-en="Manage lectures and chapters">إدارة الفصول والدروس</span></span>
+  </a>
+  <div class="topbar-actions">
+    <a class="btn btn-sm btn-ghost" href="ahmd-teacher-dashboard.html" data-en="← Back to Dashboard">← العودة للوحة الإدارة</a>
+    <button class="lang" type="button">English</button>
+  </div>
+</header>
+
+<main id="main" class="editor-layout">
+  
+  <!-- Course header card -->
+  <section class="c-info-card">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+        <span class="c-badge" style="background:var(--mint-tint);" data-en="Published">منشور للطلاب</span>
+        <span class="c-badge" data-en="24 Lessons · 6 Quizzes">24 محاضرة · 6 امتحانات</span>
+      </div>
+      <h1 data-en="General Physics: Term 1 (Comprehensive)">الفيزياء العامة: الفصل الدراسي الأول (2026/2027)</h1>
+      <p style="color:var(--ink-2); font-size:14.5px; margin-top:4px;" data-en="Reorder lectures by dragging handles. Upload MP4 videos directly to Cloudflare R2 storage.">
+        يمكنك إعادة ترتيب الدروس بالسحب والإفلات. يتم حفظ التغييرات تلقائيًا وتشفير الفيديوهات وربطها بالـ Watermark.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:12px; flex:none;">
+      <button class="btn btn-sm" id="btn-upload-open" type="button" data-en="+ Upload Video (R2)">+ رفع فيديو جديد</button>
+      <button class="btn btn-sm btn-light" type="button" data-en="+ Add Chapter">+ إضافة فصل</button>
+    </div>
+  </section>
+
+  <!-- Chapters Tree -->
+  <section class="tree-container">
+    
+    <!-- Chapter 1 -->
+    <div class="chapter-block">
+      <div class="chapter-header-edit">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="item-grip">⠿</span>
+          <b data-en="Chapter 1: Electric Current & Ohm's Law (4 Lessons)">الفصل الأول: التيار الكهربي وقانون أوم (4 دروس)</b>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-light" style="padding:4px 10px; font-size:13px;" data-en="+ Add Lesson">+ إضافة درس</button>
+          <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:13px;" data-en="Settings">تعديل</button>
+        </div>
+      </div>
+
+      <ul class="items-list">
+        <li class="item-row">
+          <div class="item-info">
+            <span class="item-grip">⠿</span>
+            <div class="item-icon" style="background:var(--sun);"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            <div>
+              <b style="font-size:15.5px;" data-en="1. Electric Current and Potential Difference">١. مفهوم شدة التيار الكهربي وفرق الجهد</b>
+              <small style="color:var(--ink-2); display:block;" data-en="Video MP4 · 42 mins · Watermark Active">فيديو MP4 · 42 دقيقة · العلامة المائية مفعّلة</small>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="c-badge" style="background:var(--mint-tint);" data-en="Visible">مرئي للطلاب</span>
+            <button class="btn btn-sm btn-light" style="padding:4px 8px;" data-en="Edit">تعديل</button>
+          </div>
+        </li>
+
+        <li class="item-row">
+          <div class="item-info">
+            <span class="item-grip">⠿</span>
+            <div class="item-icon" style="background:var(--cream);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div>
+              <b style="font-size:15.5px;" data-en="Summary Sheet: Resistance & Conductivity (PDF)">ملخص قوانين المقاومة النوعية والتوصيلية الكهربية (PDF)</b>
+              <small style="color:var(--ink-2); display:block;" data-en="PDF · 3.5 MB · Download Allowed">ملف PDF · 3.5 MB · التحميل مسموح</small>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="c-badge" style="background:var(--mint-tint);" data-en="Visible">مرئي للطلاب</span>
+            <button class="btn btn-sm btn-light" style="padding:4px 8px;" data-en="Edit">تعديل</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Chapter 2 -->
+    <div class="chapter-block">
+      <div class="chapter-header-edit">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="item-grip">⠿</span>
+          <b data-en="Chapter 3: Electromagnetic Induction (In Progress)">الفصل الثالث: الحث الكهرومغناطيسي (قيد النشر)</b>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-light" style="padding:4px 10px; font-size:13px;" data-en="+ Add Lesson">+ إضافة درس</button>
+          <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:13px;" data-en="Settings">تعديل</button>
+        </div>
+      </div>
+
+      <ul class="items-list">
+        <li class="item-row">
+          <div class="item-info">
+            <span class="item-grip">⠿</span>
+            <div class="item-icon" style="background:var(--sun);"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            <div>
+              <b style="font-size:15.5px;" data-en="14. Faraday's Law & Lenz's Rule">١٤. قانون فاراداي وتطبيقات قاعدة لينز</b>
+              <small style="color:var(--ink-2); display:block;" data-en="Video MP4 · 38 mins · 940 Views">فيديو MP4 · 38 دقيقة · 940 مشاهدة</small>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="c-badge" style="background:var(--mint-tint);" data-en="Visible">مرئي للطلاب</span>
+            <button class="btn btn-sm btn-light" style="padding:4px 8px;" data-en="Edit">تعديل</button>
+          </div>
+        </li>
+
+        <li class="item-row">
+          <div class="item-info">
+            <span class="item-grip">⠿</span>
+            <div class="item-icon" style="background:#FDE8E4;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E9502E" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div>
+              <b style="font-size:15.5px;" data-en="Quiz 4: Electromagnetic Induction Quiz">امتحان 4: الحث الكهرومغناطيسي وقاعدة لينز</b>
+              <small style="color:var(--ink-2); display:block;" data-en="20 Questions · 30 Mins · Single Device Locked">20 سؤالًا · المدة: 30 دقيقة · قفل الجهاز مفعل</small>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="c-badge" style="background:var(--sun-tint);" data-en="Scheduled">مجدول للخميس</span>
+            <button class="btn btn-sm btn-light" style="padding:4px 8px;" data-en="Edit">تعديل</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- Video Upload Modal (Cloudflare R2 Direct Presigned Upload ADR-002) -->
+<div class="upload-modal" id="modal-upload" role="dialog" aria-modal="true" aria-labelledby="u-title">
+  <div class="upload-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 id="u-title" style="font-size:22px; font-weight:800;" data-en="Upload Lecture Video (Cloudflare R2)">رفع فيديو المحاضرة (تخزين سحابي R2)</h2>
+      <button class="btn btn-sm btn-ghost" id="btn-close-upload" type="button">✕</button>
+    </div>
+    
+    <p style="color:var(--ink-2); font-size:14.5px;" data-en="Upload MP4 files up to 1.5 GB. Anti-piracy watermarking will be automatically rendered at playback.">
+      يدعم ملفات MP4 حتى حجم 1.5 جيجابايت. يتم تشفير الرابط ووضع العلامة المائية المتحركة الخاصة بكل طالب تلقائيًا عند المشاهدة.
+    </p>
+
+    <div class="drop-zone" id="drop-box">
+      <svg style="margin:0 auto 12px;" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <b style="font-size:17px; display:block;" data-en="Click to select MP4 video or drag file here">اضغط لاختيار ملف الفيديو أو اسحبه هنا</b>
+      <small style="color:var(--ink-2);" data-en="Format: H.264 MP4 · Max 1.5 GB">الصيغة: MP4 بدقة عالية حتى 1080p</small>
+    </div>
+
+    <!-- Active progress view -->
+    <div class="progress-bar-box" id="upload-progress-view">
+      <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px;">
+        <span data-en="Lecture-15-Mutual-Induction.mp4">المحاضرة-15-الحث-المتبادل.mp4</span>
+        <span style="color:var(--mint);" data-en="68% (340 MB / 500 MB)">68% (340 MB من 500 MB)</span>
+      </div>
+      <div class="p-track"><div class="p-fill"></div></div>
+      <small style="color:var(--ink-2); display:block; margin-top:6px;" data-en="Speed: 18 MB/s · Remaining: 9 seconds">السرعة: 18 MB/s · متبقي: 9 ثوانٍ</small>
+    </div>
+
+    <div style="display:flex; justify-content:end; gap:12px; margin-top:24px;">
+      <button class="btn btn-light" id="btn-cancel-upload" type="button" data-en="Cancel">إلغاء</button>
+      <button class="btn" type="button" data-en="Save & Link Lecture">حفظ وربط الدرس</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview States:">حالات المعاينة:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="tree" aria-pressed="true" data-en="Tree View">شجرة الدروس</button>
+    <button type="button" data-state="upload" aria-pressed="false" data-en="Upload Modal">نافذة الرفع السحابي</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+<script>
+  const uModal = document.getElementById('modal-upload');
+  document.getElementById('btn-upload-open').onclick = () => uModal.style.display = 'flex';
+  document.getElementById('btn-close-upload').onclick = () => uModal.style.display = 'none';
+  document.getElementById('btn-cancel-upload').onclick = () => uModal.style.display = 'none';
+</script>
+</body>
+</html>

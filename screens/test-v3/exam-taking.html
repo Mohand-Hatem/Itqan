@@ -1,0 +1,530 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قاعة الاختبار المقنن: امتحان الحث الكهرومغناطيسي · أكاديمية إتقان</title>
+<meta name="description" content="Itqan v3: High-integrity proctored examination hall with U-rail induction circuit vector, live scientific calculator, matrix ribbon, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  /* 1. Top Telemetry Command Deck */
+  .exam-command-bar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: var(--paper);
+    border-bottom: 2.5px solid var(--ink);
+    padding: 12px var(--gutter);
+    box-shadow: var(--shadow-sm);
+  }
+  .command-bar-inner {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .exam-timer-badge {
+    background: var(--ink);
+    color: var(--sun);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 8px 18px;
+    font-family: var(--f-mono);
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 0 var(--ink);
+    animation: pulseGlow 3s infinite ease-in-out;
+  }
+
+  /* 2. Horizontal Question Matrix Ribbon */
+  .question-ribbon-bar {
+    background: var(--paper);
+    border-bottom: 2px solid var(--line);
+    padding: 10px var(--gutter);
+    overflow-x: auto;
+  }
+  .ribbon-track {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .q-pill-btn {
+    min-width: 36px;
+    height: 36px;
+    border-radius: var(--r-ctl);
+    border: 2px solid var(--line);
+    background: var(--cream);
+    font-family: var(--f-display);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .q-pill-btn:hover { border-color: var(--ink); }
+  .q-pill-btn.done {
+    background: var(--mint-tint);
+    border-color: var(--mint);
+    color: var(--mint);
+  }
+  .q-pill-btn.active {
+    background: var(--sun);
+    border-color: var(--ink);
+    color: var(--ink);
+    box-shadow: 0 2px 0 var(--ink);
+    transform: translateY(-2px);
+  }
+  .q-pill-btn.flagged {
+    border-color: var(--coral);
+    background: var(--coral-tint);
+    color: var(--coral);
+  }
+
+  /* 3. Main Workspace Split */
+  .exam-workspace {
+    max-width: var(--page-max);
+    margin: 24px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    grid-template-columns: 1.35fr 0.85fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* Left: Question Dossier */
+  .question-dossier-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    gap: 20px;
+  }
+
+  /* Choice rows */
+  .choice-row {
+    border: 2px solid var(--line);
+    border-radius: var(--r-ctl);
+    padding: 14px 18px;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    font-size: 15.5px;
+    transition: all 0.15s ease;
+  }
+  .choice-row:hover {
+    background: var(--cream);
+    border-color: var(--ink);
+  }
+  .choice-row.selected {
+    background: var(--sun-tint);
+    border: 2.5px solid var(--ink);
+    font-weight: 800;
+    box-shadow: 0 3px 0 var(--ink);
+  }
+  .choice-badge {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13.5px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .choice-row.selected .choice-badge {
+    background: var(--sun);
+    color: var(--ink);
+  }
+
+  /* Right Column: Tactical Tools */
+  .tactical-tools-panel {
+    display: grid;
+    gap: 20px;
+    position: sticky;
+    top: 90px;
+  }
+  .tactical-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 22px;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Scientific Calculator */
+  .calc-display {
+    background: var(--ink);
+    color: var(--sun);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 12px 14px;
+    font-family: var(--f-mono);
+    font-size: 20px;
+    text-align: end;
+    margin-bottom: 12px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .calc-matrix {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .calc-btn {
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    padding: 10px 0;
+    font-family: var(--f-mono);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--ink);
+    text-align: center;
+    transition: transform 0.1s ease;
+  }
+  .calc-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+  .calc-btn.op { background: var(--sun); }
+  .calc-btn.fn { background: var(--cobalt-tint); color: var(--cobalt); }
+  .calc-btn.eval { background: var(--mint); color: #fff; font-weight: 800; }
+
+  @media (max-width: 980px) {
+    .exam-workspace { grid-template-columns: 1fr; }
+    .tactical-tools-panel { position: static; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Proctored Examination · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to exam">تخطّ إلى الأسئلة</a>
+
+<!-- 1. Top Telemetry Command Deck -->
+<header class="exam-command-bar">
+  <div class="command-bar-inner">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div class="brand-crest-box" style="width:38px; height:38px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <b style="font-size:16px; color:var(--ink); display:block;" data-en="Exam: Comprehensive Unit 3 Induction">امتحان الفصل الثالث: الحث الكهرومغناطيسي الشامل</b>
+        <small style="color:var(--mint); font-weight:700;" data-en="Proctored · Workstation ITQ-4892 Verified">جلسة مقننة معتمدة · محطة العمل موثقة</small>
+      </div>
+    </div>
+
+    <!-- Center Clock -->
+    <div class="exam-timer-badge">
+      <span style="font-size:18px;">⏱️</span>
+      <span id="examTimer">38:15</span>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="btn btn-sm btn-ghost" data-modal-open="modal-formulas" data-en="Formulas 📐">القوانين 📐</button>
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <button class="btn btn-coral btn-sm" data-modal-open="modal-submit" data-en="Submit & Finish 🏁">تسليم الامتحان 🏁</button>
+    </div>
+  </div>
+</header>
+
+<!-- 2. Horizontal Question Matrix Ribbon -->
+<nav class="question-ribbon-bar" aria-label="شريط أرقام الأسئلة">
+  <div class="ribbon-track">
+    <span style="font-size:13px; font-weight:800; color:var(--ink-secondary); margin-inline-end:8px; white-space:nowrap;" data-en="Questions:">الأسئلة:</span>
+    <button class="q-pill-btn done" type="button">01</button>
+    <button class="q-pill-btn done" type="button">02</button>
+    <button class="q-pill-btn done" type="button">03</button>
+    <button class="q-pill-btn done" type="button">04</button>
+    <button class="q-pill-btn done" type="button">05</button>
+    <button class="q-pill-btn done" type="button">06</button>
+    <button class="q-pill-btn done" type="button">07</button>
+    <button class="q-pill-btn active" type="button">08</button>
+    <button class="q-pill-btn flagged" type="button">09</button>
+    <button class="q-pill-btn" type="button">10</button>
+    <button class="q-pill-btn" type="button">11</button>
+    <button class="q-pill-btn" type="button">12</button>
+    <button class="q-pill-btn" type="button">13</button>
+    <button class="q-pill-btn" type="button">14</button>
+    <button class="q-pill-btn" type="button">15</button>
+    <button class="q-pill-btn" type="button">16</button>
+    <button class="q-pill-btn" type="button">17</button>
+    <button class="q-pill-btn" type="button">18</button>
+    <button class="q-pill-btn" type="button">19</button>
+    <button class="q-pill-btn" type="button">20</button>
+  </div>
+</nav>
+
+<!-- 3. Master Examination Split Workspace -->
+<main id="main" class="exam-workspace anim-reveal">
+
+  <!-- Left: Question Dossier & Choice Arena -->
+  <article class="question-dossier-card">
+    
+    <!-- Question Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="pill-badge pill-sun" style="font-size:13px; font-weight:800;" data-en="Question 08 of 20">السؤال رقم 08 من 20</span>
+        <span class="pill-badge pill-cobalt" data-en="2 Marks">درجتان</span>
+      </div>
+      <button class="btn btn-sm btn-secondary" id="flagQuestionBtn" type="button" data-en="Flag for Review 🚩">
+        <span>🚩 تمييز للمراجعة</span>
+      </button>
+    </div>
+
+    <!-- Question Text -->
+    <div>
+      <p style="font-size:17.5px; font-weight:700; line-height:1.7; color:var(--ink); margin-bottom:12px;" data-en="In the figure below: A conducting rod (ab) of length L = 0.5 m and resistance R = 2 Ω moves at a uniform velocity v = 4 m/s perpendicular to a uniform magnetic field of flux density B = 0.8 T directed perpendicularly into the page. Calculate the magnitude and direction of the induced current passing through the galvanometer:">
+        في الشكل الموضح أدناه: ساق موصلة <span style="font-family:var(--f-mono);">(ab)</span> طولها <span style="font-family:var(--f-mono);">L = 0.5 m</span> ومقاومتها <span style="font-family:var(--f-mono);">R = 2 Ω</span> تنزلق بسرعة منتظمة <span style="font-family:var(--f-mono);">v = 4 m/s</span> عمودياً على مجال مغناطيسي منتظم كثافة فيضه <span style="font-family:var(--f-mono);">B = 0.8 T</span> اتجاهه عمودي على الصفحة إلى الداخل. احسب شدة واتجاه التيار المستحث المار في الجلفانومتر الحساس:
+      </p>
+    </div>
+
+    <!-- Bespoke Scientific SVG Vector: U-Shaped Rail & Moving Conductor Rod -->
+    <div style="background:var(--cream); border:2px solid var(--ink); border-radius:var(--r-card); padding:20px; display:flex; justify-content:center; box-shadow:0 2px 0 var(--ink);">
+      <svg viewBox="0 0 540 240" width="100%"  style="max-height:220px;" aria-label="دائرة الساق الموصلة المنزلقة على قضيبين متوازيين">
+        <defs>
+          <pattern id="bFieldCross" width="30" height="30" patternUnits="userSpaceOnUse">
+            <circle cx="15" cy="15" r="9" fill="none" stroke="#2B5FE3" stroke-width="1.2" opacity="0.45"/>
+            <path d="M 10 10 L 20 20 M 20 10 L 10 20" stroke="#2B5FE3" stroke-width="1.4" opacity="0.7"/>
+          </pattern>
+          <marker id="arrowRed" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#E9502E" />
+          </marker>
+          <marker id="arrowMint" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#3F9D7B" />
+          </marker>
+        </defs>
+
+        <!-- Magnetic Field Area Rect -->
+        <rect x="50" y="20" width="440" height="200" rx="8" fill="url(#bFieldCross)"/>
+        <text x="65" y="42" font-family="JetBrains Mono" font-size="12" font-weight="bold" fill="#2B5FE3">B = 0.8 T (عمودي للداخل ⊗)</text>
+
+        <!-- U-Shaped Conductive Rails -->
+        <line x1="80" y1="60" x2="460" y2="60" stroke="#1A1712" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="80" y1="180" x2="460" y2="180" stroke="#1A1712" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="80" y1="60" x2="80" y2="100" stroke="#1A1712" stroke-width="4.5"/>
+        <line x1="80" y1="140" x2="80" y2="180" stroke="#1A1712" stroke-width="4.5"/>
+
+        <!-- Galvanometer Meter in Left Branch -->
+        <circle cx="80" cy="120" r="20" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <text x="80" y="126" text-anchor="middle" font-family="Baloo Bhaijaan 2" font-size="16" font-weight="bold" fill="#1A1712">G</text>
+        <line x1="80" y1="120" x2="87" y2="108" stroke="#E9502E" stroke-width="2"/>
+
+        <!-- Sliding Conductor Rod (ab) -->
+        <rect x="290" y="45" width="16" height="150" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="3"/>
+        <circle cx="298" cy="55" r="4" fill="#1A1712"/>
+        <text x="298" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="bold" fill="#1A1712">a</text>
+        <circle cx="298" cy="185" r="4" fill="#1A1712"/>
+        <text x="298" y="210" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="bold" fill="#1A1712">b</text>
+
+        <!-- Velocity Vector v -->
+        <line x1="310" y1="120" x2="390" y2="120" stroke="#E9502E" stroke-width="3" marker-end="url(#arrowRed)"/>
+        <text x="350" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="bold" fill="#E9502E">v = 4 m/s →</text>
+
+        <!-- Induced Current Flow Arrows -->
+        <line x1="280" y1="140" x2="280" y2="90" stroke="#3F9D7B" stroke-width="2.5" marker-end="url(#arrowMint)"/>
+        <text x="268" y="118" text-anchor="end" font-family="JetBrains Mono" font-size="11" font-weight="bold" fill="#3F9D7B">I_ind</text>
+
+        <!-- Length dimension L = 0.5 m -->
+        <line x1="475" y1="60" x2="475" y2="180" stroke="#1A1712" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="490" y="125" font-family="JetBrains Mono" font-size="12" font-weight="bold" fill="#1A1712">L = 0.5 m</text>
+      </svg>
+    </div>
+
+    <!-- Choice Rows -->
+    <div style="display:grid; gap:12px;" role="radiogroup" aria-label="خيارات الإجابة">
+      <label class="choice-row selected">
+        <input type="radio" name="q8" checked style="display:none;">
+        <span class="choice-badge">أ</span>
+        <div style="flex:1;">
+          <span style="font-family:var(--f-mono); font-weight:bold;">0.8 A</span> من النقطة <span style="font-family:var(--f-mono);">(b)</span> إلى النقطة <span style="font-family:var(--f-mono);">(a)</span> داخل الساق (عكس عقارب الساعة في الدائرة)
+        </div>
+      </label>
+
+      <label class="choice-row">
+        <input type="radio" name="q8" style="display:none;">
+        <span class="choice-badge">ب</span>
+        <div style="flex:1;">
+          <span style="font-family:var(--f-mono); font-weight:bold;">0.8 A</span> من النقطة <span style="font-family:var(--f-mono);">(a)</span> إلى النقطة <span style="font-family:var(--f-mono);">(b)</span> داخل الساق (مع عقارب الساعة في الدائرة)
+        </div>
+      </label>
+
+      <label class="choice-row">
+        <input type="radio" name="q8" style="display:none;">
+        <span class="choice-badge">ج</span>
+        <div style="flex:1;">
+          <span style="font-family:var(--f-mono); font-weight:bold;">1.6 A</span> من النقطة <span style="font-family:var(--f-mono);">(b)</span> إلى النقطة <span style="font-family:var(--f-mono);">(a)</span> داخل الساق
+        </div>
+      </label>
+
+      <label class="choice-row">
+        <input type="radio" name="q8" style="display:none;">
+        <span class="choice-badge">د</span>
+        <div style="flex:1;">
+          <span style="font-family:var(--f-mono); font-weight:bold;">0.4 A</span> من النقطة <span style="font-family:var(--f-mono);">(a)</span> إلى النقطة <span style="font-family:var(--f-mono);">(b)</span> داخل الساق
+        </div>
+      </label>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:2px solid var(--line); padding-top:20px; margin-top:8px; flex-wrap:wrap; gap:12px;">
+      <button class="btn btn-secondary btn-sm" type="button" data-en="← Previous Question">← السؤال السابق (07)</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary btn-sm" type="button" data-modal-open="modal-scratchpad" data-en="Scratchpad 📝">مسودة حسابات 📝</button>
+        <button class="btn btn-primary" type="button" data-en="Save & Next Question (09) →">حفظ والانتقال للسؤال التالي (09) ←</button>
+      </div>
+    </div>
+
+  </article>
+
+  <!-- Right: Tactical Tooling & Calculator -->
+  <aside class="tactical-tools-panel">
+    
+    <!-- Pinned Scientific Calculator -->
+    <div class="tactical-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <b style="font-size:15px; color:var(--ink);" data-en="Approved Scientific Calculator">الآلة الحاسبة المقننة</b>
+        <span class="pill-badge pill-mint" style="font-size:11px;">مسموح بها</span>
+      </div>
+
+      <div class="calc-display" id="calcDisplay">0.8</div>
+
+      <div class="calc-matrix">
+        <button class="calc-btn fn" onclick="calcAppend('sin(')">sin</button>
+        <button class="calc-btn fn" onclick="calcAppend('cos(')">cos</button>
+        <button class="calc-btn fn" onclick="calcAppend('π')">π</button>
+        <button class="calc-btn op" onclick="calcClear()">C</button>
+
+        <button class="calc-btn" onclick="calcAppend('7')">7</button>
+        <button class="calc-btn" onclick="calcAppend('8')">8</button>
+        <button class="calc-btn" onclick="calcAppend('9')">9</button>
+        <button class="calc-btn op" onclick="calcAppend('/')">÷</button>
+
+        <button class="calc-btn" onclick="calcAppend('4')">4</button>
+        <button class="calc-btn" onclick="calcAppend('5')">5</button>
+        <button class="calc-btn" onclick="calcAppend('6')">6</button>
+        <button class="calc-btn op" onclick="calcAppend('*')">×</button>
+
+        <button class="calc-btn" onclick="calcAppend('1')">1</button>
+        <button class="calc-btn" onclick="calcAppend('2')">2</button>
+        <button class="calc-btn" onclick="calcAppend('3')">3</button>
+        <button class="calc-btn op" onclick="calcAppend('-')">-</button>
+
+        <button class="calc-btn" onclick="calcAppend('0')">0</button>
+        <button class="calc-btn" onclick="calcAppend('.')">.</button>
+        <button class="calc-btn eval" onclick="calcEval()">=</button>
+        <button class="calc-btn op" onclick="calcAppend('+')">+</button>
+      </div>
+    </div>
+
+    <!-- Anti-Cheat Telemetry Dossier -->
+    <div class="tactical-card" style="background:var(--cream);">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <span style="font-size:20px;">🛡️</span>
+        <div>
+          <b style="font-size:14px; color:var(--ink);" data-en="Integrity Telemetry">مراقبة النزاهة الأكاديمية</b>
+          <small style="display:block; color:var(--mint); font-weight:700;">لا توجد أي مخالفات مرصودة ✓</small>
+        </div>
+      </div>
+      <div style="font-size:12.5px; color:var(--ink-secondary); line-height:1.5;">
+        <div>• مغادرة الصفحة: <b>0 مرات</b></div>
+        <div>• الأجهزة المتصلة: <b>جهاز فردي موثق</b></div>
+        <div>• دقة الإرسال المشفر: <b>TLS 1.3 Active</b></div>
+      </div>
+    </div>
+
+  </aside>
+
+</main>
+
+<!-- Hand-in / Submit Confirmation Modal -->
+<div class="modal-overlay" id="modal-submit" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:520px;">
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="font-size:42px; margin-bottom:8px;">🏁</div>
+      <h3 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="Confirm Exam Hand-In?">تأكيد تسليم أوراق الامتحان؟</h3>
+      <p style="color:var(--ink-secondary); font-size:14px; margin-top:4px;">
+        لقد أجبت على <b>19 من أصل 20 سؤالاً</b>، ويوجد <b>سؤال واحد مميز للمراجعة</b>. لن تتمكن من تعديل الإجابات بعد التسليم.
+      </p>
+    </div>
+
+    <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px; margin-bottom:18px; font-size:13.5px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span>الأسئلة المحلولة:</span>
+        <b style="color:var(--mint);">19 / 20</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>الوقت المتبقي:</span>
+        <b style="color:var(--coral);">38 دقيقة و 15 ثانية</b>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-secondary btn-sm" style="flex:1;" data-modal-close data-en="Return to Exam">العودة للأسئلة</button>
+      <a class="btn btn-coral btn-sm" style="flex:1.2;" href="student-results.html" data-en="Confirm Hand-in Now">نعم، تسليم واعتماد الدرجة ←</a>
+    </div>
+  </div>
+</div>
+
+<!-- Scratchpad Modal -->
+<div class="modal-overlay" id="modal-scratchpad" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:540px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:10px; margin-bottom:14px;">
+      <h3 style="font-size:18px; font-weight:800; color:var(--ink);">مسودة حسابات الطالب</h3>
+      <button class="btn btn-sm btn-ghost" data-modal-close>✕</button>
+    </div>
+    <textarea rows="8" placeholder="اكتب خطواتك الرياضية هنا للمساعدة في التفكير..." style="width:100%; padding:12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-family:var(--f-mono); font-size:13px;"></textarea>
+    <div style="margin-top:12px; text-align:end;">
+      <button class="btn btn-secondary btn-sm" data-modal-close>حفظ وإغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة قاعة الاختبار">
+  <span class="demo-toolbar-label" data-en="Exam Hall States:">حالات قاعة الامتحان:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Default">الوضع الطبيعي</button>
+    <button class="demo-btn" type="button" data-state="calc-open" aria-pressed="false" data-en="Calculator Ready">الآلة الحاسبة</button>
+  </div>
+</div>
+
+<script>
+  function calcAppend(val) {
+    const el = document.getElementById('calcDisplay');
+    if (el.innerText === '0' || el.innerText === '0.8') el.innerText = val;
+    else el.innerText += val;
+  }
+  function calcClear() {
+    document.getElementById('calcDisplay').innerText = '0';
+  }
+  function calcEval() {
+    const el = document.getElementById('calcDisplay');
+    try {
+      el.innerText = eval(el.innerText.replace(/π/g, 'Math.PI'));
+    } catch(e) {
+      el.innerText = 'Error';
+    }
+  }
+</script>
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

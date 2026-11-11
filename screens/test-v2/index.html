@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل شاشات النسخة الأكاديمية (v2 Classic Modern) · أكاديمية إتقان</title>
+<meta name="description" content="Itqan v2: Re-architected classic modern academic design system showcase, 14 responsive screens with new bespoke physics vectors, and signature V1 palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 40px var(--gutter) 80px; }
+  
+  .intro-box {
+    border-bottom: 2.5px solid var(--line); padding-bottom: 36px; margin-bottom: 40px;
+    display: grid; grid-template-columns: 1.35fr 0.85fr; gap: 36px; align-items: end;
+  }
+  .intro-box h1 { font-size: clamp(32px, 3.8vw, 48px); font-weight: 800; color: var(--ink); line-height: 1.2; }
+  .intro-box p { font-size: 16px; color: var(--ink-secondary); line-height: 1.7; margin-top: 12px; }
+
+  /* Device Simulator Controls Bar */
+  .viewport-bar {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: 16px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 36px;
+  }
+
+  .section-label {
+    font-size: 24px; font-weight: 800; color: var(--ink); margin: 44px 0 20px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+
+  .grid-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  
+  .shot-card {
+    display: block; text-decoration: none; background: var(--paper);
+    border: 2px solid var(--ink); border-radius: var(--r-card); overflow: hidden;
+    box-shadow: var(--shadow-sm); transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  }
+  .shot-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--ink); }
+  
+  .preview-frame {
+    position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--cream);
+    border-bottom: 2px solid var(--ink);
+  }
+  .preview-frame iframe {
+    position: absolute; top: 0; inset-inline-start: 0; width: 1440px; height: 900px; border: 0;
+    transform: scale(var(--s, .27)); transform-origin: top right; pointer-events: none;
+  }
+  [dir="ltr"] .preview-frame iframe { transform-origin: top left; }
+
+  .shot-meta {
+    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .shot-meta b { font-family: var(--f-display); font-size: 18px; font-weight: 800; color: var(--ink); display: block; margin-bottom: 2px; }
+  .shot-meta small { color: var(--ink-secondary); font-size: 13px; font-weight: 600; }
+
+  /* Tokens Grid */
+  .tokens-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .swatches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .swatch { display: grid; gap: 6px; font-size: 12.5px; color: var(--ink-secondary); font-weight: 600; }
+  .swatch i { display: block; height: 50px; border-radius: var(--r-ctl); border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); }
+  .swatch b { color: var(--ink); font-size: 13.5px; font-weight: 800; }
+
+  @media (max-width: 1000px) {
+    .grid-shots { grid-template-columns: 1fr 1fr; }
+    .intro-box, .tokens-split { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .grid-shots { grid-template-columns: 1fr; }
+    .swatches-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body data-title-en="Itqan v2: Re-architected Classic Modern Academic Suite">
+<a class="skip" href="#main" data-en="Skip to gallery">تخطّ إلى الدليل</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Itqan · Version 2 Academic Suite">إتقان · النسخة الأكاديمية المطورة (v2)</b>
+        <small data-en="Classic Modern Academic Design with 100% V1 Palette">إعادة هيكلة العناصر بالكامل + متجهات فيزيائية جديدة + تجاوب تام (14 شاشة)</small>
+      </div>
+    </a>
+
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a class="btn btn-sm btn-secondary hide-mobile" href="../test/index.html" data-en="Compare with v1">معاينة النسخة السابقة (v1)</a>
+      <button class="lang-btn" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <ul class="mobile-nav-list">
+    <li><a class="mobile-nav-link active" href="index.html">دليل الشاشات (14 شاشة)</a></li>
+    <li><a class="mobile-nav-link" href="hero.html">الواجهة الرئيسية</a></li>
+    <li><a class="mobile-nav-link" href="student-dashboard.html">لوحة الطالب</a></li>
+    <li><a class="mobile-nav-link" href="course-viewer.html">قاعة المحاضرات</a></li>
+    <li><a class="mobile-nav-link" href="exam-taking.html">قاعة الامتحان المقنن</a></li>
+    <li><a class="mobile-nav-link" href="teacher-dashboard.html">لوحة المعلم</a></li>
+  </ul>
+</div>
+
+<main id="main" class="wrap">
+  
+  <section class="intro-box">
+    <div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <span class="pill-badge pill-sun" data-en="Architecture Upgrade 2026">إعادة هيكلة معمارية شاملة</span>
+        <span class="pill-badge pill-mint" data-en="100% Mobile Responsive">متجاوبة تماماً مع كافة الهواتف والشاشات</span>
+        <span class="pill-badge pill-cobalt" data-en="Bespoke Physics Vectors">رسومات متجهة فيزيائية أصيلة</span>
+      </div>
+      <h1 data-en="Re-architected Classic Modern Academic Suite">النسخة الأكاديمية الكلاسيكية المعاصرة المطورة (v2)</h1>
+      <p data-en="Complete re-ordering of page elements and architectural hierarchies across all 14 screens. Built with custom bespoke scientific SVGs (Cyclotron, Toroidal Solenoid, Cathode Ray Oscilloscope, Moving Conductor Rails, Guilloche Rosette Seal, TPM Shield, Gaussian Curve) and 100% strict adherence to Version 1 colors.">
+        تمت إعادة بناء وهيكلة ترتيب العناصر في كافة الشاشات الـ 14 لتناسب تجربة طالب الثانوية العامة والجامعة. تشتمل على رسومات علمية متجهة حصرية (معجل السيكلوترون، الملف الحلقي، راسم الذبذبات الكاثودي، دائرة الساق المنزلقة، ختم الجيوشيه الأكاديمي، درع العتاد المشفر، ومنحنى جاوس الإحصائي)، مع التزام تام وصارم بلوحة ألوان النسخة الأولى الأصلية: أصفر الشمس (<code style="font-weight:700;">#FFC22E</code>)، عنبر العسل (<code style="font-weight:700;">#F2A60C</code>)، كريم دافئ (<code style="font-weight:700;">#FFF6E2</code>)، ورق عاجي (<code style="font-weight:700;">#FFFDF8</code>)، وحبر فحمي (<code style="font-weight:700;">#1A1712</code>).
+      </p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <a class="btn btn-primary" href="hero.html" style="text-align:center;" data-en="Launch Academy Hero Showcase 🚀">بدء استعراض الأكاديمية (الواجهة الرئيسية) 🚀</a>
+      <a class="btn btn-secondary" href="student-dashboard.html" style="text-align:center;" data-en="Open Student Academic Dashboard 🎓">فتح بوابة الطالب الأكاديمية 🎓</a>
+    </div>
+  </section>
+
+  <!-- Viewport Switcher Strip -->
+  <section class="viewport-bar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:20px;">📱</span>
+      <div>
+        <b style="font-size:15px; color:var(--ink);">فحص التجاوب الفوري (Responsive Test):</b>
+        <small style="display:block; color:var(--ink-secondary);">تم اختبار كافة الشاشات مع أزرار لمس $\ge 44$px وقائمة هاتف منبثقة وكسر تلقائي للأعمدة دون أي تمرير أفقي.</small>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-sm btn-secondary" onclick="alert('جميع الشاشات تدعم الهاتف بالكامل (Mobile Viewport < 640px) عبر drawer منبثق وتحول القوائم لعمود فردي.')">📱 الهاتف (&lt;640px)</button>
+      <button class="btn btn-sm btn-secondary" onclick="alert('شاشات الأجهزة اللوحية (Tablet 640-1024px) تدعم تقسيم 2 أعمدة متزن.')">📟 التابلت (768px)</button>
+      <button class="btn btn-sm btn-primary" onclick="alert('عرض الحاسوب المكتبي (Desktop > 1024px) يوفر مسرح العرض الكامل والرسومات الهندسية الممتدة.')">💻 المكتبي (1440px)</button>
+    </div>
+  </section>
+
+  <!-- Category 1: Student Academic Experience -->
+  <div class="section-label">
+    <span data-en="Student Academic Portal (/learn)">بوابة الطالب والمذاكرة المعتمدة (/learn)</span>
+    <span class="pill-badge pill-sun" data-en="5 Screens">5 شاشات مطورة</span>
+  </div>
+  
+  <div class="grid-shots">
+    <a class="shot-card" href="student-dashboard.html">
+      <div class="preview-frame"><iframe src="student-dashboard.html" title="dashboard" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Academic Dashboard">لوحة المتابعة الأكاديمية</b><small data-en="Telemetry ribbon · Torus vector · Theater preview">شريط الإحصائيات · متجه الملف الحلقي · مسرح المحاضرة</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="course-viewer.html">
+      <div class="preview-frame"><iframe src="course-viewer.html" title="theater" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Lecture Hall Theater">قاعة المحاضرات المرئية</b><small data-en="Oscilloscope vector · DRM watermark · 3-col deck">راسم الذبذبات الكاثودي · علامة مائية عائمة · 3 أعمدة</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="exam-taking.html">
+      <div class="preview-frame"><iframe src="exam-taking.html" title="exam" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Proctored Examination Hall">قاعة الاختبار المقنن</b><small data-en="U-Rail circuit vector · Live calculator · Matrix bar">شريط الأسئلة الأفقي · دائرة الساق المنزلقة · حاسبة علمية</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="student-results.html">
+      <div class="preview-frame"><iframe src="student-results.html" title="results" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Certified Transcript">السجل والبيان الأكاديمي</b><small data-en="Guilloche seal vector · Mastery radar · QR check">ختم الجيوشيه الأكاديمي · رادار المهارات · فحص QR</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="student-devices.html">
+      <div class="preview-frame"><iframe src="student-devices.html" title="devices" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Workstation Security">توثيق محطة العمل والعتاد</b><small data-en="Cryptographic lock vector · Live telemetry 4-grid">درع التشفير العتادي · مصفوفة البيانات الحية 4-grid</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Category 2: Faculty Administration -->
+  <div class="section-label">
+    <span data-en="Faculty & Department Administration (/manage)">إدارة القسم والامتحانات (/manage)</span>
+    <span class="pill-badge pill-mint" data-en="4 Screens">4 شاشات مطورة</span>
+  </div>
+
+  <div class="grid-shots">
+    <a class="shot-card" href="teacher-dashboard.html">
+      <div class="preview-frame"><iframe src="teacher-dashboard.html" title="chair" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Department Chair Command">مكتب رئيس القسم الأكاديمي</b><small data-en="Gaussian bell curve vector · Test-takers radar">منحنى جاوس التوزيعي · رادار الطلاب النشطين الحصري</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="quiz-builder.html">
+      <div class="preview-frame"><iframe src="quiz-builder.html" title="quiz builder" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Assessment Authoring Matrix">مصفوفة إعداد الاختبارات المقننة</b><small data-en="Lockdown enclave vector · Formula compiler">درع قفل الامتحان · صياغة الأسئلة ومترجم المعادلات</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="course-editor.html">
+      <div class="preview-frame"><iframe src="course-editor.html" title="course editor" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Curriculum & Lecture Studio">استوديو إعداد المحاضرات والمنهج</b><small data-en="DRM steganography vector · Syllabus roadmap">نظام التشفير والعلامة المائية · خريطة المحاضرات</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="requests-management.html">
+      <div class="preview-frame"><iframe src="requests-management.html" title="petitions" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Workstation Petitions Dossier">أرشيف التماسات محطات العمل</b><small data-en="Similarity radar vector · Comparative devices">رادار تشابه العتاد الخماسي · بطاقات مقارنة الأجهزة</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Category 3: Institutional Gateways & Public -->
+  <div class="section-label">
+    <span data-en="Institutional Gateways & Public">بوابات الامتثال والصفحات العامة</span>
+    <span class="pill-badge pill-sun" data-en="5 Screens">5 شاشات مطورة</span>
+  </div>
+
+  <div class="grid-shots">
+    <a class="shot-card" href="hero.html">
+      <div class="preview-frame"><iframe src="hero.html" title="hero" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Academic Faculty Landing">الواجهة الأكاديمية الرسمية</b><small data-en="Cyclotron vector · Faraday angle simulator">معجل السيكلوترون الأيقوني · محاكي زاوية الحث التفاعلي</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="signup.html">
+      <div class="preview-frame"><iframe src="signup.html" title="signup" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Scholar Admission Wizard">التحاق طالب جديد وتوثيق العتاد</b><small data-en="Vernier caliper vector · 3-step wizard">شعار القدمة ذات الورنية · معالج الـ 3 خطوات وقفل العتاد</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="login.html">
+      <div class="preview-frame"><iframe src="login.html" title="login" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Candidate Sign In">تسجيل الدخول الأكاديمي</b><small data-en="Optical prism vector · 2-column split deck">منشور تشتيت الضوء الزجاجي · تصميم الشطرين المنفصلين</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="blocked.html">
+      <div class="preview-frame"><iframe src="blocked.html" title="blocked" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Honor Code Boundary">بوابة الامتثال ومحددات الأمان</b><small data-en="Security vault gate vector · 3 states">بوابة الخزينة المشفرة · 3 حالات حظر تفاعلية</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+
+    <a class="shot-card" href="error-404.html">
+      <div class="preview-frame"><iframe src="error-404.html" title="404" loading="lazy" tabindex="-1"></iframe></div>
+      <div class="shot-meta">
+        <div><b data-en="Unresolved Coordinate (404)">صفحة إحداثيات مجهولة (404)</b><small data-en="Quantum telescope vector · Coordinate jump">تلسكوب فلكي مكسور وبوصلة · روابط استرجاع سريعة</small></div>
+        <span class="btn btn-sm btn-ghost" style="padding:0; font-size:18px;">←</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Design Tokens Specification -->
+  <h2 style="font-size:24px; font-weight:800; color:var(--ink); margin-top:56px;" data-en="Classic Modern Design Tokens">محددات الهوية الأكاديمية الكلاسيكية المعاصرة</h2>
+  
+  <div class="tokens-split">
+    <div class="academic-card">
+      <h3 style="font-size:18px; margin-bottom:14px; font-weight:800; color:var(--ink);" data-en="Chromatic Scale">المصفوفة اللونية المعتمدة (ألوان النسخة الأولى الأصلية)</h3>
+      <div class="swatches-grid">
+        <div class="swatch"><i style="background:#FFC22E"></i><b>أصفر الشمس</b><code>#FFC22E</code></div>
+        <div class="swatch"><i style="background:#F2A60C"></i><b>عنبر العسل</b><code>#F2A60C</code></div>
+        <div class="swatch"><i style="background:#FFF6E2"></i><b>كريم دافئ</b><code>#FFF6E2</code></div>
+        <div class="swatch"><i style="background:#FFFDF8"></i><b>ورق عاجي</b><code>#FFFDF8</code></div>
+        <div class="swatch"><i style="background:#1A1712"></i><b>حبر فحمي</b><code>#1A1712</code></div>
+        <div class="swatch"><i style="background:#3F9D7B"></i><b>زمرد النعناع</b><code>#3F9D7B</code></div>
+        <div class="swatch"><i style="background:#E9502E"></i><b>مرجان ناري</b><code>#E9502E</code></div>
+        <div class="swatch"><i style="background:#2B5FE3"></i><b>أزرق ملكي</b><code>#2B5FE3</code></div>
+      </div>
+    </div>
+
+    <div class="academic-card">
+      <h3 style="font-size:18px; margin-bottom:14px; font-weight:800; color:var(--ink);" data-en="Typographic Proportions">الهرم الطباعي والأوزان</h3>
+      <div style="border-bottom:2px dashed var(--line); padding-bottom:12px; margin-bottom:14px;">
+        <small style="color:var(--ink-secondary); display:block; font-size:12px; font-weight:700;">Baloo Bhaijaan 2 · Display & Academic Titles</small>
+        <div style="font-family:var(--f-display); font-size:26px; font-weight:800; color:var(--ink);">الفيزياء المتقدمة: الفهم والبرهان</div>
+      </div>
+      <div>
+        <small style="color:var(--ink-secondary); display:block; font-size:12px; font-weight:700;">Readex Pro + Plus Jakarta Sans · Technical Precision</small>
+        <div style="font-size:15px; color:var(--ink-secondary); font-weight:600;">معادلات تفاضلية وقوانين مقننة واختبارات إلكترونية موثقة.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin:56px 0 20px; text-align:center; color:var(--ink-secondary); font-size:14px; font-weight:600;" data-en="Itqan v2: Classic Modern Academic Prototype Suite">
+    أكاديمية إتقان للفيزياء · النسخة الأكاديمية المطورة (v2) · 2026
+  </footer>
+</main>
+
+<script src="shared/itqan-v2.js"></script>
+<script>
+  const fit = () => document.querySelectorAll('.preview-frame').forEach((f) => f.style.setProperty('--s', f.clientWidth / 1440));
+  addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

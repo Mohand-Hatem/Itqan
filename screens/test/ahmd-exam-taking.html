@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>امتحان الحث الكهرومغناطيسي · منصة إتقان</title>
+<meta name="description" content="Itqan live exam interface: timer, autosave, anti-cheat device binding, question navigator.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  /* Fixed Sticky Exam Bar */
+  .exam-bar {
+    position: sticky; top: 0; z-index: 50; background: var(--paper); border-bottom: 2.5px solid var(--ink);
+    padding: 12px var(--gutter); box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .exam-bar-inner {
+    max-width: var(--page); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .exam-timer {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 18px;
+    font-family: var(--f-display); font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+  .timer-clock { animation: pulseClock 1.5s infinite; }
+  @keyframes pulseClock { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+  /* Main Exam Grid */
+  .exam-grid {
+    max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter);
+    display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start;
+  }
+
+  /* Question Card */
+  .q-card {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(20px, 3vw, 36px); box-shadow: var(--shadow); display: grid; gap: 24px;
+  }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--line); padding-bottom: 14px; }
+  .q-badge { background: var(--sun-tint); border: 1.5px solid var(--ink); padding: 4px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+  .q-flag { background: none; border: 2px solid var(--line); border-radius: 10px; padding: 6px 14px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all .15s; }
+  .q-flag.active { background: var(--sun); border-color: var(--ink); color: var(--ink); }
+
+  .q-text { font-size: 20px; font-weight: 700; line-height: 1.5; color: var(--ink); }
+  
+  /* Diagram Box */
+  .diagram-box {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 16px;
+    padding: 20px; display: flex; justify-content: center; align-items: center;
+  }
+
+  /* Choices list */
+  .choices-list { display: grid; gap: 14px; }
+  .choice-item {
+    border: 2px solid var(--ink); border-radius: 14px; padding: 14px 18px; background: var(--paper);
+    display: flex; align-items: center; gap: 14px; cursor: pointer; font-size: 16.5px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s, background .12s;
+  }
+  .choice-item:hover { background: var(--sun-tint); transform: translateY(-2px); box-shadow: 0 4px 0 var(--ink); }
+  .choice-item.selected { background: var(--sun); border-color: var(--ink); box-shadow: 0 3px 0 var(--ink); }
+  .choice-marker {
+    width: 28px; height: 28px; border: 2px solid var(--ink); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; background: #fff; flex: none;
+  }
+  .choice-item.selected .choice-marker { background: var(--ink); color: #fff; }
+
+  /* Navigation Footer */
+  .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+
+  /* Sidebar Navigator */
+  .nav-box {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 20px; box-shadow: var(--shadow); position: sticky; top: 90px;
+  }
+  .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 18px 0; }
+  .num-btn {
+    aspect-ratio: 1; border: 2px solid var(--ink); border-radius: 10px; background: var(--cream);
+    font-family: var(--f-display); font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    position: relative; transition: all .15s;
+  }
+  .num-btn:hover { transform: scale(1.08); }
+  .num-btn.cur { background: var(--sun); box-shadow: 0 2px 0 var(--ink); }
+  .num-btn.done { background: var(--mint); color: #fff; }
+  .num-btn.flagged::after {
+    content:'★'; position: absolute; top: -6px; right: -4px; color: var(--coral); font-size: 12px; font-weight: 900;
+  }
+
+  .nav-legend { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--ink-2); border-top: 1.5px solid var(--line); padding-top: 14px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; }
+  .dot-sm { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); }
+
+  /* Submit Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(26,23,18,.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .modal-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 520px; width: 100%; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35); text-align: center;
+    animation: pop .3s var(--ease-out);
+  }
+  @keyframes pop { 0% { transform: scale(.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* States via body[data-state] */
+  [data-state="warning"] .exam-timer { background: var(--coral); color: #fff; border-color: var(--ink); }
+  [data-state="modal"] .modal-overlay { display: flex; }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .exam-grid { grid-template-columns: 1fr; }
+    .nav-box { position: static; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Exam: Magnetic Induction · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to question">تخطّ إلى السؤال الحالي</a>
+
+<!-- Fixed Exam Bar with Timer and Security Badge -->
+<header class="exam-bar">
+  <div class="exam-bar-inner">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span class="exam-timer">
+        <svg class="timer-clock" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span style="font-variant-numeric:tabular-nums;">44:20</span>
+      </span>
+      <div style="display:flex; flex-direction:column;">
+        <span style="font-size:14.5px; font-weight:800;" data-en="Quiz 4: Induction & Lenz's Law">اختبار 4: الحث وقاعدة لينز</span>
+        <small style="color:var(--mint); font-weight:700; display:flex; align-items:center; gap:4px;" data-en="Autosaved just now ✓">تم الحفظ تلقائيًا ✓</small>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="c-badge" style="background:var(--cream); display:none; @media(min-width:600px){display:inline-block;}" data-en="Device: Windows PC (Verified 🔒)">الجهاز المعتمد: Windows PC 🔒</span>
+      <button class="btn btn-sm btn-light" id="open-submit-btn" type="button" data-en="Finish & Submit">تسليم الامتحان</button>
+      <button class="lang" type="button">English</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="exam-grid">
+  
+  <!-- Active Question Area -->
+  <section class="q-card">
+    <div class="q-meta">
+      <span class="q-badge" data-en="Question 5 of 20 · 3 Points">السؤال 5 من 20 · 3 درجات</span>
+      <button class="q-flag active" id="flag-btn" type="button" data-en="Flagged for review ★">
+        <span>★</span> <span data-en="Flag for review">معلّم للمراجعة</span>
+      </button>
+    </div>
+
+    <div class="q-text" data-en="In the shown circuit, what happens to the instantaneous reading of the galvanometer when the circuit switch S is suddenly closed?">
+      في الدائرة الكهربية الموضحة بالشكل، ماذا يحدث لقراءة الجلفانومتر الحساس لحظة غلق المفتاح (K) في الدائرة المجاورة؟
+    </div>
+
+    <!-- Physics Circuit Vector Diagram -->
+    <div class="diagram-box">
+      <svg viewBox="0 0 540 220" width="100%" height="auto" style="max-height:220px;" aria-label="مخطط دائرة كهربية">
+        <!-- Primary Circuit (Left) -->
+        <g stroke="#1A1712" stroke-width="2.5" fill="none">
+          <rect x="40" y="40" width="180" height="140" rx="8" stroke-dasharray="0"/>
+          
+          <!-- Battery -->
+          <line x1="40" y1="90" x2="40" y2="105"/>
+          <line x1="28" y1="105" x2="52" y2="105" stroke-width="4"/>
+          <line x1="34" y1="115" x2="46" y2="115" stroke-width="3"/>
+          <line x1="40" y1="115" x2="40" y2="130"/>
+          <text x="14" y="112" font-family="Readex Pro" font-weight="700" font-size="14" fill="#1A1712">VB</text>
+
+          <!-- Switch (K) open -->
+          <line x1="100" y1="40" x2="125" y2="40"/>
+          <circle cx="125" cy="40" r="3" fill="#1A1712"/>
+          <line x1="125" y1="40" x2="148" y2="24" stroke-width="3" stroke="#E9502E"/>
+          <circle cx="150" cy="40" r="3" fill="#1A1712"/>
+          <line x1="150" y1="40" x2="180" y2="40"/>
+          <text x="132" y="18" font-family="Readex Pro" font-weight="700" font-size="14" fill="#E9502E">K</text>
+
+          <!-- Primary Coil -->
+          <rect x="200" y="70" width="20" height="80" rx="4" fill="#FFC22E"/>
+          <path d="M220 80 Q235 90 220 100 Q235 110 220 120 Q235 130 220 140" stroke-width="3"/>
+        </g>
+        <text x="80" y="205" font-family="Readex Pro" font-size="14" fill="#1A1712" font-weight="600">الدائرة الابتدائية (١)</text>
+
+        <!-- Secondary Circuit (Right) -->
+        <g stroke="#1A1712" stroke-width="2.5" fill="none">
+          <rect x="320" y="40" width="180" height="140" rx="8"/>
+          
+          <!-- Secondary Coil -->
+          <rect x="320" y="70" width="20" height="80" rx="4" fill="#3F9D7B"/>
+          <path d="M320 80 Q305 90 320 100 Q305 110 320 120 Q305 130 320 140" stroke-width="3"/>
+
+          <!-- Galvanometer (G) -->
+          <circle cx="410" cy="180" r="22" fill="#FFFDF8" stroke-width="2.5"/>
+          <text x="403" y="186" font-family="Readex Pro" font-weight="800" font-size="16" fill="#1A1712">G</text>
+          <line x1="410" y1="180" x2="422" y2="166" stroke="#2B5FE3" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+        <text x="360" y="205" font-family="Readex Pro" font-size="14" fill="#1A1712" font-weight="600">الدائرة الثانوية (٢)</text>
+      </svg>
+    </div>
+
+    <!-- Choices -->
+    <div class="choices-list" role="radiogroup">
+      <div class="choice-item" role="radio" aria-checked="false">
+        <span class="choice-marker">أ</span>
+        <span data-en="Remains at zero without moving">تظل القراءة صفرية دون أي انحراف</span>
+      </div>
+      <div class="choice-item selected" role="radio" aria-checked="true">
+        <span class="choice-marker">ب</span>
+        <span data-en="Deflects instantaneously in a specific direction then returns to zero">تنحرف لحظيًا في اتجاه معين ثم تعود سريعًا إلى الصفر</span>
+      </div>
+      <div class="choice-item" role="radio" aria-checked="false">
+        <span class="choice-marker">ج</span>
+        <span data-en="Deflects continuously and remains at maximum scale">تنحرف وتستقر عند نهاية التدريج باستمرار</span>
+      </div>
+      <div class="choice-item" role="radio" aria-checked="false">
+        <span class="choice-marker">د</span>
+        <span data-en="Oscillates indefinitely between poles">تتذبذب يمينًا ويسارًا بصورة مستمرة</span>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Buttons -->
+    <div class="q-nav">
+      <button class="btn btn-sm btn-light" type="button" data-en="← Previous Question">← السؤال السابق</button>
+      <span style="color:var(--ink-2); font-size:14px;" data-en="Selection saved">الإجابة محفوظة</span>
+      <button class="btn btn-sm" type="button" data-en="Next Question →">السؤال التالي →</button>
+    </div>
+  </section>
+
+  <!-- Sidebar Question Navigator -->
+  <aside class="nav-box">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="font-size:18px; font-weight:800;" data-en="Questions Navigator">مخطط الأسئلة</h3>
+      <span class="c-badge" data-en="12 / 20 Answered">12 مُجاب</span>
+    </div>
+
+    <div class="nav-grid">
+      <button class="num-btn done">1</button>
+      <button class="num-btn done">2</button>
+      <button class="num-btn done">3</button>
+      <button class="num-btn done">4</button>
+      <button class="num-btn cur flagged">5</button>
+      <button class="num-btn done">6</button>
+      <button class="num-btn done">7</button>
+      <button class="num-btn">8</button>
+      <button class="num-btn">9</button>
+      <button class="num-btn">10</button>
+      <button class="num-btn done">11</button>
+      <button class="num-btn done">12</button>
+      <button class="num-btn">13</button>
+      <button class="num-btn">14</button>
+      <button class="num-btn done">15</button>
+      <button class="num-btn">16</button>
+      <button class="num-btn">17</button>
+      <button class="num-btn">18</button>
+      <button class="num-btn">19</button>
+      <button class="num-btn">20</button>
+    </div>
+
+    <div class="nav-legend">
+      <div class="legend-row"><span class="dot-sm" style="background:var(--mint);"></span> <span data-en="Answered (12)">سؤال تمت إجابته (12)</span></div>
+      <div class="legend-row"><span class="dot-sm" style="background:var(--sun);"></span> <span data-en="Current question (1)">السؤال الحالي (1)</span></div>
+      <div class="legend-row"><span class="dot-sm" style="background:var(--cream);"></span> <span data-en="Unanswered (7)">لم يُجب بعد (7)</span></div>
+      <div class="legend-row"><span style="color:var(--coral); font-weight:900;">★</span> <span data-en="Flagged for review (1)">معلم للمراجعة (1)</span></div>
+    </div>
+
+    <button class="btn btn-block" id="side-submit-btn" style="margin-top:20px;" data-en="Submit Exam Now">تسليم وإنهاء الامتحان</button>
+  </aside>
+
+</main>
+
+<!-- Submit Confirmation Modal Overlay -->
+<div class="modal-overlay" id="submit-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-card">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--sun); border:2.5px solid var(--ink); margin:0 auto 16px; display:flex; align-items:center; justify-content:center;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <h2 id="modal-title" style="font-size:24px; font-weight:800; margin-bottom:8px;" data-en="Confirm Exam Submission?">هل تريد بالتأكيد تسليم الامتحان؟</h2>
+    <p style="color:var(--ink-2); font-size:16px; margin-bottom:20px;" data-en="You have answered 12 out of 20 questions. Unanswered questions will receive 0 marks. You cannot change your answers after submission.">لقد أجبت على 12 سؤالًا من أصل 20. الأسئلة المتبقية دون إجابة ستحتسب 0 درجات. لن تتمكن من تعديل الإجابات بعد التسليم.</p>
+    
+    <div style="display:flex; gap:12px; justify-content:center;">
+      <a class="btn" href="ahmd-student-results.html" style="background:var(--sun);" data-en="Yes, Submit Final Exam">نعم، سلّم الامتحان الآن</a>
+      <button class="btn btn-light" id="close-modal-btn" type="button" data-en="Return to Questions">العودة للأسئلة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview States:">حالات المعاينة:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="normal" aria-pressed="true" data-en="Normal">الوضع العادي</button>
+    <button type="button" data-state="warning" aria-pressed="false" data-en="Warning Timer">تنبيه انتهاء الوقت</button>
+    <button type="button" data-state="modal" aria-pressed="false" data-en="Submit Modal">نافذة التسليم</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+<script>
+  // Choice selection interaction
+  document.querySelectorAll('.choice-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.choice-item').forEach(c => {
+        c.classList.remove('selected');
+        c.setAttribute('aria-checked', 'false');
+      });
+      item.classList.add('selected');
+      item.setAttribute('aria-checked', 'true');
+    });
+  });
+
+  // Modal toggle
+  const modal = document.getElementById('submit-modal');
+  document.getElementById('open-submit-btn').onclick = () => modal.style.display = 'flex';
+  document.getElementById('side-submit-btn').onclick = () => modal.style.display = 'flex';
+  document.getElementById('close-modal-btn').onclick = () => modal.style.display = 'none';
+
+  // Flag toggle
+  const flag = document.getElementById('flag-btn');
+  flag.onclick = () => flag.classList.toggle('active');
+</script>
+</body>
+</html>

@@ -7,8 +7,15 @@ type MakeRow = (db: PrismaClient, tenantId: string) => Promise<{ id: string }>;
 // One "make a row" function per tenant-owned model. Adding a tenant table means adding
 // an entry here; isolation.int.spec.ts fails until you do, then sweeps the new table.
 export const TENANT_FIXTURES: Record<string, MakeRow> = {
-  Membership: (db, tenantId) =>
-    db.membership.create({ data: { tenantId, userId: randomUUID(), role: "student" } }),
+  Membership: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: {
+        email: `fixture-${randomUUID()}@example.com`,
+        name: "Fixture Student",
+      },
+    });
+    return db.membership.create({ data: { tenantId, userId: user.id, role: "student" } });
+  },
   AuditLog: (db, tenantId) => db.auditLog.create({ data: { tenantId, action: "test.fixture" } }),
 };
 

@@ -1,0 +1,654 @@
+/* ==========================================================================
+   ITQAN ACADEMIC SUITE v3 — CLASSIC MODERN ARCHITECTURE
+   Awwwards-Caliber Visual & Motion Design System for Scholars & Faculty
+   Strict V1 Palette with Enhanced Tonal Depths & Smooth Physical Motion
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;700;800&family=Readex+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+
+:root {
+  /* --- 1. SIGNATURE V1 PALETTE WITH REFINED DEGREES --- */
+  /* Sun Gold (Primary Accent & Accreditation) */
+  --sun: #FFC22E;
+  --sun-bright: #FFCD38;
+  --sun-deep: #F5B014;
+  --sun-tint: #FFF8E7;
+  --sun-glow: rgba(255, 194, 46, 0.24);
+
+  /* Honey Amber (Warm Secondary & Cautionary Tones) */
+  --honey: #F2A60C;
+  --honey-deep: #D48906;
+  --honey-tint: #FDF3E0;
+
+  /* Warm Cream & Alabaster (Parchment & Secondary Grounds) */
+  --cream: #FFF6E2;
+  --cream-soft: #FAF2DF;
+  --cream-deep: #F4E7CB;
+
+  /* Paper White (Crisp Archival Reading Surface) */
+  --paper: #FFFDF8;
+  --paper-pure: #FFFFFF;
+  --paper-subtle: #F9F6EE;
+
+  /* Ink Charcoal & Obsidian (Deep Editorial Letterpress Typography) */
+  --ink: #1A1712;
+  --ink-deep: #12100D;
+  --ink-secondary: #5A5346;
+  --ink-muted: #8C8270;
+
+  /* Hairline Dividers & Boundaries */
+  --line: #E5D5B3;
+  --line-subtle: #EDE0C5;
+  --line-dark: #1A1712;
+
+  /* Mint Emerald (Mastery 100%, Integrity & Verified Workstations) */
+  --mint: #3F9D7B;
+  --mint-deep: #2E8B68;
+  --mint-tint: #EDF7F2;
+  --mint-glow: rgba(63, 157, 123, 0.2);
+
+  /* Coral Red (Proctored Deadlines, Critical Errors & Urgent Triage) */
+  --coral: #E9502E;
+  --coral-deep: #D43A18;
+  --coral-tint: #FDF0ED;
+  --coral-glow: rgba(233, 80, 46, 0.2);
+
+  /* Royal Cobalt Blue (Lorentz Vectors, Physics Charges & Links) */
+  --cobalt: #2B5FE3;
+  --cobalt-deep: #1E4ED8;
+  --cobalt-tint: #EEF3FD;
+  --cobalt-glow: rgba(43, 95, 227, 0.2);
+
+  /* --- 2. TYPOGRAPHY SCALES --- */
+  --f-display: 'Baloo Bhaijaan 2', 'Traditional Arabic', serif;
+  --f-sans: 'Readex Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --f-latin: 'Plus Jakarta Sans', sans-serif;
+  --f-mono: 'JetBrains Mono', monospace;
+
+  /* --- 3. SPATIAL & TACTILE TOKENS --- */
+  --page-max: 1360px;
+  --gutter: clamp(16px, 3.5vw, 36px);
+  --r-panel: 22px;
+  --r-card: 16px;
+  --r-ctl: 10px;
+  --r-pill: 9999px;
+
+  /* Shadows with Emil Kowalski Physicality */
+  --shadow-tactile: 0 3px 0 var(--ink);
+  --shadow-sm: 0 4px 0 var(--ink);
+  --shadow-md: 0 6px 0 var(--ink);
+  --shadow-lg: 0 8px 0 var(--ink);
+  --shadow-float: 0 16px 36px rgba(26, 23, 18, 0.12), 0 4px 0 var(--ink);
+
+  /* Spring easing */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Base Reset & Smooth Rendering */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--f-sans);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  background-image: radial-gradient(circle at 100% 0%, var(--sun-glow) 0%, transparent 40%),
+                    radial-gradient(circle at 0% 100%, var(--cobalt-glow) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Accessibility Skip Link */
+.skip-to-content {
+  position: absolute;
+  top: -60px;
+  inset-inline-start: 16px;
+  background: var(--sun);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 8px 16px;
+  border-radius: var(--r-ctl);
+  font-weight: 800;
+  z-index: 1000;
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 16px;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+p, li, label, input, button, textarea, select {
+  font-family: var(--f-sans);
+}
+
+code, pre, .formula-code {
+  font-family: var(--f-mono);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   TOPBAR NAVIGATION (Responsive & Fluid)
+   ========================================================================== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 2.5px solid var(--ink);
+  transition: background 0.2s ease;
+}
+
+.topbar-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 12px var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.brand-crest-box {
+  width: 44px;
+  height: 44px;
+  background: var(--sun);
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform 0.2s var(--ease-spring);
+}
+.brand-crest-box:hover {
+  transform: rotate(-4deg) scale(1.05);
+}
+.brand-titles b {
+  font-family: var(--f-display);
+  font-size: 19px;
+  font-weight: 800;
+  display: block;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.brand-titles small {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  font-weight: 600;
+  display: block;
+}
+
+.nav-links-list {
+  display: flex;
+  list-style: none;
+  gap: 6px;
+}
+.nav-anchor {
+  padding: 8px 16px;
+  border-radius: var(--r-ctl);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  border: 1.5px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.nav-anchor:hover {
+  background: var(--cream);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.nav-anchor.active {
+  background: var(--sun-tint);
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.topbar-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   BUTTONS & CONTROLS (Emil Kowalski Tactile Physics)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--f-sans);
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: var(--r-ctl);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.2;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.15s var(--ease-spring), background 0.15s ease;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: translateY(3px) scale(0.98);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.btn-primary {
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 800;
+}
+.btn-primary:hover {
+  background: var(--sun-bright);
+}
+
+.btn-secondary {
+  background: var(--paper);
+  color: var(--ink);
+}
+.btn-secondary:hover {
+  background: var(--cream);
+}
+
+.btn-mint {
+  background: var(--mint);
+  color: #FFFDF8;
+}
+.btn-mint:hover {
+  background: var(--mint-deep);
+}
+
+.btn-coral {
+  background: var(--coral);
+  color: #FFFDF8;
+}
+.btn-coral:hover {
+  background: var(--coral-deep);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn-ghost:hover {
+  background: var(--cream);
+  border-color: var(--line);
+}
+.btn-ghost:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+  min-height: 38px;
+  box-shadow: 0 2.5px 0 var(--ink);
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 16.5px;
+  min-height: 52px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Badges & Pills */
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 800;
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 1.5px 0 var(--ink);
+  line-height: 1.3;
+}
+.pill-sun { background: var(--sun); color: var(--ink); }
+.pill-mint { background: var(--mint-tint); color: var(--mint-deep); border-color: var(--mint-deep); }
+.pill-coral { background: var(--coral-tint); color: var(--coral-deep); border-color: var(--coral-deep); }
+.pill-cobalt { background: var(--cobalt-tint); color: var(--cobalt-deep); border-color: var(--cobalt-deep); }
+.pill-subtle { background: var(--cream); color: var(--ink-secondary); border-color: var(--line); }
+
+/* Scientific Formula Box */
+.formula-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-ctl);
+  padding: 5px 12px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  direction: ltr;
+}
+
+/* Academic Card System */
+.academic-card {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--r-card);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-spring);
+}
+.academic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Master Panel */
+.academic-panel {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--r-panel);
+  padding: clamp(24px, 4vw, 40px);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+.academic-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--sun), var(--honey), var(--mint), var(--cobalt));
+}
+
+/* ==========================================================================
+   ANIMATIONS & MICRO-MOTION SYSTEM
+   ========================================================================== */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 194, 46, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 16px 4px rgba(255, 194, 46, 0.3);
+  }
+}
+
+@keyframes floatSmooth {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes particleOrbit {
+  from { stroke-dashoffset: 240; }
+  to { stroke-dashoffset: 0; }
+}
+
+.anim-reveal {
+  animation: revealUp 0.6s var(--ease-spring) both;
+}
+.anim-delay-1 { animation-delay: 0.1s; }
+.anim-delay-2 { animation-delay: 0.2s; }
+.anim-delay-3 { animation-delay: 0.3s; }
+.anim-delay-4 { animation-delay: 0.4s; }
+
+/* Safe Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE NAVIGATION DRAWER (< 900px)
+   ========================================================================== */
+.mobile-nav-toggle {
+  display: none;
+  background: var(--sun);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-ctl);
+  padding: 8px 12px;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  inset-inline-end: 0;
+  bottom: 0;
+  width: min(340px, 86vw);
+  background: var(--paper);
+  border-inline-start: 3px solid var(--ink);
+  z-index: 100;
+  padding: 28px 24px;
+  transform: translateX(110%);
+  transition: transform 0.3s var(--ease-spring);
+  box-shadow: -10px 0 30px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+[dir="ltr"] .mobile-nav-drawer {
+  transform: translateX(110%);
+}
+[dir="rtl"] .mobile-nav-drawer {
+  transform: translateX(-110%);
+}
+.mobile-nav-drawer.open {
+  transform: translateX(0) !important;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 23, 18, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 95;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-list {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.mobile-nav-link {
+  display: block;
+  padding: 12px 16px;
+  border-radius: var(--r-ctl);
+  font-size: 16px;
+  font-weight: 800;
+  border: 2px solid var(--line);
+  background: var(--cream);
+  color: var(--ink);
+  transition: all 0.15s ease;
+}
+.mobile-nav-link.active, .mobile-nav-link:hover {
+  background: var(--sun);
+  border-color: var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+/* ==========================================================================
+   MODAL SYSTEM
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 23, 18, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open {
+  display: flex;
+}
+.modal-box {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--r-panel);
+  width: 100%;
+  max-width: 600px;
+  padding: clamp(24px, 4vw, 36px);
+  box-shadow: var(--shadow-float);
+  animation: revealUp 0.25s var(--ease-spring);
+  position: relative;
+}
+
+/* ==========================================================================
+   RUNTIME DEMO TOOLBAR (Interactive State Simulator)
+   ========================================================================== */
+.demo-toolbar {
+  position: fixed;
+  bottom: 16px;
+  inset-inline: 16px;
+  max-width: fit-content;
+  margin: 0 auto;
+  z-index: 90;
+  background: rgba(26, 23, 18, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--sun);
+  border-radius: var(--r-pill);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  color: #FFF6E2;
+}
+.demo-toolbar-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sun);
+}
+.demo-actions {
+  display: flex;
+  gap: 6px;
+}
+.demo-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 194, 46, 0.4);
+  color: #FFFDF8;
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.demo-btn:hover, .demo-btn[aria-pressed="true"] {
+  background: var(--sun);
+  color: var(--ink);
+  border-color: var(--sun);
+  box-shadow: 0 0 8px rgba(255, 194, 46, 0.6);
+}
+
+/* Toast System */
+.toast-notice {
+  position: fixed;
+  top: 24px;
+  inset-inline-end: 24px;
+  background: var(--ink);
+  color: var(--sun);
+  border: 2px solid var(--sun);
+  border-radius: var(--r-ctl);
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transform: translateY(-80px);
+  opacity: 0;
+  transition: all 0.3s var(--ease-spring);
+}
+.toast-notice.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .nav-links-list, .hide-mobile { display: none !important; }
+  .mobile-nav-toggle { display: inline-flex; }
+}

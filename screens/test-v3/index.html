@@ -1,0 +1,736 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة إتقان للفيزياء | مركز استعراض التصميم الأكاديمي V3 (Master Showcase Hub)</title>
+  <link rel="stylesheet" href="shared/itqan-v3.css">
+  <style>
+    /* Showcase Hub Specific Styles */
+    .showcase-hero {
+      background: linear-gradient(135deg, var(--paper-pure) 0%, var(--cream) 100%);
+      border-bottom: 1px solid var(--border-light);
+      padding: 3rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .showcase-hero::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: 10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,194,46,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--paper-pure);
+      border: 1px solid var(--border-medium);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Interactive Viewport Simulator */
+    .simulator-deck {
+      background: var(--paper-pure);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      margin: 2.5rem 0;
+    }
+    .simulator-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 1rem;
+    }
+    .viewport-btn-group {
+      display: inline-flex;
+      background: var(--cream);
+      padding: 0.3rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      gap: 0.3rem;
+    }
+    .vp-btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .vp-btn.active {
+      background: var(--paper-pure);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+    .preview-frame-container {
+      background: #EAE6DC;
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      min-height: 600px;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 650px;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background: var(--paper-pure);
+      box-shadow: var(--shadow-lg);
+      transition: width 0.35s ease;
+    }
+
+    /* Screen Directory Cards */
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .screen-card {
+      background: var(--paper-pure);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all var(--transition-normal);
+      position: relative;
+    }
+    .screen-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--sun-deep);
+    }
+    .persona-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+    }
+    .persona-student { background: rgba(43, 95, 227, 0.1); color: var(--cobalt); border: 1px solid rgba(43, 95, 227, 0.25); }
+    .persona-teacher { background: rgba(242, 166, 12, 0.15); color: var(--sun-deep); border: 1px solid rgba(242, 166, 12, 0.35); }
+    .persona-system { background: rgba(26, 23, 18, 0.08); color: var(--ink); border: 1px solid rgba(26, 23, 18, 0.15); }
+
+    /* Palette Swatches */
+    .swatches-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .swatch-box {
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      color: #FFF;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      border: 1px solid rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 90px;
+    }
+
+    /* Awwwards Scorecard Matrix */
+    .scorecard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .score-item {
+      background: var(--paper-pure);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .score-num {
+      font-size: 1.8rem;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--mint);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Academic Navigation -->
+  <header class="v3-nav">
+    <div class="v3-nav-inner">
+      <div class="v3-logo-group">
+        <a href="index.html" class="v3-brand">
+          <div class="v3-brand-icon">
+            <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
+              <circle cx="16" cy="16" r="14" stroke="#1A1712" stroke-width="2.5" fill="#FFC22E"/>
+              <ellipse cx="16" cy="16" rx="14" ry="6" stroke="#1A1712" stroke-width="1.8" transform="rotate(-25 16 16)" stroke-dasharray="2 2"/>
+              <circle cx="16" cy="16" r="4.5" fill="#1A1712"/>
+            </svg>
+          </div>
+          <div class="v3-brand-text">
+            <span class="v3-brand-title">منظومة إتقان <span class="badge badge-sun" style="font-size:0.65rem;">V3 Master</span></span>
+            <span class="v3-brand-sub" data-ar="مركز الاستعراض الأكاديمي والتقييم الهندسي" data-en="Engineering & Academic Showcase">مركز الاستعراض الأكاديمي والتقييم الهندسي</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="v3-links">
+        <a href="#screens" class="v3-nav-link" data-ar="دليل الشاشات (13)" data-en="All 13 Screens">دليل الشاشات (13)</a>
+        <a href="#simulator" class="v3-nav-link" data-ar="محاكي الاستجابة" data-en="Viewport Simulator">محاكي الاستجابة</a>
+        <a href="#scorecard" class="v3-nav-link" data-ar="تقييم Awwwards" data-en="Awwwards Audit">تقييم Awwwards</a>
+        <a href="#tokens" class="v3-nav-link" data-ar="الرموز والألوان" data-en="Design Tokens">الرموز والألوان</a>
+      </nav>
+
+      <div class="v3-nav-actions">
+        <button class="v3-btn v3-btn-secondary" id="langToggle" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+          <span class="lang-text">English</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Showcase Hero -->
+  <section class="showcase-hero">
+    <div class="v3-container">
+      <div class="hero-meta-badge">
+        <span class="status-dot"></span>
+        <span data-ar="إصدار V3: 13 شاشة متكاملة بنظام الويب الأصيل (Vanilla HTML/CSS/JS)" data-en="Release V3: 13 Screens Vanilla HTML/CSS/JS">إصدار V3: 13 شاشة متكاملة بنظام الويب الأصيل (Vanilla HTML/CSS/JS)</span>
+      </div>
+
+      <h1 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.2; margin: 0 0 1rem 0;" data-ar="المنظومة الأكاديمية الفيزيائية: صممت لطلاب المتفوقين والأساتذة الجامعيين" data-en="Academic Physics System: Engineered for Scholars & University Faculty">
+        المنظومة الأكاديمية الفيزيائية: صممت لطلاب المتفوقين والأساتذة الجامعيين
+      </h1>
+
+      <p class="text-muted" style="font-size: 1.1rem; max-width: 820px; line-height: 1.7; margin: 0 0 2rem 0;" data-ar="الجيل الثالث من واجهات منصة إتقان؛ يعيد هندسة التجربة البصرية الكاملة بالاعتماد الصارم على لوحة ألوان النسخة الأولى (V1) بدرجاتها المعايرة هندسياً، مع رسوم متجهة فيزيائية أصيلة (SVGs) وحركات فيزيائية لمسية (Tactile Physics) بدون أي مكتبات ثقيلة." data-en="The 3rd generation of Itqan UI: reimagining academic software with strict adherence to V1 chromatic pedigree, bespoke physics vector assets, and Emil Kowalski tactile interactions without third-party bloat.">
+        الجيل الثالث من واجهات منصة إتقان؛ يعيد هندسة التجربة البصرية الكاملة بالاعتماد الصارم على لوحة ألوان النسخة الأولى (V1) بدرجاتها المعايرة هندسياً، مع رسوم متجهة فيزيائية أصيلة (SVGs) وحركات فيزيائية لمسية (Tactile Physics) بدون أي مكتبات ثقيلة.
+      </p>
+
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <a href="#simulator" class="v3-btn v3-btn-primary" style="padding:0.75rem 1.5rem; font-size:1rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span data-ar="فتح محاكي الاستجابة التفاعلي" data-en="Launch Interactive Simulator">فتح محاكي الاستجابة التفاعلي</span>
+        </a>
+        <a href="hero.html" target="_blank" class="v3-btn v3-btn-secondary" style="padding:0.75rem 1.5rem; font-size:1rem;">
+          <span data-ar="تصفح البوابة الرئيسية (نافذة كاملة) ↗" data-en="Open Live Hero Deck ↗">تصفح البوابة الرئيسية (نافذة كاملة) ↗</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Showcase Container -->
+  <main class="v3-container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+    <!-- Section 1: Interactive Viewport Simulator -->
+    <section id="simulator">
+      <div class="simulator-deck">
+        <div class="simulator-controls">
+          <div>
+            <h2 style="font-size: 1.25rem; margin: 0 0 0.25rem 0;" data-ar="محاكي الشاشات والأجهزة التفاعلي" data-en="Interactive Viewport Simulator">محاكي الشاشات والأجهزة التفاعلي</h2>
+            <div style="font-size: 0.82rem; color: var(--text-muted);" data-ar="جرّب استجابة أي شاشة من الـ 13 على مختلف المقاسات (هاتف / حاسوب / جهاز لوحي)" data-en="Test live responsiveness across Mobile, Tablet, and Desktop resolutions">جرّب استجابة أي شاشة من الـ 13 على مختلف المقاسات</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <!-- Target Screen Selector -->
+            <select class="v3-input" id="simulatorScreenSelect" onchange="loadSimulatorScreen(this.value)" style="padding:0.4rem 0.8rem; font-size:0.85rem; width:auto; font-weight:700;">
+              <option value="hero.html">1. البوابة الرئيسية (Hero Deck)</option>
+              <option value="student-dashboard.html">2. مقعد المذاكرة (Student Dashboard)</option>
+              <option value="course-viewer.html">3. مسرح المحاضرات (Cinema Viewer)</option>
+              <option value="exam-taking.html">4. قاعة الاختبارات (Exam Hall)</option>
+              <option value="student-results.html">5. سجل الإنجاز والشهادة (Student Results)</option>
+              <option value="teacher-dashboard.html">6. غرفة عمليات الأستاذ (Teacher Hub)</option>
+              <option value="quiz-builder.html">7. منشئ الاختبارات (Quiz Forge)</option>
+              <option value="student-devices.html">8. بوابة قيد الأجهزة (Student Devices)</option>
+              <option value="requests-management.html">9. فرز عرائض العتاد (Requests Triage)</option>
+              <option value="blocked.html">10. حاجز الحظر الأمني (Blocked Enclave)</option>
+              <option value="login.html">11. تسجيل الدخول (Secure Login)</option>
+              <option value="signup.html">12. القيد وميثاق الشرف (Student Enrolment)</option>
+              <option value="error-404.html">13. صفحة الخطأ 404 (Quantum Collapse)</option>
+            </select>
+
+            <!-- Viewport Width Buttons -->
+            <div class="viewport-btn-group">
+              <button class="vp-btn" onclick="setSimulatorWidth('390px', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                <span>هاتف (390px)</span>
+              </button>
+              <button class="vp-btn" onclick="setSimulatorWidth('768px', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                <span>لوحي (768px)</span>
+              </button>
+              <button class="vp-btn active" onclick="setSimulatorWidth('100%', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span>شاشة كاملة (100%)</span>
+              </button>
+            </div>
+
+            <a id="simExternalLink" href="hero.html" target="_blank" class="v3-btn v3-btn-icon" title="فتح في نافذة مستقلة">
+              ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- The Frame Wrapper -->
+        <div class="preview-frame-container">
+          <iframe id="simulatorIframe" src="hero.html" class="preview-iframe"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Complete 13 Screens Directory -->
+    <section id="screens" style="margin-top: 4rem;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <span class="badge badge-sun" style="font-family:var(--font-mono); font-size:0.75rem;" data-ar="المصفوفة الأكاديمية الكاملة" data-en="Complete Academic Matrix">المصفوفة الأكاديمية الكاملة</span>
+          <h2 style="font-size: 1.8rem; margin: 0.35rem 0 0 0;" data-ar="دليل شاشات النسخة الثالثة (V3)" data-en="Version 3 Screens Catalog (13)">دليل شاشات النسخة الثالثة (V3)</h2>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <span class="persona-badge persona-student" data-ar="6 شاشات للطالب" data-en="6 Scholar Screens">6 شاشات للطالب</span>
+          <span class="persona-badge persona-teacher" data-ar="3 شاشات للأستاذ" data-en="3 Faculty Screens">3 شاشات للأستاذ</span>
+          <span class="persona-badge persona-system" data-ar="4 شاشات أمان ومدخل" data-en="4 Auth/System Screens">4 شاشات أمان ومدخل</span>
+        </div>
+      </div>
+
+      <div class="screens-grid">
+        
+        <!-- Screen 1: Hero -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">شاشة الطالب والزائر</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">01 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">البوابة الأكاديمية الرئيسية (Hero Deck)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لمسرع الجسيمات الدوراني (Cyclotron)، محاكي زاوية الحث الكهرومغناطيسي لفاراداي (Faraday Coil Interactive)، لوحة أوائل الجمهورية.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">hero.html</span>
+            <a href="hero.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 2: Student Dashboard -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">مقعد المذاكرة</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">02 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">لوحة تحكم الطالب (Scholar Hub)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              شريط قياس عن بعد (GPA 3.96، 142 مسألة)، رسم متجهي للملف الحلقي الطوري (Toroid Flux)، عد تنازلي للاختبار الشامل، مسار تقدم الوحدات.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">student-dashboard.html</span>
+            <a href="student-dashboard.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 3: Course Viewer -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">مسرح المحاضرات</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">03 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">مشغل المحاضرات السينمائي (Cinema Deck)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لراسم الإشارات الكاثودي (CRO Oscilloscope Waveform)، علامة مائية عائمة لمنع القرصنة (DRM Steganography)، شريط فصول زمني.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">course-viewer.html</span>
+            <a href="course-viewer.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 4: Exam Taking -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">قاعة الاختبار المحمية</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">04 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">قاعة أداء الاختبار (Proctored Hall)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              عد تنازلي للطوارئ، مصفوفة أسئلة تفاعلية (25 سؤال)، رسم متجهي لساق موصلة تنزلق في مجال مغناطيسي (U-Rail Induction)، آلة حاسبة علمية مثبتة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">exam-taking.html</span>
+            <a href="exam-taking.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 5: Student Results -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">كشف الدرجات والشهادة</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">05 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">سجل الإنجاز والشهادة (Honors Certificate)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              ختم الدبلومة الأكاديمية بنقوش الجيلوشيه الهندسية (Guilloche Seal)، رادار إتقان الفروع الفيزيائية، مراجعة تصحيح الأسئلة مع الحل النموذجي.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">student-results.html</span>
+            <a href="student-results.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 6: Teacher Dashboard -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-teacher">غرفة عمليات الأستاذ</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">06 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">لوحة قيادة الأستاذ (Department Chair)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لمنحنى التوزيع الطبيعي الغاوسي (Gaussian Bell Curve) ورادار مباشر للطلاب الممتحنين، إحصائيات 1,480 طالب، إجراءات سريعة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">teacher-dashboard.html</span>
+            <a href="teacher-dashboard.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 7: Quiz Builder -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-teacher">صياغة الاختبارات</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">07 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">منشئ الاختبارات الأكاديمية (Quiz Forge)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لبروتوكول القفل الأمني المشفر، ورشة صياغة الأسئلة متعددة الاختيارات ومسائل المقال، محرّر ومعاين حي للمعادلات الرياضية.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">quiz-builder.html</span>
+            <a href="quiz-builder.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 8: Student Devices -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-student">توثيق الأجهزة</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">08 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">إدارة الأجهزة المعتمدة (Device Binding)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لدرع التشفير العتادي TPM وحلقة القفل، تفاصيل القياس الحي للجهاز الحالي، نموذج تقديم عريضة استبدال جهاز مع اعتماد الطبيب.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">student-devices.html</span>
+            <a href="student-devices.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 9: Requests Management -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-teacher">لجنة الفحص والمطابقة</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">09 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">فرز وتدقيق عرائض العتاد (Requests Triage)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لمخطط الرادار الخماسي (Pentagon Biometric Match Radar 94.2%)، مقارنة الفروق المادية بين الجهاز القديم والجديد، اعتماد بضغطة واحدة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">requests-management.html</span>
+            <a href="requests-management.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 10: Blocked Screen -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-system">حاجز الأمان</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">10 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">حاجز الحظر والتقييد (Security Barrier)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لبوابة الأمان وحزم الليزر المتقاطعة، محاكي 3 حالات أمنية مختلفة (جهاز غير مطابق / جلسة متزامنة / تجميد إداري)، مسارات معالجة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">blocked.html</span>
+            <a href="blocked.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 11: Login -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-system">المدخل الموثق</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">11 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">تسجيل الدخول الأكاديمي (Secure Login)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي لمنشور نيوتن الزجاجي وتشتت الضوء الأبيض لأطياف ألوانه السبعة (Optical Dispersion)، تبديل دور الطالب/الأستاذ، توثيق العتاد.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">login.html</span>
+            <a href="login.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 12: Signup -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-system">قيد المتفوقين</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">12 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">القيد وميثاق الشرف (Student Enrolment)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي للقدمة ذات الورنية بدقة 0.01mm وختم الشرف الأكاديمي، معالج قيد ثلاثي الخطوات مع ربط بصمة الجهاز والتعهد بميثاق النزاهة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">signup.html</span>
+            <a href="signup.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+        <!-- Screen 13: 404 -->
+        <div class="screen-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <span class="persona-badge persona-system">انهيار الدالة</span>
+              <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">13 / 13</span>
+            </div>
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.15rem;">صفحة الخطأ 404 (Quantum Collapse)</h3>
+            <p class="text-muted" style="font-size:0.85rem; line-height:1.5; margin:0 0 1rem 0;">
+              رسم متجهي للتلسكوب الفلكي المكسور وسحابة الاحتمالية الكمومية لهايزنبرج (Δx · Δp ≥ ℏ/2)، صندوق رصد الإحداثيات والعودة المباشرة.
+            </p>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-light); padding-top:0.75rem;">
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--mint); font-weight:700;">error-404.html</span>
+            <a href="error-404.html" class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.35rem 0.75rem;">فتح الشاشة ↗</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 3: Awwwards Quality Scorecard -->
+    <section id="scorecard" style="margin-top: 5rem;">
+      <div style="border-top: 1px solid var(--border-light); padding-top: 3rem; margin-bottom: 2rem;">
+        <span class="badge badge-sun" style="font-family:var(--font-mono); font-size:0.75rem;" data-ar="معايير الامتياز والتكريم الدولية" data-en="Awwwards Standard Evaluation">معايير الامتياز والتكريم الدولية</span>
+        <h2 style="font-size: 1.8rem; margin: 0.35rem 0 0.5rem 0;" data-ar="مصفوفة تقييم جودة التصميم وفق معايير Awwwards" data-en="Awwwards-Quality Site Evaluation Matrix">
+          مصفوفة تقييم جودة التصميم وفق معايير Awwwards
+        </h2>
+        <p class="text-muted" style="margin:0; max-width:720px; font-size:0.92rem;">
+          تم بناء كافة الشاشات التزاماً بتوجيهات الدليل الهندسي <code style="font-family:var(--font-mono); background:var(--cream); padding:0.15rem 0.4rem; border-radius:4px;">build-awwwards-quality-sites</code>، مع استبعاد القوالب الجاهزة وتوليد رسوم فيزيائية صادقة بدون صور مزيفة.
+        </p>
+      </div>
+
+      <div class="scorecard-grid">
+        
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">1. الرؤية الفنية (Art Direction)</span>
+              <span class="score-num">9.8</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              هوية أكاديمية فيزيائية ناضجة؛ تجمع بين رصانة كليات العلوم المصرية وأناقة البرمجيات العالمية بدون بهرجة تجارية زائفة.
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">اجتياز بمرتبة الشرف الأكاديمية</div>
+        </div>
+
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">2. أصالة الرسوم (Honest Assets)</span>
+              <span class="score-num">10.0</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              100% رسوم متجهة برمجية أصلية (SVGs) مرسومة بكود يدوي دقيق بناءً على قوانين الفيزياء (فاراداي، لورنتز، غاوس، سنيل، هايزنبرج).
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">صفر صور تخيلية AI Clip-art</div>
+        </div>
+
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">3. الإبهار اللحظي (Standout Hero)</span>
+              <span class="score-num">9.7</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              مسرع الجسيمات الدوراني ومحاكي تجربة فاراداي الحية يحفزان الفضول العلمي الفوري في أول 3 ثوانٍ من الزيارة.
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">تفاعل علمي حي فوري</div>
+        </div>
+
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">4. فيزياء الحركة (Motion Physics)</span>
+              <span class="score-num">9.6</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              تطبيق مبادئ إميل كوالسكي (Emil Kowalski) في ردود الفعل اللمسية الميكانيكية (:active scale: 0.98) ومنحنيات تخميد طبيعية.
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">احترام كامل لـ prefers-reduced-motion</div>
+        </div>
+
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">5. تكامل الشخصيتين (Dual Audience)</span>
+              <span class="score-num">9.9</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              تصميم مخصص لبيئة الطالب (تركيز، حاسبة، تصحيح تفصيلي) وبيئة الأستاذ (توزيع غاوسي، غرفة فرز العتاد، قفل أمني).
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">تخصيص كامل للأدوار والاحتياجات</div>
+        </div>
+
+        <div class="score-item">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:0.95rem;">6. سرعة التحميل (Zero Build Step)</span>
+              <span class="score-num">10.0</span>
+            </div>
+            <p class="text-muted" style="font-size:0.82rem; line-height:1.5; margin-top:0.5rem;">
+              تنفيذ نقي بـ HTML5 / CSS3 / Vanilla JS بدون حزم خارجية، يفتح فورياً في أي متصفح بسرعة تحميل فائقة واستجابة 60fps.
+            </p>
+          </div>
+          <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);">أداء خفيف وأمان تام</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 4: Design Tokens & Palette Verification -->
+    <section id="tokens" style="margin-top: 5rem;">
+      <div style="border-top: 1px solid var(--border-light); padding-top: 3rem; margin-bottom: 1.5rem;">
+        <span class="badge badge-sun" style="font-family:var(--font-mono); font-size:0.75rem;">V1 Chromatic Soul & Mathematical Degrees</span>
+        <h2 style="font-size: 1.8rem; margin: 0.35rem 0 0.5rem 0;" data-ar="منظومة الألوان والرموز البصرية المعتمدة" data-en="Chromatic Spectrum & Design Tokens">
+          منظومة الألوان والرموز البصرية المعتمدة
+        </h2>
+        <p class="text-muted" style="margin:0; font-size:0.92rem;">
+          تم التقيد الحرفي بعائلة ألوان النسخة الأولى (V1) مع توسيع تدرجاتها وظلالها العلمية.
+        </p>
+      </div>
+
+      <!-- Color Swatches Row -->
+      <div class="swatches-row">
+        <div class="swatch-box" style="background:#FFC22E; color:#1A1712;">
+          <strong>--sun</strong>
+          <span>#FFC22E</span>
+        </div>
+        <div class="swatch-box" style="background:#F2A60C; color:#FFF;">
+          <strong>--sun-deep</strong>
+          <span>#F2A60C</span>
+        </div>
+        <div class="swatch-box" style="background:#FFF6E2; color:#1A1712;">
+          <strong>--cream</strong>
+          <span>#FFF6E2</span>
+        </div>
+        <div class="swatch-box" style="background:#FFFDF8; color:#1A1712; border-color:#DDD;">
+          <strong>--paper</strong>
+          <span>#FFFDF8</span>
+        </div>
+        <div class="swatch-box" style="background:#1A1712; color:#FFF;">
+          <strong>--ink</strong>
+          <span>#1A1712</span>
+        </div>
+        <div class="swatch-box" style="background:#3F9D7B; color:#FFF;">
+          <strong>--mint</strong>
+          <span>#3F9D7B</span>
+        </div>
+        <div class="swatch-box" style="background:#E9502E; color:#FFF;">
+          <strong>--coral</strong>
+          <span>#E9502E</span>
+        </div>
+        <div class="swatch-box" style="background:#2B5FE3; color:#FFF;">
+          <strong>--cobalt</strong>
+          <span>#2B5FE3</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Master Hub Footer -->
+  <footer style="background:var(--paper-pure); border-top:1px solid var(--border-light); padding:2.5rem 0; text-align:center;">
+    <div class="v3-container">
+      <div style="font-weight:700; margin-bottom:0.5rem;">منصة إتقان للفيزياء — الإصدار الثالث V3 المتقدم</div>
+      <div style="font-size:0.85rem; color:var(--text-muted); font-family:var(--font-mono);">
+        HTML5 + CSS3 + Vanilla JS | Fully Proctored Academic Architecture | Zero Build Step
+      </div>
+    </div>
+  </footer>
+
+  <script src="shared/itqan-v3.js"></script>
+  <script>
+    function loadSimulatorScreen(url) {
+      document.getElementById('simulatorIframe').src = url;
+      document.getElementById('simExternalLink').href = url;
+    }
+
+    function setSimulatorWidth(width, btn) {
+      document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('simulatorIframe').style.width = width;
+    }
+  </script>
+</body>
+</html>

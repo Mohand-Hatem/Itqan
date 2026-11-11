@@ -9,8 +9,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@itqan/auth": "^0.1.0",
     "@itqan/database": "^0.1.0",
     "@itqan/shared": "^0.1.0",
+    "better-auth": "^1.7.20",
     "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

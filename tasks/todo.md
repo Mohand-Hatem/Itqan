@@ -65,17 +65,17 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 4: Authentication (1.5 weeks)
 
-- [ ] **4.1** 🔑 Better Auth in `packages/auth` with the Prisma adapter; `BETTER_AUTH_SECRET`. _Done when:_ auth tables migrate.
-- [ ] **4.2** Next.js route handler `/api/auth/*` behind Nginx. _Done when:_ sign-in works with curl on the local stack.
-- [ ] **4.3** 🔑 Resend with its test sender (no domain yet; verified domain in step 10.9) and email templates in Arabic and English, in a plain readable layout (branded styling waits for the design). _Done when:_ a test email reaches the owner's inbox.
-- [ ] **4.4** Email verification and password reset (FR-A01, FR-A02). _Done when:_ both flows work with curl on the local Docker stack, following the emailed links.
+- [x] **4.1** 🔑 Better Auth in `packages/auth` with the Prisma adapter; `BETTER_AUTH_SECRET`. _Done when:_ auth tables migrate.
+- [x] **4.2** Next.js route handler `/api/auth/*` behind Nginx. _Done when:_ sign-in works with curl on the local stack.
+- [x] **4.3** 🔑 Resend with its test sender (no domain yet; verified domain in step 10.9) and email templates in Arabic and English, in a plain readable layout (branded styling waits for the design). _Done when:_ a test email reaches the owner's inbox.
+- [x] **4.4** Email verification and password reset (FR-A01, FR-A02). _Done when:_ both flows work with curl on the local Docker stack, following the emailed links.
 - [ ] **4.5** 🎨⏸ Login, forgot-password and reset-password pages. _Done when:_ they work in both languages.
-- [ ] **4.6** TOTP MFA enforced for staff and super admin (FR-A03). _Done when:_ staff without TOTP are sent to enrolment (API returns the enrolment-required reason).
-- [ ] **4.7** NestJS session guard using the shared auth instance. _Done when:_ requests without a session get 401.
-- [ ] **4.8** Access guards: user status, membership status, paused roles, role, with reason codes (FR-T03). _Done when:_ a test covers each reason code.
-- [ ] **4.9a** `GET /me` (user, memberships, roles, tenant). _Done when:_ an integration test returns the signed-in user and 401 without a session.
+- [x] **4.6** TOTP MFA enforced for staff and super admin (FR-A03). _Done when:_ staff without TOTP are sent to enrolment (API returns the enrolment-required reason).
+- [x] **4.7** NestJS session guard using the shared auth instance. _Done when:_ requests without a session get 401.
+- [x] **4.8** Access guards: user status, membership status, paused roles, role, with reason codes (FR-T03). _Done when:_ a test covers each reason code.
+- [x] **4.9a** `GET /me` (user, memberships, roles, tenant). _Done when:_ an integration test returns the signed-in user and 401 without a session.
 - [ ] **4.9b** 🎨⏸ Frontend auth context with TanStack Query. _Done when:_ layouts show the signed-in user.
-- [ ] **4.10** Rate limits on auth endpoints. _Done when:_ tests hit each limit.
+- [x] **4.10** Rate limits on auth endpoints. _Done when:_ tests hit each limit.
 
 **API checkpoint 4:** login, reset and MFA work with curl and integration tests on the local Docker stack · owner review.
 **UI checkpoint 4 (Phase U):** the same flows work in the browser in both languages.

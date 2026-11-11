@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محرر المنهج والمحاضرات الأكاديمية · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v2: Re-architected curriculum builder, DRM watermark steganography vector, syllabus roadmap, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  .editor-layout {
+    max-width: var(--page-max);
+    margin: 28px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    gap: 28px;
+  }
+
+  /* 1. Master Unit Switcher & Header */
+  .syllabus-hero {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px 36px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .syllabus-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--sun), var(--honey), var(--mint));
+  }
+
+  /* 2. Main Two-Column Architecture */
+  .curriculum-split {
+    display: grid;
+    grid-template-columns: 1.25fr 0.95fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* Lecture Card */
+  .lecture-module-row {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-tactile);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.15s ease;
+  }
+  .lecture-module-row:hover { transform: translateY(-2px); }
+
+  /* DRM Enclave Panel */
+  .drm-enclave-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 26px;
+    box-shadow: var(--shadow-md);
+    display: grid;
+    gap: 20px;
+    position: sticky;
+    top: 90px;
+  }
+
+  @media (max-width: 980px) {
+    .curriculum-split { grid-template-columns: 1fr; }
+    .drm-enclave-card { position: static; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Curriculum & Lecture Studio · Itqan Academy">
+<a class="skip" href="#main" data-en="Skip to editor">تخطّ إلى محرر المنهج</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="teacher-dashboard.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Curriculum Orchestration Studio">استوديو هيكلة المنهج والبث المشفر</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links">
+        <li><a class="nav-link" href="teacher-dashboard.html" data-en="Dashboard">نظرة عامة</a></li>
+        <li><a class="nav-link" href="quiz-builder.html" data-en="Quiz Builder">بنك الامتحانات</a></li>
+        <li><a class="nav-link active" href="course-editor.html" data-en="Syllabus Editor">محرر المنهج</a></li>
+        <li><a class="nav-link" href="requests-management.html" data-en="Petitions (3)">التماسات الأجهزة (3)</a></li>
+      </ul>
+    </nav>
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a class="btn btn-sm btn-secondary hide-mobile" href="teacher-dashboard.html" data-en="← Back to Office">← العودة للإدارة</a>
+      <button class="lang-btn" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <ul class="mobile-nav-list">
+    <li><a class="mobile-nav-link" href="teacher-dashboard.html" data-en="Dashboard">نظرة عامة</a></li>
+    <li><a class="mobile-nav-link" href="quiz-builder.html" data-en="Quiz Builder">بنك الامتحانات</a></li>
+    <li><a class="mobile-nav-link active" href="course-editor.html" data-en="Syllabus Editor">محرر المنهج</a></li>
+    <li><a class="mobile-nav-link" href="requests-management.html" data-en="Petitions (3)">التماسات الأجهزة (3)</a></li>
+  </ul>
+</div>
+
+<main id="main" class="editor-layout">
+
+  <!-- 1. Master Unit Switcher & Header (Top Element) -->
+  <section class="syllabus-hero">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <span class="pill-badge pill-sun" data-en="Curriculum Architecture">هيكلة محتوى المنهج</span>
+        <span class="pill-badge pill-cobalt" data-en="Unit 03: Induction">الوحدة 03: الحث الكهرومغناطيسي</span>
+        <span style="font-size:13px; color:var(--ink-secondary); font-weight:700;">8 محاضرات · 2 امتحانات مقننة</span>
+      </div>
+      <h1 style="font-size:clamp(22px, 2.8vw, 30px); font-weight:800; color:var(--ink);" data-en="Physics Curriculum & Video DRM Policy Editor">تنظيم تسلسل المحاضرات وضوابط الحماية المائية (DRM)</h1>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn btn-secondary btn-sm" href="course-viewer.html" data-en="Preview Student Player 👁️">معاينة مشغل الطالب 👁️</a>
+      <button class="btn btn-primary" onclick="alert('تم نشر وتحديث المنهج الدراسي للطلاب!')" data-en="Publish Syllabus Live ✓">حفظ وتعميم التحديثات ✓</button>
+    </div>
+  </section>
+
+  <!-- 2. Re-architected Two-Column Workspace Split -->
+  <section class="curriculum-split">
+    
+    <!-- Left Column: Syllabus Roadmap Builder -->
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:20px; font-weight:800; color:var(--ink);" data-en="Module 03 Lecture Roadmap">تسلسل محاضرات الوحدة الثالثة</h2>
+        <button class="btn btn-sm btn-secondary" onclick="alert('فتح معالج إضافة محاضرة جديدة')">+ إضافة محاضرة جديدة</button>
+      </div>
+
+      <!-- Lecture 12 -->
+      <article class="lecture-module-row">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <b style="font-size:15px; color:var(--ink);">المحاضرة 12: الفيض المغناطيسي وقانون فاراداي الأساسي</b>
+            <span class="pill-badge pill-mint" style="font-size:10.5px;">منشورة ✓</span>
+          </div>
+          <small style="color:var(--ink-secondary); font-weight:600;">المدة: 42 دقيقة · عدد المشاهدات: 1,420 طالب · المذكرة المرفقة: ch3-lecture12.pdf</small>
+        </div>
+        <button class="btn btn-ghost btn-sm">تعديل ⚙️</button>
+      </article>
+
+      <!-- Lecture 13 -->
+      <article class="lecture-module-row">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <b style="font-size:15px; color:var(--ink);">المحاضرة 13: القوة الدافعة الكهربية المستحثة في سلك مستقيم</b>
+            <span class="pill-badge pill-mint" style="font-size:10.5px;">منشورة ✓</span>
+          </div>
+          <small style="color:var(--ink-secondary); font-weight:600;">المدة: 36 دقيقة · عدد المشاهدات: 1,390 طالب · المذكرة المرفقة: ch3-lecture13.pdf</small>
+        </div>
+        <button class="btn btn-ghost btn-sm">تعديل ⚙️</button>
+      </article>
+
+      <!-- Lecture 14 (Current Active) -->
+      <article class="lecture-module-row" style="background:var(--sun-tint); border-color:var(--ink); box-shadow:var(--shadow-md);">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <b style="font-size:15.5px; color:var(--ink);">المحاضرة 14: قاعدة لينز والتحليل البياني للموجة الجيبية</b>
+            <span class="pill-badge pill-sun" style="font-size:10.5px;">نشطة حالياً ▶</span>
+          </div>
+          <small style="color:var(--ink); font-weight:700;">المدة: 38 دقيقة · حماية DRM مشددة · علامة مائية متحركة نشطة</small>
+        </div>
+        <button class="btn btn-primary btn-sm">إدارة البث ⚙️</button>
+      </article>
+
+      <!-- Lecture 15 -->
+      <article class="lecture-module-row" style="opacity:0.85;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <b style="font-size:15px; color:var(--ink);">المحاضرة 15: ظاهرة الحث الذاتي وملف الخنق</b>
+            <span class="pill-badge pill-subtle" style="font-size:10.5px;">مجدولة (الخميس القادم)</span>
+          </div>
+          <small style="color:var(--ink-secondary); font-weight:600;">المدة المقدرة: 45 دقيقة · الفيديو قيد المعالجة السحابية</small>
+        </div>
+        <button class="btn btn-secondary btn-sm">جدولة النشر 📅</button>
+      </article>
+    </div>
+
+    <!-- Right Column: DRM Watermark & Asset Protection Enclave -->
+    <aside class="drm-enclave-card">
+      <div style="border-bottom:2px solid var(--line); padding-bottom:12px;">
+        <b style="font-size:16px; color:var(--ink); display:block;" data-en="DRM Steganography Protection">نظام التشفير والعلامة المائية العائمة</b>
+        <small style="color:var(--ink-secondary); font-size:12px;">مكافحة تصوير الشاشة وتسريب المحتوى (ADR-004)</small>
+      </div>
+
+      <!-- Bespoke DRM Steganography Vector SVG -->
+      <div style="display:flex; justify-content:center;">
+        <svg viewBox="0 0 280 150" width="100%" height="auto" style="max-height:140px;" aria-label="رسم بياني لنظام العلامة المائية المشفرة">
+          <!-- Monitor Frame -->
+          <rect x="25" y="15" width="230" height="110" rx="8" fill="#14110C" stroke="#1A1712" stroke-width="2.5"/>
+          <rect x="35" y="25" width="210" height="85" rx="4" fill="#241E15"/>
+
+          <!-- Drifting Watermark Trajectory Lines (Sun Yellow) -->
+          <path d="M 50 45 Q 140 30 180 80 T 70 85" fill="none" stroke="#FFC22E" stroke-width="1.5" stroke-dasharray="3 3"/>
+          
+          <!-- Floating Watermark Pill on Screen -->
+          <rect x="110" y="60" width="105" height="24" rx="12" fill="#1A1712" stroke="#FFC22E" stroke-width="1.5"/>
+          <text x="162" y="76" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#FFFDF8">ITQ-4892 · 192.168.1.42</text>
+
+          <!-- DRM Lock Icon Top Right -->
+          <circle cx="218" cy="40" r="10" fill="#3F9D7B"/>
+          <text x="218" y="44" text-anchor="middle" font-family="Baloo Bhaijaan 2" font-size="10" fill="#FFFDF8">✓</text>
+        </svg>
+      </div>
+
+      <!-- Watermark Settings Form -->
+      <div style="display:grid; gap:12px;">
+        <div>
+          <label style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;">
+            <span>شفافية العلامة المائية:</span>
+            <b style="color:var(--ink);">65%</b>
+          </label>
+          <input type="range" min="20" max="95" value="65" style="width:100%; accent-color:var(--sun);">
+        </div>
+
+        <div>
+          <label style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;">
+            <span>معدل سرعة الحركة العشوائية:</span>
+            <b style="color:var(--ink);">كل 24 ثانية</b>
+          </label>
+          <input type="range" min="10" max="60" value="24" style="width:100%; accent-color:var(--sun);">
+        </div>
+
+        <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; font-size:12.5px;">
+          <div>• يتضمن: <b>رقم الطالب القومي + الـ IP + التاريخ</b></div>
+          <div>• محرك البث: <b>HLS Encrypted Stream</b></div>
+        </div>
+
+        <button class="btn btn-secondary btn-sm" onclick="alert('تم تطبيق إعدادات الحماية المائية على كافة المحاضرات')">تحديث ضوابط الحماية 🔒</button>
+      </div>
+    </aside>
+
+  </section>
+
+</main>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة محرر المنهج">
+  <span class="demo-toolbar-label" data-en="Editor View:">وضع العرض:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Standard">الافتراضي</button>
+    <button class="demo-btn" type="button" data-state="reorder" aria-pressed="false" data-en="Reorder Mode">إعادة الترتيب</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v2.js"></script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة إتقان للفيزياء | إدارة طلبات نقل العتاد والأجهزة (غرفة العمليات)</title>
+  <link rel="stylesheet" href="shared/itqan-v3.css">
+  <style>
+    /* Specific styles for Hardware Requests Triage Command */
+    .triage-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .triage-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    .stat-badge.urgent { background: rgba(233, 80, 46, 0.15); color: var(--coral); border: 1px solid rgba(233, 80, 46, 0.3); }
+    .stat-badge.safe { background: rgba(63, 157, 123, 0.15); color: var(--mint); border: 1px solid rgba(63, 157, 123, 0.3); }
+    .stat-badge.review { background: rgba(255, 194, 46, 0.2); color: var(--sun-deep); border: 1px solid rgba(242, 166, 12, 0.4); }
+
+    .triage-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .triage-layout { grid-template-columns: 1fr; }
+    }
+
+    .petition-card {
+      background: var(--paper-pure);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    .petition-card:hover {
+      border-color: var(--sun);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .petition-card.active {
+      border: 2px solid var(--sun-deep);
+      background: #FFFDF4;
+      box-shadow: 0 0 0 3px rgba(255, 194, 46, 0.15);
+    }
+    .petition-card.urgent-border::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 4px;
+      background: var(--coral);
+      border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    }
+    [dir="ltr"] .petition-card.urgent-border::before {
+      right: auto;
+      left: 0;
+      border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    }
+
+    .diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+    @media (max-width: 640px) {
+      .diff-grid { grid-template-columns: 1fr; }
+    }
+    .diff-col {
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+    }
+    .diff-col.current {
+      background: rgba(26, 23, 18, 0.03);
+    }
+    .diff-col.target {
+      background: rgba(255, 194, 46, 0.08);
+      border-color: rgba(242, 166, 12, 0.4);
+    }
+
+    .diff-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px dashed rgba(26, 23, 18, 0.08);
+      font-size: 0.85rem;
+    }
+    .diff-item:last-child { border-bottom: none; }
+    .diff-label { color: var(--text-muted); font-size: 0.78rem; }
+    .diff-val { font-family: var(--font-mono); font-weight: 600; color: var(--ink); }
+
+    /* Custom Radar / 5-Axis Polygon Chart Styling */
+    .radar-container {
+      background: var(--paper-pure);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .radar-svg {
+      width: 100%;
+      max-width: 380px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Academic Navigation -->
+  <header class="v3-nav">
+    <div class="v3-nav-inner">
+      <div class="v3-logo-group">
+        <a href="index.html" class="v3-brand">
+          <div class="v3-brand-icon">
+            <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
+              <circle cx="16" cy="16" r="14" stroke="#1A1712" stroke-width="2.5" fill="#FFC22E"/>
+              <ellipse cx="16" cy="16" rx="14" ry="6" stroke="#1A1712" stroke-width="1.8" transform="rotate(-25 16 16)" stroke-dasharray="2 2"/>
+              <circle cx="16" cy="16" r="4.5" fill="#1A1712"/>
+            </svg>
+          </div>
+          <div class="v3-brand-text">
+            <span class="v3-brand-title">إتقان <span class="badge badge-sun" style="font-size:0.65rem;">V3 الأكاديمي</span></span>
+            <span class="v3-brand-sub" data-ar="مركز قيادة الفحص والتأمين الأكاديمي" data-en="Exam Security & Triage Control">مركز قيادة الفحص والتأمين الأكاديمي</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="v3-links">
+        <a href="teacher-dashboard.html" class="v3-nav-link" data-ar="لوحة الأستاذ" data-en="Professor Hub">لوحة الأستاذ</a>
+        <a href="requests-management.html" class="v3-nav-link active" data-ar="طلبات النقل والعتاد" data-en="Device Petitions">طلبات النقل والعتاد</a>
+        <a href="quiz-builder.html" class="v3-nav-link" data-ar="منشئ الاختبارات" data-en="Quiz Forge">منشئ الاختبارات</a>
+        <a href="student-devices.html" class="v3-nav-link" data-ar="بوابة الطالب" data-en="Student Devices">بوابة الطالب</a>
+      </nav>
+
+      <div class="v3-nav-actions">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span style="font-size:0.8rem; font-family:var(--font-mono); font-weight:700;" data-ar="الرادار: مباشر" data-en="Radar: Live">الرادار: مباشر</span>
+        </div>
+        <button class="v3-btn v3-btn-secondary" id="langToggle" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+          <span class="lang-text">English</span>
+        </button>
+        <button class="v3-btn v3-btn-icon mobile-menu-btn" id="mobileDrawerOpen" aria-label="Open Navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="mobile-drawer" id="mobileDrawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h3 style="margin:0; font-size:1.1rem;" data-ar="قائمة العمليات" data-en="Operations Menu">قائمة العمليات</h3>
+      <button class="v3-btn v3-btn-icon" id="mobileDrawerClose" style="background:transparent; border:none;">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <a href="teacher-dashboard.html" class="v3-nav-link" data-ar="لوحة الأستاذ" data-en="Professor Hub">لوحة الأستاذ</a>
+      <a href="requests-management.html" class="v3-nav-link active" data-ar="طلبات النقل والعتاد" data-en="Device Petitions">طلبات النقل والعتاد</a>
+      <a href="quiz-builder.html" class="v3-nav-link" data-ar="منشئ الاختبارات" data-en="Quiz Forge">منشئ الاختبارات</a>
+      <a href="student-devices.html" class="v3-nav-link" data-ar="بوابة أجهزة الطلاب" data-en="Student Devices">بوابة أجهزة الطلاب</a>
+      <a href="hero.html" class="v3-nav-link" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+    </div>
+  </aside>
+
+  <!-- Main Content Deck -->
+  <main class="v3-container" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+    <!-- Triage Command Header -->
+    <div class="triage-hero">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+          <span class="badge badge-sun" style="font-family:var(--font-mono);" data-ar="غرفة المراقبة والتحقق رقم 04" data-en="Triage Enclave #04">غرفة المراقبة والتحقق رقم 04</span>
+          <span class="stat-badge urgent" data-ar="3 طلبات مستعجلة قبل الاختبار" data-en="3 Urgent Pre-Exam Petitions">3 طلبات مستعجلة قبل الاختبار</span>
+        </div>
+        <h1 style="font-size: clamp(1.6rem, 2.8vw, 2.2rem); margin: 0 0 0.5rem 0;" data-ar="إدارة عرائض نقل الحساب وتبديل العتاد" data-en="Hardware Migration Petitions Management">
+          إدارة عرائض نقل الحساب وتبديل العتاد
+        </h1>
+        <p class="text-muted" style="margin:0; max-width: 680px;" data-ar="نظام التحقق البايومتري والجغرافي المتقاطع لمنع تسريب الحسابات ومزامنة بصمة العتاد المفرد (Single Hardware Lock)." data-en="Cross-biometric and geographic hardware lock triage preventing account sharing and maintaining strict Single Hardware Binding.">
+          نظام التحقق البايومتري والجغرافي المتقاطع لمنع تسريب الحسابات ومزامنة بصمة العتاد المفرد (Single Hardware Lock).
+        </p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem;">
+        <button class="v3-btn v3-btn-secondary" onclick="showToast('تمت إعادة مزامنة سجلات الـ TPM بنجاح')" data-ar="تحديث البصمات (F5)" data-en="Sync TPM (F5)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          <span data-ar="مزامنة فورية" data-en="Instant Sync">مزامنة فورية</span>
+        </button>
+        <button class="v3-btn v3-btn-primary" onclick="showToast('تم تطبيق سياسة القبول التلقائي للأجهزة المعتمدة ذات نسبة مطابقة > 95%')" data-ar="اعتماد الحالات المتطابقة" data-en="Approve High-Match">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span data-ar="اعتماد المطابق تلقائياً" data-en="Auto-Approve (>95%)">اعتماد المطابق تلقائياً</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Triage Metrics Grid -->
+    <div class="triage-stats-grid">
+      <div class="v3-card" style="padding: 1.25rem; border-right: 4px solid var(--sun-deep);">
+        <div style="font-size:0.8rem; color:var(--text-muted);" data-ar="العرائض المعلقة" data-en="Pending Petitions">العرائض المعلقة</div>
+        <div style="font-size:1.8rem; font-family:var(--font-mono); font-weight:800; margin-top:0.25rem;">12 <span style="font-size:0.85rem; font-weight:400; color:var(--text-muted);">طالب</span></div>
+        <div style="font-size:0.75rem; color:var(--coral); margin-top:0.35rem;" data-ar="3 طلبات من مقاعد الاختبار اليوم" data-en="3 from today's exam hall">3 طلبات من مقاعد الاختبار اليوم</div>
+      </div>
+
+      <div class="v3-card" style="padding: 1.25rem; border-right: 4px solid var(--mint);">
+        <div style="font-size:0.8rem; color:var(--text-muted);" data-ar="تم قبولها اليوم" data-en="Approved Today">تم قبولها اليوم</div>
+        <div style="font-size:1.8rem; font-family:var(--font-mono); font-weight:800; margin-top:0.25rem; color:var(--mint);">48 <span style="font-size:0.85rem; font-weight:400; color:var(--text-muted);">طلب</span></div>
+        <div style="font-size:0.75rem; color:var(--mint);" data-ar="متوسط زمن القرار: 4.2 دقيقة" data-en="Avg decision time: 4.2m">متوسط زمن القرار: 4.2 دقيقة</div>
+      </div>
+
+      <div class="v3-card" style="padding: 1.25rem; border-right: 4px solid var(--coral);">
+        <div style="font-size:0.8rem; color:var(--text-muted);" data-ar="محاولات اختراق / احتيال مرفوضة" data-en="Flagged / Rejected">محاولات اختراق / احتيال مرفوضة</div>
+        <div style="font-size:1.8rem; font-family:var(--font-mono); font-weight:800; margin-top:0.25rem; color:var(--coral);">5 <span style="font-size:0.85rem; font-weight:400; color:var(--text-muted);">أجهزة مشبوهة</span></div>
+        <div style="font-size:0.75rem; color:var(--text-muted);" data-ar="تغيير IP متزامن من بلدين مختلفين" data-en="Simultaneous IP from 2 regions">تغيير IP متزامن من بلدين مختلفين</div>
+      </div>
+
+      <div class="v3-card" style="padding: 1.25rem; border-right: 4px solid var(--cobalt);">
+        <div style="font-size:0.8rem; color:var(--text-muted);" data-ar="مؤشر الثقة البايومترية" data-en="Hardware Trust Index">مؤشر الثقة البايومترية</div>
+        <div style="font-size:1.8rem; font-family:var(--font-mono); font-weight:800; margin-top:0.25rem; color:var(--cobalt);">99.4%</div>
+        <div style="font-size:0.75rem; color:var(--mint);" data-ar="التوقيع المشفر TPM 2.0 نشط" data-en="TPM 2.0 cryptographic sign active">التوقيع المشفر TPM 2.0 نشط</div>
+      </div>
+    </div>
+
+    <!-- Triage Workspace: Petitions List on Left, Deep Comparative Audit on Right -->
+    <div class="triage-layout">
+      
+      <!-- Left Column: Petitions Queue -->
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="font-size:1.1rem; margin:0;" data-ar="قائمة العرائض الواردة" data-en="Incoming Petitions Queue">قائمة العرائض الواردة</h3>
+          <div style="display:flex; gap:0.4rem;">
+            <button class="v3-btn v3-btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.5rem;" data-ar="الكل (12)" data-en="All (12)">الكل (12)</button>
+            <button class="v3-btn" style="background:rgba(233, 80, 46, 0.15); color:var(--coral); border:1px solid rgba(233, 80, 46, 0.3); font-size:0.75rem; padding:0.25rem 0.5rem;" data-ar="مستعجل (3)" data-en="Urgent (3)">مستعجل (3)</button>
+          </div>
+        </div>
+
+        <!-- Petition Card 1 (Active / Selected) -->
+        <div class="petition-card active urgent-border" onclick="selectPetition(this, 'p1')">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+            <div>
+              <div style="font-weight:700; font-size:1rem;">عمر خالد السعيد</div>
+              <div style="font-size:0.78rem; font-family:var(--font-mono); color:var(--text-muted);">ID: #ITQ-89021 | دفعة التفوق 2026</div>
+            </div>
+            <span class="stat-badge urgent" data-ar="طوارئ قبل الاختبار" data-en="Exam Emergency">طوارئ قبل الاختبار</span>
+          </div>
+          <div style="font-size:0.85rem; color:var(--ink); margin-bottom:0.75rem; background:var(--cream); padding:0.5rem; border-radius:var(--radius-sm);" data-ar="عطل مفاجئ في لوحة الأم لجهاز اللابتوب المحمول أثناء المذاكرة، وتم تشغيل حاسوب مكتبي جديد في المنزل للاختبار." data-en="Sudden motherboard failure on study laptop; switched to home desktop rig for immediate exam session.">
+            "عطل مفاجئ في لوحة الأم لجهاز اللابتوب المحمول أثناء المذاكرة، وتم تشغيل حاسوب مكتبي جديد في المنزل للاختبار."
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted);">
+            <span style="font-family:var(--font-mono);">طلب منذ: 14 دقيقة</span>
+            <span style="color:var(--mint); font-weight:700;">مطابقة البصمة: 94.2%</span>
+          </div>
+        </div>
+
+        <!-- Petition Card 2 -->
+        <div class="petition-card urgent-border" onclick="selectPetition(this, 'p2')">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+            <div>
+              <div style="font-weight:700; font-size:1rem;">مريم إبراهيم العوضي</div>
+              <div style="font-size:0.78rem; font-family:var(--font-mono); color:var(--text-muted);">ID: #ITQ-77412 | المنصورة</div>
+            </div>
+            <span class="stat-badge urgent" data-ar="اختبار جاري الآن" data-en="Exam in Progress">اختبار جاري الآن</span>
+          </div>
+          <div style="font-size:0.85rem; color:var(--ink); margin-bottom:0.75rem; background:var(--cream); padding:0.5rem; border-radius:var(--radius-sm);" data-ar="انقطاع شحن بطارية جهاز iPad اللوحي والانتقال لجهاز كمبيوتر العائلة المكتبي." data-en="iPad battery drain outage; transitioning to registered family desktop for the remainder of quiz.">
+            "انقطاع شحن بطارية جهاز iPad اللوحي والانتقال لجهاز كمبيوتر العائلة المكتبي."
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted);">
+            <span style="font-family:var(--font-mono);">طلب منذ: 28 دقيقة</span>
+            <span style="color:var(--sun-deep); font-weight:700;">مطابقة البصمة: 88.5%</span>
+          </div>
+        </div>
+
+        <!-- Petition Card 3 (Routine) -->
+        <div class="petition-card" onclick="selectPetition(this, 'p3')">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+            <div>
+              <div style="font-weight:700; font-size:1rem;">زياد طارق الشناوي</div>
+              <div style="font-size:0.78rem; font-family:var(--font-mono); color:var(--text-muted);">ID: #ITQ-64903 | الإسكندرية</div>
+            </div>
+            <span class="stat-badge safe" data-ar="تحديث اعتيادي" data-en="Routine Upgrade">تحديث اعتيادي</span>
+          </div>
+          <div style="font-size:0.85rem; color:var(--ink); margin-bottom:0.75rem; background:var(--cream); padding:0.5rem; border-radius:var(--radius-sm);" data-ar="ترقية نظام التشغيل وإعادة تثبيت ويندوز 11 مع قرص SSD جديد." data-en="OS clean install and SSD upgrade with preserved TPM security enclave keys.">
+            "ترقية نظام التشغيل وإعادة تثبيت ويندوز 11 مع قرص SSD جديد."
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted);">
+            <span style="font-family:var(--font-mono);">طلب منذ: 1 ساعة</span>
+            <span style="color:var(--mint); font-weight:700;">مطابقة البصمة: 98.1%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Deep Comparative Audit & 5-Axis Vector Radar -->
+      <div class="v3-card" style="padding: 1.75rem; position: sticky; top: 5.5rem;">
+        
+        <!-- Header Info -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border-light); padding-bottom:1rem; margin-bottom:1.5rem;">
+          <div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+              <span class="badge badge-sun" style="font-size:0.75rem;" data-ar="فحص مقارنة البصمة البايومترية" data-en="Biometric Signature Audit">فحص مقارنة البصمة البايومترية</span>
+              <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">REF-2026-X99</span>
+            </div>
+            <h2 style="font-size:1.3rem; margin:0;" id="auditStudentName">عمر خالد السعيد (ID: #ITQ-89021)</h2>
+          </div>
+
+          <div style="text-align:left;">
+            <div style="font-size:0.75rem; color:var(--text-muted);" data-ar="معدل التطابق الحسابي" data-en="Calculated Match">معدل التطابق الحسابي</div>
+            <div style="font-size:1.6rem; font-family:var(--font-mono); font-weight:800; color:var(--mint);" id="auditMatchScore">94.2%</div>
+          </div>
+        </div>
+
+        <!-- 5-Axis Vector Radar Chart of Biometric / Hardware Match -->
+        <div class="radar-container" style="margin-bottom:1.5rem;">
+          <div style="font-size:0.85rem; font-weight:700; margin-bottom:0.5rem; width:100%; display:flex; justify-content:space-between;">
+            <span data-ar="مخطط الرادار الخماسي لبصمة العتاد (Pentagon Telemetry)" data-en="Pentagon Hardware Telemetry Radar">مخطط الرادار الخماسي لبصمة العتاد (Pentagon Telemetry)</span>
+            <span style="font-size:0.75rem; font-family:var(--font-mono); color:var(--mint);" data-ar="حسابات متطابقة جغرافياً" data-en="Geo-Coincident">حسابات متطابقة جغرافياً</span>
+          </div>
+
+          <!-- Bespoke 5-Axis Hardware Radar SVG -->
+          <svg viewBox="0 0 400 320" class="radar-svg">
+            <defs>
+              <radialGradient id="radarScanGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#FFC22E" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#FFC22E" stop-opacity="0.0"/>
+              </radialGradient>
+              <linearGradient id="polygonFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3F9D7B" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#FFC22E" stop-opacity="0.3"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Background Grid Rings (Concentric Pentagons) -->
+            <!-- Center at 200, 160 -->
+            <!-- Ring 1 (20%) -->
+            <polygon points="200,135 224,152 215,180 185,180 176,152" fill="none" stroke="rgba(26,23,18,0.06)" stroke-width="1"/>
+            <!-- Ring 2 (40%) -->
+            <polygon points="200,110 248,145 230,201 170,201 152,145" fill="none" stroke="rgba(26,23,18,0.08)" stroke-width="1"/>
+            <!-- Ring 3 (60%) -->
+            <polygon points="200,85 271,137 244,221 156,221 129,137" fill="none" stroke="rgba(26,23,18,0.12)" stroke-width="1"/>
+            <!-- Ring 4 (80%) -->
+            <polygon points="200,60 295,129 259,241 141,241 105,129" fill="none" stroke="rgba(26,23,18,0.16)" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <!-- Ring 5 (100% Boundary) -->
+            <polygon points="200,35 319,121 274,262 126,262 81,121" fill="url(#radarScanGlow)" stroke="#1A1712" stroke-width="2"/>
+
+            <!-- Axis Rays from Center (200, 160) -->
+            <line x1="200" y1="160" x2="200" y2="35" stroke="rgba(26,23,18,0.2)" stroke-width="1.5"/>
+            <line x1="200" y1="160" x2="319" y2="121" stroke="rgba(26,23,18,0.2)" stroke-width="1.5"/>
+            <line x1="200" y1="160" x2="274" y2="262" stroke="rgba(26,23,18,0.2)" stroke-width="1.5"/>
+            <line x1="200" y1="160" x2="126" y2="262" stroke="rgba(26,23,18,0.2)" stroke-width="1.5"/>
+            <line x1="200" y1="160" x2="81" y2="121" stroke="rgba(26,23,18,0.2)" stroke-width="1.5"/>
+
+            <!-- Axis Labels -->
+            <text x="200" y="24" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#1A1712">1. IP Geo-ISP (98%)</text>
+            <text x="330" y="125" text-anchor="start" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#1A1712">2. CPU Cores (95%)</text>
+            <text x="285" y="280" text-anchor="start" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#1A1712">3. GPU Canvas (92%)</text>
+            <text x="115" y="280" text-anchor="end" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#1A1712">4. Audio Hash (96%)</text>
+            <text x="70" y="125" text-anchor="end" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#1A1712">5. Screen Ratio (90%)</text>
+
+            <!-- Dynamic Telemetry Polygon (The Match Footprint: ~94%) -->
+            <polygon points="200,38 312,123 268,254 130,257 88,125" fill="url(#polygonFill)" stroke="#3F9D7B" stroke-width="2.5"/>
+
+            <!-- Vertex Knots with Pulsing Rings -->
+            <circle cx="200" cy="38" r="4" fill="#3F9D7B"/>
+            <circle cx="312" cy="123" r="4" fill="#3F9D7B"/>
+            <circle cx="268" cy="254" r="4" fill="#3F9D7B"/>
+            <circle cx="130" cy="257" r="4" fill="#3F9D7B"/>
+            <circle cx="88" cy="125" r="4" fill="#3F9D7B"/>
+
+            <!-- Center Core -->
+            <circle cx="200" cy="160" r="3" fill="#1A1712"/>
+          </svg>
+
+          <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:0.5rem;" data-ar="المنطقة الخضراء تمثل تطابق العتاد الحالي مع التاريخ الأكاديمي للطالب المسجل في قاعدة البيانات" data-en="Green polygon represents hardware telemetry concordance against student historical baseline">
+            المنطقة الخضراء تمثل تطابق العتاد الحالي مع التاريخ الأكاديمي للطالب المسجل في قاعدة البيانات
+          </div>
+        </div>
+
+        <!-- Comparative Hardware Diff Matrix -->
+        <h4 style="font-size:0.95rem; margin:0 0 0.5rem 0;" data-ar="مصفوفة المقارنة المادية المباشرة" data-en="Direct Hardware Diff Matrix">مصفوفة المقارنة المادية المباشرة</h4>
+        <div class="diff-grid">
+          
+          <!-- Old Registered Machine -->
+          <div class="diff-col current">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+              <span style="font-weight:700; font-size:0.85rem;" data-ar="الجهاز القديم (المقيد)" data-en="Old Locked Rig">الجهاز القديم (المقيد)</span>
+              <span class="badge" style="background:rgba(26,23,18,0.1); font-size:0.65rem;">مسجل منذ شهرين</span>
+            </div>
+            
+            <div class="diff-item">
+              <span class="diff-label" data-ar="نوع العتاد" data-en="Machine">نوع العتاد</span>
+              <span class="diff-val">HP Pavilion Laptop</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="نظام التشغيل" data-en="OS">نظام التشغيل</span>
+              <span class="diff-val">Windows 11 (23H2)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="دقة الشاشة" data-en="Resolution">دقة الشاشة</span>
+              <span class="diff-val">1920 × 1080 (16:9)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="مزود الإنترنت" data-en="ISP / Geo">مزود الإنترنت</span>
+              <span class="diff-val">WE Telecom (Cairo)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="مفتاح TPM" data-en="TPM Seed">مفتاح TPM</span>
+              <span class="diff-val" style="color:var(--text-muted);">...a94f9b20</span>
+            </div>
+          </div>
+
+          <!-- Target Requested Machine -->
+          <div class="diff-col target">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+              <span style="font-weight:700; font-size:0.85rem; color:var(--ink);" data-ar="الجهاز البديل المطلوب" data-en="Requested Target">الجهاز البديل المطلوب</span>
+              <span class="badge badge-sun" style="font-size:0.65rem;" data-ar="مقدم الآن" data-en="Active Now">مقدم الآن</span>
+            </div>
+
+            <div class="diff-item">
+              <span class="diff-label" data-ar="نوع العتاد" data-en="Machine">نوع العتاد</span>
+              <span class="diff-val">Desktop PC Custom</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="نظام التشغيل" data-en="OS">نظام التشغيل</span>
+              <span class="diff-val">Windows 11 (24H2)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="دقة الشاشة" data-en="Resolution">دقة الشاشة</span>
+              <span class="diff-val">2560 × 1440 (16:9)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="مزود الإنترنت" data-en="ISP / Geo">مزود الإنترنت</span>
+              <span class="diff-val" style="color:var(--mint);">WE Telecom (Same Subnet)</span>
+            </div>
+            <div class="diff-item">
+              <span class="diff-label" data-ar="مفتاح TPM" data-en="TPM Seed">مفتاح TPM</span>
+              <span class="diff-val" style="color:var(--sun-deep);">...e83b10c7</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Triage Action Bar -->
+        <div style="border-top:1px solid var(--border-light); padding-top:1.25rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="v3-btn v3-btn-primary" style="flex:1;" onclick="approvePetition()" data-ar="الموافقة الفورية وتوليد جلسة مشفرة" data-en="Authorize & Issue Session">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span data-ar="اعتماد ونقل القيد" data-en="Approve Migration">اعتماد ونقل القيد</span>
+          </button>
+          
+          <button class="v3-btn v3-btn-secondary" onclick="requestVideoCheck()" data-ar="طلب تحقق مرئي فوري" data-en="Req Video Check">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+            <span data-ar="فحص مرئي" data-en="Proctor Ping">فحص مرئي</span>
+          </button>
+
+          <button class="v3-btn" style="background:rgba(233, 80, 46, 0.1); color:var(--coral); border:1px solid rgba(233, 80, 46, 0.3);" onclick="rejectPetition()" data-ar="رفض الطلب وتجميد الدخول" data-en="Deny & Freeze">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span data-ar="رفض الحساب" data-en="Deny">رفض الحساب</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive script for Triage actions -->
+  <script src="shared/itqan-v3.js"></script>
+  <script>
+    function selectPetition(element, pid) {
+      document.querySelectorAll('.petition-card').forEach(c => c.classList.remove('active'));
+      element.classList.add('active');
+
+      if (pid === 'p1') {
+        document.getElementById('auditStudentName').textContent = 'عمر خالد السعيد (ID: #ITQ-89021)';
+        document.getElementById('auditMatchScore').textContent = '94.2%';
+        document.getElementById('auditMatchScore').style.color = 'var(--mint)';
+      } else if (pid === 'p2') {
+        document.getElementById('auditStudentName').textContent = 'مريم إبراهيم العوضي (ID: #ITQ-77412)';
+        document.getElementById('auditMatchScore').textContent = '88.5%';
+        document.getElementById('auditMatchScore').style.color = 'var(--sun-deep)';
+      } else if (pid === 'p3') {
+        document.getElementById('auditStudentName').textContent = 'زياد طارق الشناوي (ID: #ITQ-64903)';
+        document.getElementById('auditMatchScore').textContent = '98.1%';
+        document.getElementById('auditMatchScore').style.color = 'var(--mint)';
+      }
+      showToast('تم تحميل بيانات الفحص البايومتري للعرائض المحددة');
+    }
+
+    function approvePetition() {
+      showToast('✅ تم اعتماد الجهاز الجديد وربط شهادة الأمان TPM 2.0 بالحساب.');
+    }
+
+    function requestVideoCheck() {
+      showToast('📹 تم إرسال إشعار فحص الهوية بالكاميرا المباشرة إلى الطالب.');
+    }
+
+    function rejectPetition() {
+      showToast('⛔ تم رفض الطلب وتجميد الجهاز المشبوه.');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المحاضرة 14: قانون فاراداي · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan lecture player: anti-piracy moving watermark, lesson tree, attachments, and Q&A.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .viewer-layout {
+    max-width: var(--page); margin: 0 auto; padding: 20px var(--gutter) 70px;
+    display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start;
+  }
+  
+  /* Top breadcrumb bar */
+  .subbar {
+    max-width: var(--page); margin: 0 auto; padding: 12px var(--gutter);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    border-bottom: 2px solid var(--line);
+  }
+  .crumb { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+  .crumb a { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+  .crumb a:hover { text-decoration: underline; }
+
+  /* Video Player Container */
+  .player-box {
+    background: #000; border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    overflow: hidden; position: relative; aspect-ratio: 16 / 9; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .player-stage {
+    position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at center, #2B261F 0%, #100E0C 100%);
+  }
+
+  /* Anti-piracy moving watermark overlay */
+  .watermark {
+    position: absolute; padding: 6px 14px; background: rgba(0,0,0,.45); color: rgba(255,255,255,.55);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 20px; font-size: 12px; font-weight: 600;
+    pointer-events: none; z-index: 10; font-family: var(--f-body); direction: ltr;
+    animation: driftWatermark 25s ease-in-out infinite alternate;
+  }
+  @keyframes driftWatermark {
+    0% { top: 12%; left: 8%; opacity: .4; }
+    25% { top: 65%; left: 60%; opacity: .7; }
+    50% { top: 20%; left: 70%; opacity: .35; }
+    75% { top: 75%; left: 15%; opacity: .65; }
+    100% { top: 40%; left: 45%; opacity: .5; }
+  }
+
+  /* Animated Video Visual */
+  .wave-pulse { stroke-dasharray: 8 6; animation: dashMove 2s linear infinite; }
+  @keyframes dashMove { to { stroke-dashoffset: -28; } }
+  .glow-coil { animation: glowCoil 2s alternate infinite; }
+  @keyframes glowCoil { 0% { filter: drop-shadow(0 0 2px #FFC22E); } 100% { filter: drop-shadow(0 0 12px #FFC22E); } }
+
+  /* Player controls bar */
+  .controls-bar {
+    background: rgba(26, 23, 18, .92); backdrop-filter: blur(8px); padding: 12px 18px;
+    display: grid; gap: 8px; z-index: 20; color: #fff;
+  }
+  .scrubber { width: 100%; height: 8px; background: rgba(255,255,255,.25); border-radius: 4px; position: relative; cursor: pointer; }
+  .scrubber-fill { height: 100%; width: 42%; background: var(--sun); border-radius: 4px; position: relative; }
+  .scrubber-fill::after {
+    content:''; position: absolute; right: -5px; top: -4px; width: 16px; height: 16px;
+    background: #fff; border: 2px solid var(--ink); border-radius: 50%;
+  }
+  .ctrl-buttons { display: flex; align-items: center; justify-content: space-between; }
+  .ctrl-group { display: flex; align-items: center; gap: 14px; }
+  .ctrl-btn { background: none; border: 0; color: #fff; cursor: pointer; display: flex; align-items: center; padding: 4px; opacity: .9; }
+  .ctrl-btn:hover { opacity: 1; transform: scale(1.08); }
+
+  /* Lecture title and tabs */
+  .lecture-header { margin: 24px 0 16px; display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+  .lecture-header h1 { font-size: clamp(22px, 2.5vw, 32px); font-weight: 800; }
+  
+  .tabs-nav { display: flex; gap: 8px; border-bottom: 2px solid var(--line); margin-bottom: 24px; }
+  .tab-btn {
+    padding: 12px 20px; font-family: var(--f-display); font-weight: 700; font-size: 17px;
+    border: 0; background: none; cursor: pointer; color: var(--ink-2); position: relative;
+  }
+  .tab-btn[aria-selected="true"] { color: var(--ink); }
+  .tab-btn[aria-selected="true"]::after {
+    content: ''; position: absolute; bottom: -2px; inset-inline: 0; height: 3px; background: var(--sun); border-radius: 3px 3px 0 0;
+  }
+
+  /* Content inside tabs */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  
+  /* Course Sidebar Tree */
+  .sidebar-tree {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    box-shadow: var(--shadow); padding: 20px; position: sticky; top: 20px;
+  }
+  .sidebar-title { font-size: 19px; font-weight: 800; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  
+  .chapter-box { margin-bottom: 16px; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .chapter-head {
+    background: var(--cream); padding: 12px 14px; font-weight: 700; font-size: 15px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+  }
+  .lessons-list { list-style: none; margin: 0; padding: 6px 0; }
+  .lesson-row {
+    padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 14.5px; text-decoration: none; color: var(--ink); transition: background .15s;
+  }
+  .lesson-row:hover { background: var(--sun-tint); }
+  .lesson-row.current { background: var(--sun); font-weight: 700; border-inline-start: 4px solid var(--ink); }
+  .status-dot { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none; }
+  .dot-done { background: var(--mint); color: #fff; }
+  .dot-cur { background: var(--ink); color: #fff; }
+  .dot-lock { background: var(--line); color: var(--ink-3); }
+
+  /* Q&A Section styling */
+  .qa-card { background: var(--cream); border: 2px solid var(--ink); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .qa-author { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .qa-badge { background: var(--sun); padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid var(--ink); }
+
+  /* Bottom preview bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 950px) {
+    .viewer-layout { grid-template-columns: 1fr; }
+    .sidebar-tree { position: static; }
+  }
+</style>
+</head>
+<body data-state="notes" data-title-en="Lecture 14: Faraday's Law · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to player">تخطّ إلى مشغّل الفيديو</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-student-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Course Player">مشغل المحاضرات</span></span>
+  </a>
+  <div class="topbar-actions">
+    <a class="btn btn-sm btn-ghost" href="ahmd-student-dashboard.html" data-en="← Back to Dashboard">← العودة للوحة التحكم</a>
+    <button class="lang" type="button">English</button>
+  </div>
+</header>
+
+<!-- Breadcrumb -->
+<div class="subbar">
+  <div class="crumb">
+    <a href="ahmd-student-dashboard.html" data-en="Courses">الكورسات</a>
+    <span>/</span>
+    <span data-en="General Physics: Term 1">الفيزياء العامة (الفصل الدراسي الأول)</span>
+    <span>/</span>
+    <span style="color:var(--ink);" data-en="Chapter 3: Electromagnetic Induction">الفصل الثالث: الحث الكهرومغناطيسي</span>
+  </div>
+  <span class="c-badge" style="background:var(--mint-tint); border:1.5px solid var(--mint);" data-en="Recorded Lecture">محاضرة مسجلة</span>
+</div>
+
+<main id="main" class="viewer-layout">
+  
+  <!-- Main lecture player area -->
+  <div>
+    <div class="player-box">
+      <!-- Watermark Overlay (Anti-Piracy Mechanism ADR-002) -->
+      <div class="watermark">
+        <span>طالب مسجل: أحمد أيمن · 01029384756 · ahmed@itqan.edu · ID: 4892</span>
+      </div>
+
+      <!-- Animated Player Stage & Chalkboard Art -->
+      <div class="player-stage">
+        <svg viewBox="0 0 640 360" width="100%" height="100%" style="max-height:100%;" aria-hidden="true">
+          <!-- Chalkboard grid -->
+          <line x1="40" y1="60" x2="600" y2="60" stroke="#332D24" stroke-width="1.5" stroke-dasharray="6 6"/>
+          <line x1="40" y1="300" x2="600" y2="300" stroke="#332D24" stroke-width="1.5" stroke-dasharray="6 6"/>
+          
+          <!-- Large Magnetic Field Induction Coil Graphic -->
+          <g transform="translate(140, 160)">
+            <ellipse cx="0" cy="0" rx="90" ry="45" fill="none" stroke="#FFC22E" stroke-width="4.5" class="glow-coil"/>
+            <ellipse cx="60" cy="0" rx="90" ry="45" fill="none" stroke="#F2A60C" stroke-width="4.5" class="glow-coil"/>
+            <ellipse cx="120" cy="0" rx="90" ry="45" fill="none" stroke="#FFC22E" stroke-width="4.5" class="glow-coil"/>
+            
+            <!-- Magnet Bar sliding through -->
+            <rect x="180" y="-22" width="110" height="44" rx="6" fill="#E9502E" stroke="#FFFDF8" stroke-width="2.5"/>
+            <rect x="235" y="-22" width="55" height="44" rx="6" fill="#2B5FE3" stroke="#FFFDF8" stroke-width="2.5"/>
+            <text x="200" y="6" font-family="Readex Pro" font-weight="800" font-size="20" fill="#fff">N</text>
+            <text x="260" y="6" font-family="Readex Pro" font-weight="800" font-size="20" fill="#fff">S</text>
+            
+            <!-- Induction Wave Lines -->
+            <path d="M-80 -40 Q -10 -90 60 -40 T 200 -40" fill="none" stroke="#3F9D7B" stroke-width="3" class="wave-pulse"/>
+            <path d="M-80 40 Q -10 90 60 40 T 200 40" fill="none" stroke="#3F9D7B" stroke-width="3" class="wave-pulse"/>
+          </g>
+
+          <!-- Big Yellow Center Play Button -->
+          <g transform="translate(320, 180)" style="cursor:pointer;">
+            <circle cx="0" cy="0" r="46" fill="#FFC22E" stroke="#1A1712" stroke-width="3.5"/>
+            <polygon points="-12,-20 22,0 -12,20" fill="#1A1712"/>
+          </g>
+
+          <!-- Formula Overlay -->
+          <text x="50" y="90" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="700" font-size="26" fill="#FFF6E2">emf = -N (ΔΦ / Δt)</text>
+          <text x="50" y="125" font-family="Readex Pro, sans-serif" font-weight="400" font-size="16" fill="#F2A60C">قانون فاراداي وقاعدة لينز لحساب القوة الدافعة الكهربية</text>
+        </svg>
+      </div>
+
+      <!-- Video Control Bar -->
+      <div class="controls-bar">
+        <div class="scrubber">
+          <div class="scrubber-fill"></div>
+        </div>
+        <div class="ctrl-buttons">
+          <div class="ctrl-group">
+            <button class="ctrl-btn" type="button" aria-label="Play">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <button class="ctrl-btn" type="button" aria-label="Mute">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+            <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums;">14:32 / 38:50</span>
+          </div>
+          
+          <div class="ctrl-group">
+            <span style="background:rgba(255,255,255,.15); padding:2px 8px; border-radius:6px; font-size:12px; font-weight:700;">1.25x</span>
+            <button class="ctrl-btn" type="button" aria-label="Fullscreen">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Title and actions -->
+    <div class="lecture-header">
+      <div>
+        <h1 data-en="Lecture 14: Faraday's Law of Induction">المحاضرة 14: قانون فاراداي وتطبيقات الحث الكهرومغناطيسي</h1>
+        <p style="color:var(--ink-2); margin-top:6px; font-size:15px;" data-en="38 mins · Published on Nov 4 · Watched 1 time">المدة: 38 دقيقة · نُشرت بتاريخ 4 نوفمبر · تمت المشاهدة مرة واحدة</p>
+      </div>
+      <button class="btn btn-sm btn-light" type="button" data-en="Mark Completed ✓">تم إنهاء الدرس ✓</button>
+    </div>
+
+    <!-- Learning Tabs -->
+    <div class="tabs-nav" role="tablist">
+      <button class="tab-btn" id="t-notes" role="tab" aria-selected="true" data-en="Lecture Notes">ملخص الدرس وأهم القوانين</button>
+      <button class="tab-btn" id="t-files" role="tab" aria-selected="false" data-en="PDF Attachments (2)">المرفقات والواجب (2)</button>
+      <button class="tab-btn" id="t-qa" role="tab" aria-selected="false" data-en="Questions & Discussion (12)">أسئلة واستفسارات (12)</button>
+    </div>
+
+    <!-- Tab 1: Notes -->
+    <div class="tab-panel active" id="p-notes">
+      <div class="card" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:12px; font-size:19px;" data-en="Key Concepts Covered:">النقاط الجوهرية في المحاضرة:</h3>
+        <ul style="padding-inline-start:24px; color:var(--ink-2); display:grid; gap:10px; font-size:15.5px;">
+          <li><b style="color:var(--ink);">نص قانون فاراداي:</b> مقدار القوة الدافعة الكهربية المستحثة المتولدة في ملف يتناسب طرديًا مع المعدل الزمني للتغير في الفيض وعدد اللفات.</li>
+          <li><b style="color:var(--ink);">قاعدة لينز:</b> الإشارة السالبة في القانون تعني أن اتجاه التيار المستحث يعاكس دائمًا التغير في الفيض المسبب له.</li>
+          <li><b style="color:var(--ink);">حالات انعدام القوة الدافعة:</b> عندما تكون زاوية ميل الملف موازية للمجال المغناطيسي.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tab 2: Attachments -->
+    <div class="tab-panel" id="p-files">
+      <div class="card" style="display:grid; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border:2px solid var(--line); border-radius:12px; padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E9502E" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <b style="display:block; font-size:16px;" data-en="Lecture 14 Summary Sheet.pdf">ملخص قوانين المحاضرة 14.pdf</b>
+              <small style="color:var(--ink-2);">4.2 MB · متاح للعرض والطباعة</small>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-light" data-en="Download PDF">تحميل الملخص</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border:2px solid var(--line); border-radius:12px; padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2B5FE3" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <b style="display:block; font-size:16px;" data-en="Homework Questions Chapter 3.pdf">واجب وتطبيقات الفصل الثالث.pdf</b>
+              <small style="color:var(--ink-2);">2.8 MB · يجب تسليمه قبل الخميس القادم</small>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-light" data-en="Download PDF">تحميل الواجب</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Q&A -->
+    <div class="tab-panel" id="p-qa">
+      <div class="card">
+        <h3 style="margin-bottom:16px;" data-en="Ask Mr. Karim a question about this lecture">اسأل أ. كريم عن فكرة غير واضحة في المحاضرة</h3>
+        <div style="display:grid; gap:10px; margin-bottom:24px;">
+          <textarea class="input" rows="3" placeholder="اكتب سؤالك بوضوح مع ذكر الدقيقة في الفيديو إن وجدت..." data-en-placeholder="Write your question clearly with the timestamp..."></textarea>
+          <button class="btn btn-sm" style="justify-self:end;" data-en="Post Question">إرسال السؤال للمدرس</button>
+        </div>
+
+        <div class="qa-card">
+          <div class="qa-author">
+            <span class="qa-badge" data-en="Student Question">سؤال من: عمر خالد</span>
+            <small style="color:var(--ink-2); direction:ltr;">18:40</small>
+          </div>
+          <p style="font-size:15px; margin-bottom:12px;">يا مستر، ليه لما حركنا القطب الشمالي مبتعدًا كان اتجاه التيار في نفس اتجاه عقارب الساعة مش عكسها؟</p>
+          <div style="background:var(--paper); border:1.5px solid var(--sun); border-radius:10px; padding:12px; margin-inline-start:16px;">
+            <b style="color:var(--honey); font-size:14px; display:block; margin-bottom:4px;" data-en="Teacher Reply · Mr. Karim">إجابة أ. كريم ✓</b>
+            <p style="font-size:14px; color:var(--ink);">لأن الملف يسعى لمقاومة الابتعاد فيكوّن قطبًا جنوبيًا يجذبه، وحسب قاعدة اليد اليمنى يكون اتجاه التيار في القطب الجنوبي مع عقارب الساعة تمامًا كما شرحنا في الدقيقة 19:10.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Course Curriculum Sidebar Tree -->
+  <aside class="sidebar-tree">
+    <div class="sidebar-title">
+      <span data-en="Course Lectures">محتويات الكورس</span>
+      <small style="color:var(--ink-2); font-size:13px;" data-en="75% Done">18/24 مكتمل</small>
+    </div>
+
+    <!-- Chapter 1 -->
+    <div class="chapter-box">
+      <div class="chapter-head">
+        <span data-en="Chapter 1: Electric Current">الفصل الأول: التيار الكهربي</span>
+        <span style="font-size:12px; color:var(--mint);">مكتمل ✓</span>
+      </div>
+      <ul class="lessons-list">
+        <li><a class="lesson-row" href="#"><span data-en="1. Ohm's Law and Resistance">١. قانون أوم والمقاومة</span><span class="status-dot dot-done">✓</span></a></li>
+        <li><a class="lesson-row" href="#"><span data-en="2. Resistor Connections">٢. توصيل المقاومات</span><span class="status-dot dot-done">✓</span></a></li>
+      </ul>
+    </div>
+
+    <!-- Chapter 2 -->
+    <div class="chapter-box">
+      <div class="chapter-head">
+        <span data-en="Chapter 2: Magnetic Effect">الفصل الثاني: التأثير المغناطيسي</span>
+        <span style="font-size:12px; color:var(--mint);">مكتمل ✓</span>
+      </div>
+      <ul class="lessons-list">
+        <li><a class="lesson-row" href="#"><span data-en="8. Magnetic Flux in Solenoid">٨. الفيض المغناطيسي في ملف</span><span class="status-dot dot-done">✓</span></a></li>
+        <li><a class="lesson-row" href="#"><span data-en="9. Magnetic Force & Torque">٩. القوة وعزم الازدواج</span><span class="status-dot dot-done">✓</span></a></li>
+      </ul>
+    </div>
+
+    <!-- Chapter 3 (Active) -->
+    <div class="chapter-box" style="border-color:var(--ink);">
+      <div class="chapter-head" style="background:var(--sun);">
+        <span data-en="Chapter 3: Electromagnetic Induction">الفصل الثالث: الحث الكهرومغناطيسي</span>
+        <span style="font-size:12px; font-weight:700;">الآن</span>
+      </div>
+      <ul class="lessons-list">
+        <li><a class="lesson-row" href="#"><span data-en="13. Introduction to Induction">١٣. مقدمة في الحث الكهرومغناطيسي</span><span class="status-dot dot-done">✓</span></a></li>
+        <li><a class="lesson-row current" href="#"><span data-en="14. Faraday's Law (Current)">١٤. قانون فاراداي وقاعدة لينز</span><span class="status-dot dot-cur">▶</span></a></li>
+        <li><a class="lesson-row" href="#"><span data-en="15. Mutual & Self Induction">١٥. الحث المتبادل والحث الذاتي</span><span class="status-dot dot-lock">🔒</span></a></li>
+        <li><a class="lesson-row" href="ahmd-exam-taking.html"><span data-en="Quiz 4: Chapter 3 Induction">اختبار 4: شامل على الحث</span><span class="status-dot dot-lock" style="color:#E9502E;">⏱</span></a></li>
+      </ul>
+    </div>
+
+  </aside>
+
+</main>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة التبويبات">
+  <span data-en="Switch Tabs:">تبديل التبويبات:</span>
+  <div class="demo-btns">
+    <button type="button" data-tab="notes" aria-pressed="true" data-en="Notes">الملخص</button>
+    <button type="button" data-tab="files" aria-pressed="false" data-en="PDFs">المرفقات</button>
+    <button type="button" data-tab="qa" aria-pressed="false" data-en="Q&A">الأسئلة</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+<script>
+  // Tab switching logic for demo
+  const tabs = { notes: 'p-notes', files: 'p-files', qa: 'p-qa' };
+  document.querySelectorAll('[data-tab]').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-tab]').forEach((btn) => btn.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+      document.getElementById(tabs[b.dataset.tab]).classList.add('active');
+    });
+  });
+  document.getElementById('t-notes').onclick = () => document.querySelector('[data-tab="notes"]').click();
+  document.getElementById('t-files').onclick = () => document.querySelector('[data-tab="files"]').click();
+  document.getElementById('t-qa').onclick = () => document.querySelector('[data-tab="qa"]').click();
+</script>
+</body>
+</html>

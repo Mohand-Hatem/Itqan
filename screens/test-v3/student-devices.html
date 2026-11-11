@@ -1,0 +1,353 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>توثيق محطة العمل والأمان الأكاديمي · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v3: Re-architected hardware workstation binding portal, cryptographic lock ring vector, live telemetry matrix, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  .device-layout {
+    max-width: var(--page-max);
+    margin: 28px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    gap: 32px;
+  }
+
+  /* 1. Cryptographic Shield Master Deck */
+  .security-hero-deck {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 36px 40px;
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    grid-template-columns: 1.35fr 0.85fr;
+    gap: 36px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .security-hero-deck::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--sun), var(--mint), var(--cobalt));
+  }
+
+  /* 2. Live Telemetry Matrix */
+  .telemetry-matrix {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .telemetry-chip {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-tactile);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .telemetry-chip:hover { transform: translateY(-2px); }
+  .telemetry-chip small {
+    display: block;
+    color: var(--ink-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .telemetry-chip b {
+    font-family: var(--f-mono);
+    font-size: 14.5px;
+    color: var(--ink);
+    word-break: break-all;
+  }
+
+  /* 3. Two-Column Petition & Policy Grid */
+  .petition-split {
+    display: grid;
+    grid-template-columns: 1.25fr 0.95fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  [data-state="pending"] #petition-banner { display: flex !important; }
+  [data-state="pending"] #petition-form { opacity: 0.55; pointer-events: none; }
+
+  @media (max-width: 980px) {
+    .security-hero-deck, .petition-split { grid-template-columns: 1fr; }
+    .telemetry-matrix { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 550px) {
+    .telemetry-matrix { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Workstation Security & Device Binding · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to content">تخطّ إلى المحتوى الرئيسي</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-wrapper" href="student-dashboard.html">
+      <div class="brand-crest-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-titles">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Workstation Integrity Gateway">بوابة الأمان والتوثيق الأكاديمي للعتاد</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links-list">
+        <li><a class="nav-anchor" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+        <li><a class="nav-anchor" href="course-viewer.html" data-en="Lectures">قاعة المحاضرات</a></li>
+        <li><a class="nav-anchor" href="exam-taking.html" data-en="Proctored Hall">قاعة الامتحان</a></li>
+        <li><a class="nav-anchor" href="student-results.html" data-en="Grades">النتائج وسجل الدرجات</a></li>
+        <li><a class="nav-anchor active" href="student-devices.html" data-en="Security">توثيق الجهاز</a></li>
+      </ul>
+    </nav>
+
+    <div class="topbar-cta-group">
+      <a class="btn btn-secondary btn-sm hide-mobile" href="student-dashboard.html" data-en="← Return to Dashboard">← العودة للوحة المتابعة</a>
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px;">
+      <b style="font-size:17px; color:var(--ink);">توثيق محطة العمل</b>
+      <button class="btn btn-ghost btn-sm" data-drawer-close style="font-size:18px;">✕</button>
+    </div>
+    <ul class="mobile-nav-list">
+      <li><a class="mobile-nav-link" href="student-dashboard.html">لوحة المتابعة</a></li>
+      <li><a class="mobile-nav-link" href="course-viewer.html">قاعة المحاضرات</a></li>
+      <li><a class="mobile-nav-link" href="exam-taking.html">قاعة الامتحان</a></li>
+      <li><a class="mobile-nav-link" href="student-results.html">النتائج وسجل الدرجات</a></li>
+      <li><a class="mobile-nav-link active" href="student-devices.html">توثيق الجهاز</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main" class="device-layout">
+
+  <!-- Interactive Petition Status Banner -->
+  <div class="academic-card anim-reveal" id="petition-banner" style="display:none; background:var(--sun-tint); border:2px solid var(--ink); border-inline-start:8px solid var(--sun);" role="status">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span style="font-size:28px;">⏳</span>
+      <div>
+        <b style="font-size:16px; color:var(--ink); font-weight:800; display:block;" data-en="Device Transfer Petition Under Academic Review">التماس نقل محطة العمل قيد المراجعة الأكاديمية</b>
+        <small style="color:var(--ink-secondary); font-weight:600;" data-en="Submitted today at 09:14 CLT. You will receive an SMS and WhatsApp notification once approved.">تم تسجيل الالتماس رسمياً وتجري مراجعته من قبل أمانة القسم لضمان النزاهة الأكاديمية.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Cryptographic Shield Master Deck -->
+  <section class="security-hero-deck anim-reveal">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+        <span class="pill-badge pill-mint" data-en="Workstation Lock: ENFORCED">قفل الجهاز الفردي: مفعّل ونشط ✓</span>
+        <span class="pill-badge pill-cobalt" data-en="Hardware UUID Bound">بصمة العتاد مقيدة</span>
+        <span class="pill-badge pill-sun" data-en="1 Transfer Left This Term">متبقي التماس واحد هذا الفصل</span>
+      </div>
+
+      <h1 style="font-size:clamp(24px, 3vw, 34px); font-weight:800; color:var(--ink);" data-en="Authorized Academic Workstation: HP Pavilion 15">محطة العمل المعتمدة: كمبيوتر محمول HP Pavilion 15</h1>
+      
+      <p style="color:var(--ink-secondary); font-size:15px; line-height:1.6; margin-top:8px;" data-en="In compliance with Itqan Academy Charter (ADR-004), your academic credentials, video DRM decryptor, and exam halls are bound exclusively to this physical device to prevent account sharing and question leakage.">
+        تطبيقاً للميثاق الأكاديمي للنزاهة (ADR-004)، يتم ربط حسابك وقاعة المحاضرات المشفرة وبنك الامتحانات بهذا الجهاز المادي حصراً، لمنع تداول الحسابات وتسريب الامتحانات المقننة.
+      </p>
+
+      <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="alert('جهازك الحالي يطابق البصمة المعتمدة بالسجل 100%')" data-en="Re-Verify Hardware Telemetry 🔄">إعادة فحص بصمة العتاد 🔄</button>
+        <button class="btn btn-secondary" data-modal-open="modal-charter" data-en="Read Security Charter 📜">ميثاق الأمان والنزاهة 📜</button>
+      </div>
+    </div>
+
+    <!-- Bespoke Cryptographic Shield & Hardware TPM Lock Ring Vector SVG -->
+    <div style="display:flex; justify-content:center; align-items:center;">
+      <svg viewBox="0 0 240 240" width="220" height="220" aria-label="رسم بياني لدرع التوثيق والتشفير المادي">
+        <defs>
+          <radialGradient id="shieldCore" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#FFFDF8"/>
+            <stop offset="70%" stop-color="#FFF6E2"/>
+            <stop offset="100%" stop-color="#FFC22E"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Outer Security Shield Contour -->
+        <path d="M 120 20 Q 185 20 205 65 C 205 140 155 195 120 220 C 85 195 35 140 35 65 Q 55 20 120 20 Z" 
+              fill="url(#shieldCore)" stroke="#1A1712" stroke-width="4"/>
+
+        <!-- Concentric Inner Shield Stipple Line -->
+        <path d="M 120 35 Q 170 35 188 72 C 188 132 148 180 120 202 C 92 180 52 132 52 72 Q 70 35 120 35 Z" 
+              fill="none" stroke="#F2A60C" stroke-width="2.5" stroke-dasharray="5 4"/>
+
+        <!-- Hardware Microchip Core -->
+        <rect x="90" y="85" width="60" height="60" rx="8" fill="#1A1712" stroke="#FFC22E" stroke-width="2.5"/>
+        <text x="120" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="bold" fill="#FFC22E">TPM 2.0</text>
+
+        <!-- CPU Pins -->
+        <line x1="82" y1="98" x2="90" y2="98" stroke="#1A1712" stroke-width="2.5"/>
+        <line x1="82" y1="115" x2="90" y2="115" stroke="#1A1712" stroke-width="2.5"/>
+        <line x1="82" y1="132" x2="90" y2="132" stroke="#1A1712" stroke-width="2.5"/>
+
+        <line x1="150" y1="98" x2="158" y2="98" stroke="#1A1712" stroke-width="2.5"/>
+        <line x1="150" y1="115" x2="158" y2="115" stroke="#1A1712" stroke-width="2.5"/>
+        <line x1="150" y1="132" x2="158" y2="132" stroke="#1A1712" stroke-width="2.5"/>
+
+        <!-- Padlock Shackle -->
+        <path d="M 102 85 L 102 65 C 102 52 138 52 138 65 L 138 85" fill="none" stroke="#1A1712" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- Verification Emerald Crest -->
+        <circle cx="158" cy="158" r="22" fill="#3F9D7B" stroke="#1A1712" stroke-width="3"/>
+        <path d="M 148 158 L 155 165 L 169 151" fill="none" stroke="#FFFDF8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 2. Live Telemetry Matrix -->
+  <section class="telemetry-matrix anim-reveal anim-delay-1" aria-label="بيانات العتاد المرصودة">
+    <div class="telemetry-chip">
+      <small data-en="Hardware UUID (Motherboard)">معرّف اللوحة الأم (UUID):</small>
+      <b>ITQ-F91B-82A1-0E4C</b>
+    </div>
+    <div class="telemetry-chip">
+      <small data-en="Operating System & Architecture">نظام التشغيل والمعمارية:</small>
+      <b>Windows 11 Home (x64)</b>
+    </div>
+    <div class="telemetry-chip">
+      <small data-en="Primary Display & Acceleration">الشاشة ودعم التسارع المادي:</small>
+      <b>1920×1080 (DirectX 12 / WebGL)</b>
+    </div>
+    <div class="telemetry-chip">
+      <small data-en="Network Binding & Encryption">بروتوكول الربط الشبكي:</small>
+      <b>TLS 1.3 · IP: 192.168.1.42</b>
+    </div>
+  </section>
+
+  <!-- 3. Two-Column Petition & Policy Grid -->
+  <section class="petition-split anim-reveal anim-delay-2">
+    
+    <!-- Left Column: Workstation Transfer Petition Form -->
+    <article class="academic-card" id="petition-form">
+      <div style="border-bottom:2px solid var(--line); padding-bottom:14px; margin-bottom:18px;">
+        <span class="pill-badge pill-sun" data-en="Transfer Petition Request">طلب التماس استبدال محطة العمل</span>
+        <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin-top:6px;" data-en="Submit Hardware Transfer Request">تقديم طلب نقل الحساب إلى جهاز جديد</h2>
+        <p style="color:var(--ink-secondary); font-size:13.5px; margin:0;" data-en="Petitions are reviewed within 4 business hours to ensure student continuity.">
+          تتم معالجة الالتماسات خلال 4 ساعات عمل لضمان عدم تعطل جدولك الدراسي.
+        </p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); document.body.setAttribute('data-state', 'pending');">
+        <div style="display:grid; gap:16px;">
+          <div>
+            <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:6px;">سبب طلب استبدال الجهاز:</label>
+            <select style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px; background:var(--paper);">
+              <option>عطل فني مفاجئ بالجهاز الحالي يستدعي الصيانة</option>
+              <option>شراء حاسوب جديد للاستذكار والمحاضرات</option>
+              <option>إعادة تثبيت نظام التشغيل (Format / Clean Install)</option>
+              <option>سبب طارئ آخر</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:6px;">مواصفات الجهاز الجديد المطلوب اعتماده:</label>
+            <input type="text" placeholder="مثال: لابتوب Dell G15 - Windows 11" required style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px;">
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:6px;">تأكيد الرقم القومي للطالب المسجل:</label>
+            <input type="password" placeholder="أدخل آخر 4 أرقام من بطاقتك الشخصية" maxlength="4" required style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px; font-family:var(--f-mono);">
+          </div>
+
+          <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px; font-size:12.5px; color:var(--ink-secondary);">
+            ⚠️ <b>إقرار أكاديمي:</b> أقر بأن الجهاز الجديد ملكي الشخصي ولن يستخدم من قبل أي طالب آخر، وأتحمل المسؤولية الأكاديمية كاملة في حال ثبوت مخالفة ميثاق الأكاديمية.
+          </div>
+
+          <button class="btn btn-primary" type="submit" style="width:100%;" data-en="Submit Petition for Review ⚖️">
+            إرسال الالتماس لإدارة القسم ⚖️
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <!-- Right Column: Security Charter & Audit Log -->
+    <aside style="display:grid; gap:20px;">
+      
+      <!-- Charter Highlights -->
+      <div class="academic-card" style="background:var(--cream);">
+        <b style="font-size:16px; color:var(--ink); display:block; margin-bottom:8px;" data-en="Why Single Workstation Binding?">لماذا نلزمك بجهاز واحد معتمد؟</b>
+        <p style="font-size:13.5px; color:var(--ink-secondary); line-height:1.6; margin-bottom:12px;">
+          الهدف هو صيانة مبدأ تكافؤ الفرص في امتحانات الثانوية العامة، وضمان أن الدرجات المسجلة في السجل الأكاديمي تعبر بدقة عن جهد الطالب الشخصي دون أي مساعدة خارجية أو تداول للحسابات.
+        </p>
+        <div style="font-size:13px; font-weight:700; color:var(--mint);">
+          ✓ دعم مباشر عبر واتساب لحالات الطوارئ التقنية
+        </div>
+      </div>
+
+      <!-- Audit Log of Sessions -->
+      <div class="academic-card">
+        <b style="font-size:15px; color:var(--ink); display:block; margin-bottom:10px;" data-en="Recent Authorized Sessions">سجل الجلسات المعتمدة الأخيرة:</b>
+        <div style="display:grid; gap:8px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+            <span>اليوم، 10:14 ص</span>
+            <b style="color:var(--mint);">HP Pavilion (جهازك) ✓</b>
+          </div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+            <span>أمس، 08:30 م</span>
+            <b style="color:var(--mint);">HP Pavilion (جهازك) ✓</b>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>08 نوفمبر، 04:15 م</span>
+            <b style="color:var(--mint);">HP Pavilion (جهازك) ✓</b>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </section>
+
+</main>
+
+<!-- Security Charter Modal -->
+<div class="modal-overlay" id="modal-charter" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:540px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:12px; margin-bottom:16px;">
+      <h3 style="font-size:20px; font-weight:800; color:var(--ink);" data-en="Academic Integrity Charter">ميثاق النزاهة الأكاديمية (ADR-004)</h3>
+      <button class="btn btn-sm btn-ghost" data-modal-close>✕</button>
+    </div>
+    <div style="font-size:14px; line-height:1.7; color:var(--ink);">
+      <p>1. يحظر فتح المنصة من أكثر من جهاز في نفس التوقيت تحت طائلة تجميد الحساب التلقائي.</p>
+      <p>2. امتحانات الثانوية العامة المقننة تتطلب شاشة كاملة دون مغادرة النافذة.</p>
+      <p>3. في حالة تلف الجهاز يتم تقديم التماس فوري عبر هذه البوابة مع إرفاق سبب الاستبدال.</p>
+    </div>
+    <div style="margin-top:20px; text-align:end;">
+      <button class="btn btn-secondary btn-sm" data-modal-close>فهمت ذلك وموافق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة حالة التوثيق">
+  <span class="demo-toolbar-label" data-en="Workstation State:">حالة توثيق الجهاز:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Verified Active">جهاز موثق ونشط</button>
+    <button class="demo-btn" type="button" data-state="pending" aria-pressed="false" data-en="Petition Pending">التماس قيد المراجعة</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

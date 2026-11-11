@@ -11,3 +11,15 @@ export {
 export { createTestClient } from "./test-client.js";
 export { createTwoTenants, type FixtureTenant, TENANT_FIXTURES } from "./testing/fixtures.js";
 export { PrismaClient } from "./generated/prisma/client.js";
+export * from "./generated/prisma/enums.js";
+export type * from "./generated/prisma/models.js";
+export type {
+  AccountModel as Account,
+  AuditLogModel as AuditLog,
+  MembershipModel as Membership,
+  SessionModel as Session,
+  TenantModel as Tenant,
+  TwoFactorModel as TwoFactor,
+  UserModel as User,
+  VerificationModel as Verification,
+} from "./generated/prisma/models.js";

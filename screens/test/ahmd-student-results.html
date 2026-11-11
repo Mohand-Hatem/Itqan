@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نتيجة الامتحان · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan exam results and question-by-question review screen.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .results-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Celebration Banner */
+  .score-banner {
+    background: var(--sun); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(24px, 4vw, 44px); display: grid; grid-template-columns: 1fr auto;
+    gap: 32px; align-items: center; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .score-banner h1 { font-size: clamp(28px, 3.2vw, 42px); font-weight: 800; line-height: 1.2; }
+  
+  .score-dial {
+    width: 170px; height: 170px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 4px 0 var(--ink); text-align: center;
+  }
+  .score-dial b { font-family: var(--f-display); font-size: 42px; font-weight: 800; line-height: 1; color: var(--ink); }
+  .score-dial small { color: var(--ink-2); font-size: 14px; font-weight: 700; margin-top: 2px; }
+
+  /* Animated Confetti */
+  .confetti { animation: spinConfetti 3s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes spinConfetti { 0% { transform: rotate(-10deg) scale(.9); } 100% { transform: rotate(15deg) scale(1.1); } }
+  .bounce-cap { animation: bounceCap 2.5s ease-in-out infinite; transform-origin: bottom center; }
+  @keyframes bounceCap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  /* Breakdown Cards */
+  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .m-card {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 16px 20px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+  }
+  .m-card b { font-family: var(--f-display); font-size: 24px; color: var(--ink); display: block; }
+  .m-card small { color: var(--ink-2); font-size: 13.5px; }
+
+  /* Filter buttons */
+  .filter-strip { display: flex; gap: 10px; margin-bottom: 20px; }
+  .f-btn {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 18px;
+    font-family: var(--f-display); font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 2px 0 var(--ink);
+  }
+  .f-btn[aria-pressed="true"] { background: var(--sun); }
+
+  /* Review item */
+  .review-item {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 22px; box-shadow: var(--shadow); margin-bottom: 18px; display: grid; gap: 16px;
+  }
+  .review-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--line); padding-bottom: 12px; }
+  .badge-correct { background: var(--mint-tint); border: 1.5px solid var(--mint); color: var(--ink); padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 13.5px; }
+  .badge-wrong { background: #FDE8E4; border: 1.5px solid var(--coral); color: var(--ink); padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 13.5px; }
+
+  .explanation-box {
+    background: var(--cream); border: 1.5px solid var(--sun); border-radius: 12px;
+    padding: 14px 18px; font-size: 14.5px; line-height: 1.6;
+  }
+
+  /* Teacher note card */
+  .teacher-card {
+    background: var(--sun-tint); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px;
+  }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .score-banner { grid-template-columns: 1fr; text-align: center; }
+    .score-dial { margin: 0 auto; }
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body data-state="all" data-title-en="Exam Results · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to results">تخطّ إلى النتيجة</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-student-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Exam Review">مراجعة النتيجة</span></span>
+  </a>
+  <div class="topbar-actions">
+    <a class="btn btn-sm btn-ghost" href="ahmd-student-dashboard.html" data-en="← Dashboard">← لوحة التحكم</a>
+    <button class="lang" type="button">English</button>
+  </div>
+</header>
+
+<main id="main" class="results-layout">
+  
+  <!-- Celebration Score Banner -->
+  <section class="score-banner">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:var(--paper); border:2px solid var(--ink); border-radius:10px; padding:4px 12px; margin-bottom:12px; font-size:13.5px; font-weight:700;">
+        <span>🏆</span> <span data-en="Top 3 in Class">المركز الثالث على مستوى الدفعة</span>
+      </div>
+      <h1 data-en="Outstanding Performance, Ahmed! 🌟">أداء بطولي ومتميز يا أحمد! 🌟</h1>
+      <p style="font-size:16.5px; color:var(--ink-2); max-width:54ch; margin-top:8px;" data-en="You mastered the concepts of Faraday's Law and magnetic circuits. Check the answers below to review the two missed questions.">
+        لقد أظهرت فهمًا عميقًا لقوانين الحث الكهرومغناطيسي. راجع الأسئلة بالأسفل لفهم فكرة السؤالين اللذين أخطأت فيهما والاستعداد للامتحان النهائي.
+      </p>
+
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <a class="btn btn-sm" href="ahmd-course-viewer.html" data-en="Continue Next Lecture">المحاضرة التالية: الحث الذاتي ←</a>
+        <button class="btn btn-sm btn-light" onclick="window.print()" data-en="Print Certificate">طباعة تقرير الدرجة 🖨️</button>
+      </div>
+    </div>
+
+    <!-- Circular Dial Score -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+      <div class="score-dial">
+        <b>92%</b>
+        <small data-en="Score: 46 / 50">الدرجة: 46 / 50</small>
+      </div>
+      <span class="c-badge" style="background:var(--paper);" data-en="Grade: A (Excellent)">التقدير: ممتاز (أ)</span>
+    </div>
+  </section>
+
+  <!-- Metric Badges -->
+  <section class="metrics-row">
+    <div class="m-card">
+      <div style="width:40px; height:40px; border-radius:10px; background:var(--mint-tint); border:2px solid var(--mint); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; color:var(--mint);">✓</div>
+      <div><b>18</b> <small data-en="Correct Answers">إجابة صحيحة</small></div>
+    </div>
+    <div class="m-card">
+      <div style="width:40px; height:40px; border-radius:10px; background:#FDE8E4; border:2px solid var(--coral); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; color:var(--coral);">✗</div>
+      <div><b>2</b> <small data-en="Incorrect Answers">إجابتان خاطئتان</small></div>
+    </div>
+    <div class="m-card">
+      <div style="width:40px; height:40px; border-radius:10px; background:var(--cream); border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">⏱</div>
+      <div><b>38 <span style="font-size:15px; font-weight:400;">دقيقة</span></b> <small data-en="Time Taken">الوقت المستغرق</small></div>
+    </div>
+    <div class="m-card">
+      <div style="width:40px; height:40px; border-radius:10px; background:var(--sun-tint); border:2px solid var(--sun); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">📅</div>
+      <div><b style="font-size:17px;">10 نوفمبر</b> <small data-en="Completion Date">تاريخ الاختبار</small></div>
+    </div>
+  </section>
+
+  <!-- Teacher Handwritten Voice Note -->
+  <section class="teacher-card">
+    <div style="width:56px; height:56px; border-radius:50%; background:var(--sun); border:2.5px solid var(--ink); display:flex; align-items:center; justify-content:center; flex:none; font-weight:800; font-size:22px;">ك</div>
+    <div>
+      <b style="display:block; font-size:17px; margin-bottom:4px;" data-en="Personal note from Mr. Karim:">تعليق أ. كريم عبد المنعم:</b>
+      <p style="font-family:var(--f-hand); font-size:18px; color:var(--ink); line-height:1.5;" data-en="Fantastic effort, Ahmed! Keep an eye on the magnetic flux angle units in question 14; that was your only stumbling block. You are capable of 100%!">
+        "ما شاء الله عليك يا أحمد، إجاباتك تدل على طالب فاهم مش حافظ! راجع زاوية ميل الملف فقط في السؤال 14 لأنها كانت الخطأ الوحيد. المرة القادمة نقفل الـ 50 كاملة إن شاء الله."
+      </p>
+    </div>
+  </section>
+
+  <!-- Question Review Section -->
+  <section>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="font-size:24px; font-weight:800;" data-en="Question by Question Review">مراجعة تفصيلية لجميع الأسئلة</h2>
+      <div class="filter-strip">
+        <button class="f-btn" id="f-all" aria-pressed="true" data-en="All (20)">الكل (20)</button>
+        <button class="f-btn" id="f-wrong" aria-pressed="false" data-en="Mistakes (2)">الأخطاء (2)</button>
+        <button class="f-btn" id="f-correct" aria-pressed="false" data-en="Correct (18)">الصحيحة (18)</button>
+      </div>
+    </div>
+
+    <!-- Question 5 (Correct) -->
+    <article class="review-item is-correct">
+      <div class="review-header">
+        <span style="font-weight:700; font-size:16px;" data-en="Question 5 · Single Choice · 3/3 Points">السؤال 5 · اختيار من متعدد · 3/3 درجات</span>
+        <span class="badge-correct" data-en="Correct Answer ✓">إجابة صحيحة ✓</span>
+      </div>
+      <p style="font-size:16.5px; font-weight:700;">في الدائرة الكهربية، ماذا يحدث لقراءة الجلفانومتر لحظة غلق المفتاح في الدائرة المجاورة؟</p>
+      
+      <div style="padding:10px 14px; background:var(--mint-tint); border:1.5px solid var(--mint); border-radius:10px; font-size:15px; font-weight:600;">
+        <span data-en="Your Answer:">إجابتك:</span> تنحرف لحظيًا في اتجاه معين ثم تعود سريعًا للصفر (صحيح)
+      </div>
+
+      <div class="explanation-box">
+        <b style="color:var(--honey); display:block; margin-bottom:4px;" data-en="Explanation:">شرح وتوضيح النموذج:</b>
+        لأن التيار المستحث يتولد فقط خلال فترة نمو التيار وتغير الفيض، وبمجرد ثبوت التيار ينعدم التغير في الفيض فتعود القراءة للصفر.
+      </div>
+    </article>
+
+    <!-- Question 14 (Mistake) -->
+    <article class="review-item is-wrong">
+      <div class="review-header">
+        <span style="font-weight:700; font-size:16px;" data-en="Question 14 · Formula Calculation · 0/3 Points">السؤال 14 · مسألة حسابية · 0/3 درجات</span>
+        <span class="badge-wrong" data-en="Wrong Answer ✗">إجابة خاطئة ✗</span>
+      </div>
+      <p style="font-size:16.5px; font-weight:700;">ملف مساحته 0.04 m² موضوع مائلًا بزاوية 30° على مجال مغناطيسي كثافة فيضه 0.5 T. احسب الفيض المغناطيسي (Φm) المار عبر الملف.</p>
+      
+      <div style="display:grid; gap:8px;">
+        <div style="padding:10px 14px; background:#FDE8E4; border:1.5px solid var(--coral); border-radius:10px; font-size:15px; font-weight:600;">
+          <span data-en="Your Answer:">إجابتك:</span> 0.0173 Wb (استخدمت زاوية 60° المتممة بالخطأ)
+        </div>
+        <div style="padding:10px 14px; background:var(--mint-tint); border:1.5px solid var(--mint); border-radius:10px; font-size:15px; font-weight:600;">
+          <span data-en="Model Answer:">الإجابة الصحيحة:</span> 0.01 Wb [حيث Φm = B·A·sin(30°) = 0.5 × 0.04 × 0.5 = 0.01 Wb]
+        </div>
+      </div>
+
+      <div class="explanation-box" style="border-color:var(--coral);">
+        <b style="color:var(--coral); display:block; margin-bottom:4px;" data-en="Tip:">نصيحة أ. كريم لتفادي الخطأ:</b>
+        انتبه جيدًا لصيغة المسألة: عندما يذكر "الزاوية بين الملف والمجال" نستخدم sin(θ) مباشرة، ولا نطرح من 90° إلا إذا كانت الزاوية مع العمودي على الملف.
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<script src="shared/itqan.js"></script>
+<script>
+  // Filter interactions
+  const allCards = document.querySelectorAll('.review-item');
+  document.getElementById('f-all').onclick = () => {
+    setFilter('f-all');
+    allCards.forEach(c => c.style.display = 'grid');
+  };
+  document.getElementById('f-wrong').onclick = () => {
+    setFilter('f-wrong');
+    allCards.forEach(c => c.style.display = c.classList.contains('is-wrong') ? 'grid' : 'none');
+  };
+  document.getElementById('f-correct').onclick = () => {
+    setFilter('f-correct');
+    allCards.forEach(c => c.style.display = c.classList.contains('is-correct') ? 'grid' : 'none');
+  };
+
+  function setFilter(id) {
+    document.querySelectorAll('.f-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    document.getElementById(id).setAttribute('aria-pressed', 'true');
+  }
+</script>
+</body>
+</html>

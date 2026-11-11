@@ -1,0 +1,582 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قاعة المحاضرات الأكاديمية: المحاضرة 14 · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v3: High-definition lecture cinema deck with bespoke oscilloscope waveform vector, synchronized research workbench, DRM watermark, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  .viewer-layout {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 24px var(--gutter) 80px;
+    display: grid;
+    gap: 24px;
+  }
+
+  /* 1. Cinema-Theater Master Deck */
+  .cinema-master-deck {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .cinema-header-strip {
+    background: var(--cream);
+    border-bottom: 2px solid var(--ink);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .video-stage-box {
+    background: #14120E;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Anti-Piracy Drifting Watermark */
+  .academic-watermark {
+    position: absolute;
+    padding: 6px 14px;
+    background: rgba(26, 23, 18, 0.78);
+    color: #FFF6E2;
+    border: 1.5px solid rgba(255, 194, 46, 0.75);
+    border-radius: var(--r-pill);
+    font-size: 11.5px;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 15;
+    font-family: var(--f-mono);
+    direction: ltr;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    animation: driftMark 24s ease-in-out infinite alternate;
+  }
+  @keyframes driftMark {
+    0%   { top: 12%; left: 8%; opacity: 0.65; }
+    35%  { top: 68%; left: 62%; opacity: 0.85; }
+    70%  { top: 22%; left: 78%; opacity: 0.55; }
+    100% { top: 75%; left: 20%; opacity: 0.8; }
+  }
+
+  .video-art-center {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #262118 0%, #0E0C09 100%);
+    position: relative;
+  }
+
+  /* Modernized Player Controls Bar */
+  .player-controls {
+    background: rgba(26, 23, 18, 0.96);
+    backdrop-filter: blur(8px);
+    padding: 14px 20px;
+    z-index: 20;
+    color: #FFF6E2;
+    border-top: 1.5px solid rgba(255, 194, 46, 0.3);
+    display: grid;
+    gap: 10px;
+  }
+  .scrubber-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+  }
+  .scrubber-fill {
+    height: 100%;
+    width: 37.5%;
+    background: var(--sun);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255,194,46,0.6);
+  }
+  .control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13.5px;
+  }
+  .control-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #FFFDF8;
+    border-radius: var(--r-ctl);
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .control-btn:hover {
+    background: var(--sun);
+    color: var(--ink);
+    border-color: var(--sun);
+  }
+
+  /* 2. Interactive Synchronized Timeline Pill Row */
+  .timeline-bar {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 12px 18px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+  }
+  .marker-pill {
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1.5px 0 var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .marker-pill:hover { background: var(--sun); }
+  .marker-pill.active {
+    background: var(--sun);
+    border-color: var(--ink);
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  /* 3. Three-Column Synchronized Academic Research Deck */
+  .research-deck {
+    display: grid;
+    grid-template-columns: 310px 1.4fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .deck-pane {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 22px;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Chapters Tree */
+  .chapter-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: var(--r-ctl);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+    border: 1.5px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .chapter-link:hover {
+    background: var(--cream);
+    border-color: var(--line);
+  }
+  .chapter-link.current {
+    background: var(--sun-tint);
+    border-color: var(--ink);
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  .derivation-card {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .qa-bubble {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--r-card);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+  }
+  .qa-bubble.instructor {
+    background: var(--sun-tint);
+    border-color: var(--ink);
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  @media (max-width: 1100px) {
+    .research-deck {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Lecture Theater 14 · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to lecture">تخطّ إلى المحاضرة</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-wrapper" href="student-dashboard.html">
+      <div class="brand-crest-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-titles">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Academic Lecture Theater">قاعة المحاضرات المرئية المقننة</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links-list">
+        <li><a class="nav-anchor" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+        <li><a class="nav-anchor active" href="course-viewer.html" data-en="Lecture Hall">قاعة المحاضرات</a></li>
+        <li><a class="nav-anchor" href="exam-taking.html" data-en="Proctored Hall">قاعة الامتحان</a></li>
+        <li><a class="nav-anchor" href="student-results.html" data-en="Grades">النتائج وسجل الدرجات</a></li>
+        <li><a class="nav-anchor" href="student-devices.html" data-en="Security">توثيق الجهاز</a></li>
+      </ul>
+    </nav>
+
+    <div class="topbar-cta-group">
+      <a class="btn btn-secondary btn-sm hide-mobile" href="student-dashboard.html" data-en="← Back to Dashboard">← العودة للوحة المتابعة</a>
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px;">
+      <b style="font-size:17px; color:var(--ink);">قاعة المحاضرات</b>
+      <button class="btn btn-ghost btn-sm" data-drawer-close style="font-size:18px;">✕</button>
+    </div>
+    <ul class="mobile-nav-list">
+      <li><a class="mobile-nav-link" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+      <li><a class="mobile-nav-link active" href="course-viewer.html" data-en="Lecture Hall">قاعة المحاضرات</a></li>
+      <li><a class="mobile-nav-link" href="exam-taking.html" data-en="Proctored Hall">قاعة الامتحان</a></li>
+      <li><a class="mobile-nav-link" href="student-results.html" data-en="Grades">النتائج وسجل الدرجات</a></li>
+      <li><a class="mobile-nav-link" href="student-devices.html" data-en="Security">توثيق الجهاز</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main" class="viewer-layout">
+
+  <!-- 1. Cinema-Theater Master Deck (Top Wide Element) -->
+  <section class="cinema-master-deck anim-reveal">
+    <div class="cinema-header-strip">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span class="pill-badge pill-cobalt" data-en="Module 03">الوحدة 03: الحث الكهرومغناطيسي</span>
+        <h1 style="font-size:18px; font-weight:800; margin:0;" data-en="Lecture 14: Faraday's Law & Oscillating EMF Waveform">المحاضرة 14: قانون فاراداي وتتبع إشارة القوة الدافعة الحثية</h1>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="pill-badge pill-mint" data-en="DRM Protected">مشاهدة آمنة وموثقة ✓</span>
+        <button class="btn btn-sm btn-ghost" data-modal-open="modal-shortcuts" data-en="Shortcuts ⌨️">اختصارات ⌨️</button>
+      </div>
+    </div>
+
+    <!-- Video Stage Box with Bespoke Oscilloscope Vector -->
+    <div class="video-stage-box">
+      <!-- Institutional Drifting Watermark -->
+      <div class="academic-watermark">ITQ-4892 · 192.168.1.42 · SHA256-V3</div>
+
+      <!-- Bespoke Scientific SVG: Cathode Ray Oscilloscope & Waveform Induction Vector -->
+      <div class="video-art-center">
+        <svg viewBox="0 0 720 380" width="100%"  style="max-height:380px;" aria-label="رسم بياني لجهاز راسم الذبذبات الكاثودي والإشارة الحثية">
+          <defs>
+            <linearGradient id="waveGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#FFC22E" />
+              <stop offset="50%" stop-color="#3F9D7B" />
+              <stop offset="100%" stop-color="#2B5FE3" />
+            </linearGradient>
+            <pattern id="croGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2A241A" stroke-width="1"/>
+            </pattern>
+          </defs>
+
+          <!-- Oscilloscope Screen Frame -->
+          <rect x="30" y="20" width="660" height="340" rx="16" fill="#14110C" stroke="#3A3326" stroke-width="3"/>
+          <rect x="40" y="30" width="640" height="320" rx="10" fill="#0D0B08"/>
+          <rect x="40" y="30" width="640" height="320" rx="10" fill="url(#croGrid)"/>
+
+          <!-- Axis Lines -->
+          <line x1="40" y1="190" x2="680" y2="190" stroke="#4A4130" stroke-width="2"/>
+          <line x1="360" y1="30" x2="360" y2="350" stroke="#4A4130" stroke-width="2"/>
+
+          <!-- Tick Marks on X Axis -->
+          <line x1="200" y1="185" x2="200" y2="195" stroke="#FFC22E" stroke-width="2"/>
+          <text x="200" y="210" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#FFC22E">T/2 (180°)</text>
+
+          <line x1="520" y1="185" x2="520" y2="195" stroke="#FFC22E" stroke-width="2"/>
+          <text x="520" y="210" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#FFC22E">T (360°)</text>
+
+          <!-- Mathematical Sinusoidal Induction Waveform -->
+          <path d="M 40 190 
+                   C 100 70, 140 70, 200 190 
+                   C 260 310, 300 310, 360 190 
+                   C 420 70, 460 70, 520 190 
+                   C 580 310, 620 310, 680 190" 
+                fill="none" stroke="url(#waveGlow)" stroke-width="4.5" stroke-linecap="round"/>
+
+          <!-- Peak Amplitude Callouts -->
+          <circle cx="120" cy="100" r="6" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+          <line x1="120" y1="100" x2="120" y2="45" stroke="#FFC22E" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <rect x="75" y="45" width="90" height="24" rx="4" fill="#1A1712" stroke="#FFC22E" stroke-width="1.5"/>
+          <text x="120" y="61" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="bold" fill="#FFC22E">+emf_max = 311V</text>
+
+          <circle cx="280" cy="280" r="6" fill="#E9502E" stroke="#1A1712" stroke-width="2"/>
+          <line x1="280" y1="280" x2="280" y2="335" stroke="#E9502E" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <rect x="235" y="322" width="90" height="24" rx="4" fill="#1A1712" stroke="#E9502E" stroke-width="1.5"/>
+          <text x="280" y="338" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="bold" fill="#E9502E">-emf_max</text>
+
+          <!-- Electron Beam Sampling Dot -->
+          <circle cx="240" cy="235" r="8" fill="#3F9D7B">
+            <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <text x="260" y="240" font-family="Readex Pro" font-size="12" fill="#3F9D7B" font-weight="bold">نقطة القياس الحظية: e = -155 V</text>
+
+          <!-- Formula Badge -->
+          <rect x="530" y="45" width="135" height="42" rx="6" fill="#1A1712" stroke="#3F9D7B" stroke-width="1.5"/>
+          <text x="597" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3F9D7B">e = E_max · sin(ωt)</text>
+          <text x="597" y="78" text-anchor="middle" font-family="Readex Pro" font-size="10" fill="#FFF6E2">تردد التيار: f = 50 Hz</text>
+        </svg>
+      </div>
+
+      <!-- Interactive Player Controls -->
+      <div class="player-controls">
+        <div class="scrubber-track">
+          <div class="scrubber-fill"></div>
+        </div>
+        <div class="control-row">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="control-btn" type="button" aria-label="تشغيل">▶ تشغيل</button>
+            <button class="control-btn" type="button" aria-label="إرجاع 10 ثوان">-10 ث</button>
+            <button class="control-btn" type="button" aria-label="تقديم 10 ثوان">+10 ث</button>
+            <span style="font-family:var(--f-mono); font-size:13px; color:var(--paper);">14:18 / 38:24</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:var(--ink-secondary);">السرعة:</span>
+            <button class="control-btn" type="button">1.0x</button>
+            <button class="control-btn" style="background:var(--sun); color:var(--ink); font-weight:800;" type="button">1.25x</button>
+            <button class="control-btn" type="button">1.5x</button>
+            <button class="control-btn" type="button">⚙️ 1080p</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Synchronized Timeline Pill Row -->
+  <section class="timeline-bar anim-reveal anim-delay-1" aria-label="محطات الشرح المباشرة">
+    <span style="font-weight:800; font-size:13px; color:var(--ink); white-space:nowrap;" data-en="Timeline Marks:">محطات الشرح:</span>
+    <button class="marker-pill" type="button">
+      <span>00:00</span>
+      <span data-en="Faraday Experiment">مقدمة تجربة فاراداي</span>
+    </button>
+    <button class="marker-pill active" type="button">
+      <span>08:30</span>
+      <span data-en="Lenz's Law & Direction">قاعدة لينز المعاكسة</span>
+    </button>
+    <button class="marker-pill" type="button">
+      <span>18:45</span>
+      <span data-en="Sinusoidal Waveform">استنتاج الإشارة الجيبية</span>
+    </button>
+    <button class="marker-pill" type="button">
+      <span>27:10</span>
+      <span data-en="Mutual Induction">تطبيقات الحث المتبادل</span>
+    </button>
+    <button class="marker-pill" type="button">
+      <span>34:00</span>
+      <span data-en="Exam Pitfalls">أفخاخ الامتحانات الوزارية</span>
+    </button>
+  </section>
+
+  <!-- 3. Three-Column Synchronized Academic Research Deck -->
+  <section class="research-deck anim-reveal anim-delay-2">
+    
+    <!-- Column 1: Syllabus Tree & Lecture Attachments -->
+    <aside class="deck-pane">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:17px; font-weight:800; color:var(--ink);" data-en="Unit 3 Syllabus">فهرس المحاضرات</h3>
+        <span class="pill-badge pill-sun" style="font-size:11px;">14 / 24</span>
+      </div>
+
+      <nav style="display:grid; gap:4px;">
+        <a class="chapter-link" href="#">
+          <span>المحاضرة 12: الفيض المغناطيسي</span>
+          <span style="color:var(--mint); font-size:12px;">✓ مكتمل</span>
+        </a>
+        <a class="chapter-link" href="#">
+          <span>المحاضرة 13: القوة الدافعة الحثية</span>
+          <span style="color:var(--mint); font-size:12px;">✓ مكتمل</span>
+        </a>
+        <a class="chapter-link current" href="#">
+          <span>المحاضرة 14: قاعدة لينز والذبذبات</span>
+          <span class="pill-badge pill-sun" style="font-size:11px;">تشاهد الآن</span>
+        </a>
+        <a class="chapter-link" href="#">
+          <span>المحاضرة 15: الحث الذاتي للملف</span>
+          <span style="color:var(--ink-muted); font-size:12px;">🔒 تفتح الخميس</span>
+        </a>
+        <a class="chapter-link" href="#">
+          <span>المحاضرة 16: الدينامو والمولد</span>
+          <span style="color:var(--ink-muted); font-size:12px;">🔒 مغلقة</span>
+        </a>
+      </nav>
+
+      <div style="margin-top:20px; border-top:1.5px solid var(--line); padding-top:16px;">
+        <b style="font-size:14px; color:var(--ink); display:block; margin-bottom:8px;" data-en="Download Lecture Dossier">كراسة الشرح والتدريبات:</b>
+        <a class="btn btn-secondary btn-sm" style="width:100%;" href="#" data-en="Download PDF (3.4 MB) 📄">تحميل مذكرة المحاضرة (3.4 MB) 📄</a>
+      </div>
+    </aside>
+
+    <!-- Column 2: Mathematical Proofs & Live Lecture Notes -->
+    <article class="deck-pane">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:18px; font-weight:800; color:var(--ink);" data-en="Lecture Derivations & Notes">الاستنتاجات الرياضية وملاحظات الشرح</h3>
+        <button class="btn btn-sm btn-secondary" data-modal-open="modal-formulas" data-en="All Formulas">مسودة القوانين 📐</button>
+      </div>
+
+      <div class="derivation-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <b style="color:var(--ink); font-size:15px;" data-en="Derivation 1: Lenz's Law Negative Sign">البرهان الأول: دلالة الإشارة السالبة في قانون فاراداي</b>
+          <button class="btn btn-ghost btn-sm" data-copy="emf = -N \frac{\Delta \Phi_M}{\Delta t}">نسخ LaTeX</button>
+        </div>
+        <p style="font-size:13.5px; color:var(--ink-secondary); line-height:1.5;">
+          الإشارة السالبة تعبر رياضياً عن قاعدة لينز؛ حيث يعاكس التيار التأثيري المتولد التغير في الفيض المغناطيسي المسبب له، وذلك اتساقاً مع قانون بقاء الطاقة.
+        </p>
+        <div style="background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:8px 12px; margin-top:8px; font-family:var(--f-mono); font-size:13px; font-weight:bold; color:var(--ink);">
+          emf = -N · (ΔΦ_m / Δt) = -N · [B · A · (cos θ₂ - cos θ₁)] / Δt
+        </div>
+      </div>
+
+      <div class="derivation-card">
+        <b style="color:var(--ink); font-size:15px; display:block; margin-bottom:6px;" data-en="Rule: Determining Induced Current Direction">خوارزمية تحديد اتجاه التيار المستحث:</b>
+        <ul style="font-size:13.5px; color:var(--ink-secondary); line-height:1.6; padding-inline-start:18px; margin:0;">
+          <li><b>عند تقريب قطب شمالي (N):</b> يتكون قطب شمالي مشابه على الوجه المقابل ليحدث تنافر (اتجاه عكس عقارب الساعة).</li>
+          <li><b>عند إبعاد قطب شمالي (N):</b> يتكون قطب جنوبي مخالف ليحدث تجاذب ومقاومة للحركة (مع عقارب الساعة).</li>
+        </ul>
+      </div>
+
+      <!-- Quick Self-Check Question -->
+      <div style="background:var(--sun-tint); border:2px solid var(--ink); border-radius:var(--r-card); padding:16px;">
+        <b style="color:var(--ink); font-size:14.5px; display:block; margin-bottom:6px;">سؤال تثبيت فوري:</b>
+        <p style="font-size:13.5px; color:var(--ink); margin-bottom:10px;">
+          ماذا يحدث لإضاءة المصباح في دائرة ملف لولبي عند تقريب مغناطيس بقطبه الجنوبي من أحد طرفيه؟
+        </p>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-secondary" onclick="alert('إجابة صحيحة! يزداد لحظياً لأن اتجاه التيار المستحث يتفق مع تيار البطارية.')">تزداد لحظياً</button>
+          <button class="btn btn-sm btn-secondary" onclick="alert('حاول مجدداً؛ راجع اتجاه لف السلك وتطبيق قاعدة اليد اليمنى لأمبير.')">تقل لحظياً</button>
+          <button class="btn btn-sm btn-secondary" onclick="alert('لا تنعدم؛ لأن هناك تياراً مستحثاً ينشأ فوراً.')">تنعدم</button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Column 3: Instant Academic Discussion & Direct Questions to Faculty -->
+    <aside class="deck-pane">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:17px; font-weight:800; color:var(--ink);" data-en="Academic Q&A">منتدى استفسارات المحاضرة</h3>
+        <span class="pill-badge pill-mint" style="font-size:11px;">مباشر مع المعلم</span>
+      </div>
+
+      <div style="display:grid; gap:10px; max-height:360px; overflow-y:auto; padding-inline-end:4px;">
+        <div class="qa-bubble">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+            <b>عمر الشريف (طالب)</b>
+            <span style="color:var(--ink-secondary);">منذ 15 دقيقة</span>
+          </div>
+          <p style="margin:0; color:var(--ink);">هل تؤثر سرعة حركة المغناطيس على قيمة القوة الدافعة الحثية أم على اتجاهها فقط؟</p>
+        </div>
+
+        <div class="qa-bubble instructor">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+            <b style="color:var(--ink);">د. كريم عبد المنعم (المحاضر) 🎖️</b>
+            <span class="pill-badge pill-sun" style="font-size:10px;">إجابة معتمدة</span>
+          </div>
+          <p style="margin:0; color:var(--ink); font-weight:600;">
+            تؤثر على المقدار مباشرة لزيادة المعدل الزمني لقطع خطوط الفيض (ΔΦ/Δt)، بينما الاتجاه يحكمه نوع القطب وجهة الحركة بقاعدة لينز.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <input type="text" placeholder="اكتب سؤالك الأكاديمي للدكتور..." style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:13px; margin-bottom:8px;">
+        <button class="btn btn-primary btn-sm" style="width:100%;" data-en="Post Question">إرسال الاستفسار للأستاذ ←</button>
+      </div>
+    </aside>
+
+  </section>
+
+</main>
+
+<!-- Keyboard Shortcuts Modal -->
+<div class="modal-overlay" id="modal-shortcuts" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:480px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:12px; margin-bottom:16px;">
+      <h3 style="font-size:20px; font-weight:800; color:var(--ink);" data-en="Keyboard Shortcuts">اختصارات لوحة المفاتيح</h3>
+      <button class="btn btn-sm btn-ghost" data-modal-close>✕</button>
+    </div>
+    <div style="display:grid; gap:10px; font-size:14px;">
+      <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+        <span>مسافة (Space)</span>
+        <b>تشغيل / إيقاف مؤقت</b>
+      </div>
+      <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+        <span>السهم الأيمن / الأيسر</span>
+        <b>تقديم / ترجيع 5 ثوان</b>
+      </div>
+      <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+        <span>حرف M</span>
+        <b>كتم / تشغيل الصوت</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>حرف F</span>
+        <b>وضع ملء الشاشة</b>
+      </div>
+    </div>
+    <div style="margin-top:18px; text-align:end;">
+      <button class="btn btn-secondary btn-sm" data-modal-close>حسناً</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة قاعة المحاضرات">
+  <span class="demo-toolbar-label" data-en="Lecture Theater View:">معاينة الشاشة:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Default">الوضع الطبيعي</button>
+    <button class="demo-btn" type="button" data-state="theater" aria-pressed="false" data-en="Cinema Full">المسرح الممتد</button>
+    <button class="demo-btn" type="button" data-state="notes" aria-pressed="false" data-en="Notes Focus">تركيز المسائل</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

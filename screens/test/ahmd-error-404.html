@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الصفحة غير موجودة (404) · منصة إتقان</title>
+<meta name="description" content="Itqan 404 not found and system error screen.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .error-wrap {
+    min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center;
+    padding: 30px var(--gutter);
+  }
+  .error-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 680px; width: 100%; padding: clamp(28px, 4vw, 48px); box-shadow: var(--shadow-lift);
+    display: grid; gap: 24px; text-align: center;
+  }
+
+  /* Animated Search / Flashlight SVG */
+  .beam-light { animation: sweepLight 4s ease-in-out infinite alternate; transform-origin: 120px 80px; }
+  @keyframes sweepLight { 0% { transform: rotate(-15deg); } 100% { transform: rotate(20deg); } }
+  .float-mark { animation: floatMark 2.8s ease-in-out infinite alternate; }
+  @keyframes floatMark { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+
+  /* States via body[data-state] */
+  .err-panel { display: none; }
+  [data-state="404"] #p-404 { display: grid; gap: 16px; }
+  [data-state="500"] #p-500 { display: grid; gap: 16px; }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body data-state="404" data-title-en="Page Not Found (404) · Itqan">
+
+<!-- Top bar -->
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Itqan">إتقان</span><span class="brand-sub" data-en="LMS Platform">المنصة التعليمية</span></span>
+  </a>
+  <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+</header>
+
+<main class="error-wrap">
+  <div class="error-card">
+    
+    <!-- Custom Animated 404 Illustration -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 340 180" width="100%" height="auto" style="max-height:180px;" aria-hidden="true">
+        <!-- Big friendly numbers 4 0 4 -->
+        <text x="50" y="125" font-family="Baloo Bhaijaan 2" font-weight="800" font-size="82" fill="#EBDDBF">4</text>
+        <text x="235" y="125" font-family="Baloo Bhaijaan 2" font-weight="800" font-size="82" fill="#EBDDBF">4</text>
+
+        <!-- Floating question mark -->
+        <g class="float-mark">
+          <circle cx="170" cy="55" r="16" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/>
+          <text x="165" y="62" font-family="Readex Pro" font-weight="800" font-size="18" fill="#1A1712">؟</text>
+        </g>
+
+        <!-- Student Character (Center) searching with magnifying glass -->
+        <circle cx="170" cy="100" r="24" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+        <g fill="#1A1712">
+          <circle cx="158" cy="85" r="12"/>
+          <circle cx="174" cy="82" r="12"/>
+          <circle cx="186" cy="92" r="10"/>
+        </g>
+        <circle cx="166" cy="100" r="3" fill="#1A1712"/>
+        <circle cx="178" cy="100" r="3" fill="#1A1712"/>
+        <path d="M168 112 Q172 116 176 112" fill="none" stroke="#1A1712" stroke-width="2.5"/>
+        <path d="M145 160 Q155 125 170 125 Q185 125 195 160 Z" fill="#FFC22E" stroke="#1A1712" stroke-width="3"/>
+
+        <!-- Magnifying Glass held in hand -->
+        <g class="beam-light">
+          <circle cx="130" cy="105" r="16" fill="#FFE9B0" stroke="#1A1712" stroke-width="3"/>
+          <line x1="120" y1="117" x2="105" y2="135" stroke="#1A1712" stroke-width="4.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 404 Content -->
+    <div class="err-panel" id="p-404">
+      <h1 style="font-size:clamp(24px, 3.2vw, 36px); font-weight:800;" data-en="Oops! This page seems to have wandered off">عفوًا! يبدو أن هذه الصفحة قد ضلّت طريقها</h1>
+      <p style="color:var(--ink-2); font-size:16.5px; line-height:1.6;" data-en="The link you followed might be broken, or the lecture has been moved to another chapter.">
+        الرابط الذي تحاول الوصول إليه غير موجود، أو ربما تم نقل المحاضرة إلى فصل دراسي آخر. لا تقلق، يمكنك العودة مباشرة ومتابعة دروسك.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:12px;">
+        <a class="btn" href="ahmd-student-dashboard.html" data-en="Go to Student Dashboard">الذهاب للوحة التحكم ←</a>
+        <a class="btn btn-light" href="hero.html" data-en="Back to Home">الرئيسية</a>
+      </div>
+    </div>
+
+    <!-- 500 Content -->
+    <div class="err-panel" id="p-500">
+      <h1 style="font-size:clamp(24px, 3.2vw, 36px); font-weight:800; color:var(--coral);" data-en="500 · Server Interruption">500 · انقطاع مؤقت في الخادم</h1>
+      <p style="color:var(--ink-2); font-size:16.5px; line-height:1.6;" data-en="We encountered an unexpected glitch while fetching your lecture. Our team has been alerted.">
+        حدث اضطراب مؤقت أثناء جلب بيانات المحاضرة. لا داعي للقلق، بياناتك ودرجاتك في أمان تام ويجري التحقق من الخادم الآن.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:12px;">
+        <button class="btn" onclick="location.reload()" data-en="Reload Page">إعادة المحاولة 🔄</button>
+        <a class="btn btn-light" href="hero.html" data-en="Back to Safety">العودة للرئيسية</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview Error Code:">نوع صفحة الخطأ:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="404" aria-pressed="true" data-en="404 Not Found">404 غير موجود</button>
+    <button type="button" data-state="500" aria-pressed="false" data-en="500 Server Error">500 خطأ خادم</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+</body>
+</html>

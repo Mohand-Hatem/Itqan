@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الانضمام بدعوة المعلم · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan invitation registration with guardian consent (FR-A06).">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .auth-layout {
+    min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center;
+    padding: 30px var(--gutter);
+  }
+  .join-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 600px; width: 100%; padding: clamp(28px, 4vw, 44px); box-shadow: var(--shadow-lift);
+    display: grid; gap: 20px;
+  }
+  
+  .consent-box {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: start; gap: 12px;
+  }
+  .consent-box input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--mint); margin-top: 2px; cursor: pointer; flex: none; }
+  
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  [data-state="success"] #join-form { display: none; }
+  [data-state="success"] #join-success { display: grid !important; }
+</style>
+</head>
+<body data-state="normal" data-title-en="Join with Teacher Invitation · Itqan">
+
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Student Registration">التسجيل بدعوة خاصة</span></span>
+  </a>
+  <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+</header>
+
+<main class="auth-layout">
+  <div class="join-card">
+    
+    <!-- Success view -->
+    <div id="join-success" style="display:none; text-align:center; gap:16px;">
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--mint); border:2.5px solid var(--ink); margin:0 auto; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px;">✓</div>
+      <h2 style="font-size:26px; font-weight:800;" data-en="Welcome to the Class! 🎉">تم قبول الدعوة وتفعيل الحساب بنجاح! 🎉</h2>
+      <p style="color:var(--ink-2); font-size:16px;" data-en="You are now enrolled in Physics: Term 1. This computer is now registered as your authorized study device.">
+        تم ربط حسابك بكورس الفيزياء للثانوية العامة، وتم تسجيل هذا الجهاز كجهازك المعتمد للدراسة.
+      </p>
+      <a class="btn" href="ahmd-student-dashboard.html" style="justify-self:center; margin-top:10px;" data-en="Open Dashboard">الدخول للوحة التحكم ←</a>
+    </div>
+
+    <!-- Form view -->
+    <form id="join-form" data-fake="success" style="display:grid; gap:18px;">
+      <div>
+        <div style="display:inline-flex; align-items:center; gap:8px; background:var(--sun-tint); border:1.5px solid var(--ink); border-radius:8px; padding:4px 10px; font-size:13px; font-weight:700; margin-bottom:8px;">
+          <span>✉️</span> <span data-en="Verified Invitation Link (FR-E01)">دعوة خاصة من المعلم</span>
+        </div>
+        <h1 style="font-size:26px; font-weight:800;" data-en="Complete Your Student Profile">أكمل بيانات انضمامك للكورس</h1>
+        <p style="color:var(--ink-2); font-size:15px; margin-top:4px;" data-en="You were invited by Mr. Karim to join the 2026/2027 Physics Batch.">
+          تمت دعوتك بواسطة أ. كريم عبد المنعم للانضمام لدفعة الفيزياء العامة (الفصل الدراسي الأول).
+        </p>
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Full Name (Arabic as in Civil ID)">الاسم الرباعي للطالب</span></label>
+        <input class="input" type="text" required placeholder="أحمد أيمن محمد علي" data-en-placeholder="Student full name">
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Email Address">البريد الإلكتروني</span></label>
+        <input class="input" type="email" required placeholder="ahmed@email.com" style="direction:ltr;">
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Student Phone (WhatsApp)">رقم هاتف الطالب (واتساب)</span></label>
+        <input class="input" type="tel" required placeholder="01029384756" style="direction:ltr; text-align:start;">
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Create Password">كلمة المرور الجديدة</span></label>
+        <div class="input-wrap">
+          <input class="input" id="pw" type="password" required minlength="8" placeholder="••••••••">
+          <button class="peek" type="button" aria-pressed="false" aria-label="إظهار كلمة السر"><svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Guardian Consent Box (FR-A06) -->
+      <label class="consent-box">
+        <input type="checkbox" required>
+        <span style="font-size:13.5px; color:var(--ink); line-height:1.5;" data-en="Guardian Consent: I confirm guardian awareness and agreement to account registration, attendance tracking, and examination terms.">
+          <b>إقرار موافقة ولي الأمر:</b> أقر بأن ولي الأمر على علم وموافقة على التسجيل في المنصة ومتابعة الحضور والامتحانات الإلكترونية وقاعدة الجهاز الواحد.
+        </span>
+      </label>
+
+      <button class="btn btn-block" type="submit" data-en="Accept Invitation & Enter">قبول الدعوة وتأكيد الحساب 🚀</button>
+    </form>
+
+  </div>
+</main>
+
+<script src="shared/itqan.js"></script>
+</body>
+</html>

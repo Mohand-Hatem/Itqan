@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إدارة المدرسين والمستأجرين · منصة إتقان المركزية</title>
+<meta name="description" content="Itqan super admin multi-tenant dashboard: tenants directory, quotas, and role pauses.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .admin-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Top Banner */
+  .admin-hero {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: 24px 32px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  }
+  .admin-hero h1 { font-size: 26px; font-weight: 800; }
+
+  /* 4 Stats Cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .stat-card {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .stat-card b { font-family: var(--f-display); font-size: 32px; font-weight: 800; margin: 8px 0 4px; }
+  .stat-card small { color: var(--ink-2); font-size: 13.5px; }
+
+  /* Tenants Table Card */
+  .tenants-card {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-card);
+    padding: 26px; box-shadow: var(--shadow);
+  }
+  .table-responsive { overflow-x: auto; margin-top: 16px; }
+  .t-table { width: 100%; border-collapse: collapse; text-align: start; font-size: 14.5px; }
+  .t-table th { background: var(--cream); border-bottom: 2px solid var(--ink); padding: 14px 16px; font-family: var(--f-display); }
+  .t-table td { padding: 14px 16px; border-bottom: 1.5px solid var(--line); }
+  .t-table tr:hover td { background: var(--cream); }
+
+  /* New Tenant Modal */
+  .t-modal {
+    position: fixed; inset: 0; background: rgba(26,23,18,.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .t-modal-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 580px; width: 100%; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+
+  /* States */
+  [data-state="modal"] .t-modal { display: flex; }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .admin-hero { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Super Admin · Multi-Tenant Management">
+<a class="skip" href="#main" data-en="Skip to content">تخطّ إلى المحتوى</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-admin-tenants.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#1A1712"/><circle cx="22" cy="22" r="12" fill="#FFC22E"/><circle cx="22" cy="22" r="5" fill="#1A1712"/></svg>
+    <span><span class="brand-name" data-en="Itqan · Super Admin">إتقان · الإدارة المركزية</span><span class="brand-sub" data-en="Multi-Tenant Control (ADR-001)">التحكم في المدرسين والاشتراكات</span></span>
+  </a>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <nav style="display:flex; gap:12px;" class="topbar-nav">
+      <a class="btn btn-sm btn-ghost" href="ahmd-admin-tenants.html" style="font-weight:700;" data-en="Tenants">المدرسين (Tenants)</a>
+      <a class="btn btn-sm btn-ghost" href="#" data-en="Platform Logs">السجلات المركزية</a>
+      <a class="btn btn-sm btn-ghost" href="#" data-en="R2 Storage">التخزين السحابي</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="lang" type="button">English</button>
+      <div style="background:var(--ink); color:#fff; border-radius:10px; padding:6px 12px; font-weight:700; font-size:13.5px;" data-en="Platform Admin">مدير النظام (Root)</div>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="admin-layout">
+  
+  <!-- Hero summary -->
+  <section class="admin-hero">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:var(--sun-tint); border:1.5px solid var(--ink); border-radius:8px; padding:4px 10px; font-size:13px; font-weight:700; margin-bottom:6px;">
+        <span>🌐</span> <span data-en="Shared Multi-Tenant Architecture (ADR-001)">بنية السحاب متعددة المستأجرين</span>
+      </div>
+      <h1 data-en="Platform Tenants & Academy Directory">إدارة المدرسين وأكاديميات إتقان</h1>
+      <p style="color:var(--ink-2); font-size:14.5px; margin-top:4px;" data-en="Monitor active teachers, provision new subdomains, and govern storage limits and role pauses.">
+        متابعة استهلاك الخوادم، إنشاء نطاقات فرعية جديدة للمدرسين، وتطبيق العزل الكامل للبيانات عبر معرّف المستأجر.
+      </p>
+    </div>
+
+    <button class="btn btn-sm" id="btn-open-tenant" type="button" data-en="+ Provision New Tenant">+ إنشاء مدرس جديد</button>
+  </section>
+
+  <!-- 4 Stats Cards -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span style="font-weight:700; font-size:14px;" data-en="Active Tenants">المدرسين المشتركين</span>
+      <b>12</b>
+      <small data-en="Independent tenant deployments">أكاديميات ومدرسين نشطين</small>
+    </div>
+
+    <div class="stat-card">
+      <span style="font-weight:700; font-size:14px;" data-en="Total Students">إجمالي الطلاب</span>
+      <b>24,500</b>
+      <small data-en="Across all platform teachers">طالب مسجل في مختلف المواد</small>
+    </div>
+
+    <div class="stat-card">
+      <span style="font-weight:700; font-size:14px;" data-en="Cloudflare R2 Storage">تخزين الفيديوهات (R2)</span>
+      <b>340 GB</b>
+      <small data-en="1,420 MP4 lectures stored">1,420 فيديو مشفر ومحمي</small>
+    </div>
+
+    <div class="stat-card">
+      <span style="font-weight:700; font-size:14px;" data-en="System Health">كفاءة البنية التحتية</span>
+      <b style="color:var(--mint);">99.98%</b>
+      <small data-en="PostgreSQL + Nginx healthy">جميع الخوادم تعمل بكفاءة تامة</small>
+    </div>
+  </section>
+
+  <!-- Tenants Table -->
+  <section class="tenants-card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="font-size:20px; font-weight:800;" data-en="Registered Tenants">قائمة المستأجرين (المدرسين)</h2>
+      <input class="input" type="search" placeholder="بحث باسم المدرس أو النطاق..." style="max-width:280px; padding:6px 14px; font-size:14px;" data-en-placeholder="Search by teacher or domain...">
+    </div>
+
+    <div class="table-responsive">
+      <table class="t-table">
+        <thead>
+          <tr>
+            <th data-en="Tenant Name">اسم المدرس / الأكاديمية</th>
+            <th data-en="Subdomain">النطاق الفرعي (Subdomain)</th>
+            <th data-en="Students">الطلاب المسجلين</th>
+            <th data-en="R2 Storage">مساحة التخزين</th>
+            <th data-en="Status">الحالة</th>
+            <th data-en="Actions">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <b style="font-size:15.5px; display:block;" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم عبد المنعم</b>
+              <small style="color:var(--ink-2); direction:ltr;">karim@itqan.edu</small>
+            </td>
+            <td><code style="background:var(--cream); padding:4px 8px; border-radius:6px; font-size:13px; direction:ltr;">karim-physics.itqan.com</code></td>
+            <td><b>1,280</b> <small style="color:var(--ink-2);">/ 2,000</small></td>
+            <td>42 GB</td>
+            <td><span class="c-badge" style="background:var(--mint-tint);" data-en="Active 🟢">نشط 🟢</span></td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <a class="btn btn-sm btn-light" href="ahmd-teacher-dashboard.html" style="padding:4px 10px; font-size:13px;" data-en="Open Portal">دخول المنصة</a>
+                <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:13px; color:var(--coral);" data-en="Pause Students (FR-T03)">إيقاف مؤقت</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <b style="font-size:15.5px; display:block;" data-en="Chemistry Masters Academy">أكاديمية الكيمياء (أ. طارق مصطفى)</b>
+              <small style="color:var(--ink-2); direction:ltr;">tarek@chem.itqan.com</small>
+            </td>
+            <td><code style="background:var(--cream); padding:4px 8px; border-radius:6px; font-size:13px; direction:ltr;">tarek-chem.itqan.com</code></td>
+            <td><b>3,450</b> <small style="color:var(--ink-2);">/ 5,000</small></td>
+            <td>86 GB</td>
+            <td><span class="c-badge" style="background:var(--mint-tint);" data-en="Active 🟢">نشط 🟢</span></td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-light" style="padding:4px 10px; font-size:13px;" data-en="Open Portal">دخول المنصة</button>
+                <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:13px; color:var(--coral);" data-en="Pause Students (FR-T03)">إيقاف مؤقت</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <b style="font-size:15.5px; display:block;" data-en="Al-Allam Mathematics">مملكة الرياضيات (أ. هشام علام)</b>
+              <small style="color:var(--ink-2); direction:ltr;">hesham@math.itqan.com</small>
+            </td>
+            <td><code style="background:var(--cream); padding:4px 8px; border-radius:6px; font-size:13px; direction:ltr;">allam-math.itqan.com</code></td>
+            <td><b>2,120</b> <small style="color:var(--ink-2);">/ 3,000</small></td>
+            <td>54 GB</td>
+            <td><span class="c-badge" style="background:var(--sun-tint);" data-en="Suspended ⏸️">موقوف مؤقتًا ⏸️</span></td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-light" style="padding:4px 10px; font-size:13px;" data-en="Open Portal">دخول المنصة</button>
+                <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:13px; color:var(--mint);" data-en="Resume">تفعيل</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- New Tenant Modal (FR-T02) -->
+<div class="t-modal" id="modal-tenant" role="dialog" aria-modal="true" aria-labelledby="t-title">
+  <div class="t-modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 id="t-title" style="font-size:22px; font-weight:800;" data-en="Provision New Teacher Tenant">إنشاء مستأجر جديد (مدرس / أكاديمية)</h2>
+      <button class="btn btn-sm btn-ghost" id="btn-close-tenant" type="button">✕</button>
+    </div>
+
+    <form data-fake="normal" style="display:grid; gap:16px;">
+      <div class="field">
+        <label class="label"><span data-en="Teacher / Academy Display Name">اسم المدرس أو الأكاديمية</span></label>
+        <input class="input" type="text" required placeholder="مثال: الأحياء مع د. حسام" data-en-placeholder="e.g. Biology with Dr. Hossam">
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Subdomain Slug (Unique Host Header)">معرّف النطاق الفرعي (Subdomain)</span></label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input class="input" type="text" required placeholder="hossam-bio" style="direction:ltr; text-align:start;">
+          <span style="font-weight:700; color:var(--ink-2);">.itqan.com</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Teacher Email (Super Admin / Owner)">البريد الإلكتروني للمدرس</span></label>
+        <input class="input" type="email" required placeholder="teacher@email.com" style="direction:ltr;">
+      </div>
+
+      <div class="field">
+        <label class="label"><span data-en="Student Capacity Limit">الحد الأقصى لعدد الطلاب المسموح بهم</span></label>
+        <input class="input" type="number" value="1000" min="50" step="50">
+      </div>
+
+      <div style="display:flex; justify-content:end; gap:12px; margin-top:16px;">
+        <button class="btn btn-light" id="btn-cancel-tenant" type="button" data-en="Cancel">إلغاء</button>
+        <button class="btn" type="submit" data-en="Provision Tenant Now">تفعيل المستأجر فورًا 🚀</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview States:">حالات المعاينة:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="normal" aria-pressed="true" data-en="Tenants Directory">دليل المستأجرين</button>
+    <button type="button" data-state="modal" aria-pressed="false" data-en="New Tenant Modal">نافذة مستأجر جديد</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+<script>
+  const tModal = document.getElementById('modal-tenant');
+  document.getElementById('btn-open-tenant').onclick = () => tModal.style.display = 'flex';
+  document.getElementById('btn-close-tenant').onclick = () => tModal.style.display = 'none';
+  document.getElementById('btn-cancel-tenant').onclick = () => tModal.style.display = 'none';
+</script>
+</body>
+</html>

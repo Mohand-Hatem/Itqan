@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة إتقان للفيزياء | القيد الأكاديمي والتحاق المتفوقين (Student Enrolment)</title>
+  <link rel="stylesheet" href="shared/itqan-v3.css">
+  <style>
+    .signup-page {
+      min-height: 100vh;
+      display: flex;
+      background: var(--cream);
+    }
+    .signup-split {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      width: 100%;
+      min-height: 100vh;
+    }
+    @media (max-width: 960px) {
+      .signup-split { grid-template-columns: 1fr; }
+      .signup-brand-side { display: none; }
+    }
+
+    .signup-brand-side {
+      background: var(--ink);
+      color: var(--paper-pure);
+      padding: 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .caliper-wrap {
+      width: 100%;
+      max-width: 440px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+
+    .signup-form-side {
+      background: var(--paper-pure);
+      padding: 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+    @media (max-width: 640px) {
+      .signup-form-side { padding: 2rem 1.25rem; }
+    }
+    .form-wrapper {
+      max-width: 540px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Stepper Header */
+    .stepper-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+    .stepper-bar::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: var(--border-medium);
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+    .step-node {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--paper-pure);
+      border: 2px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 2;
+      color: var(--text-muted);
+      transition: all var(--transition-fast);
+    }
+    .step-node.active {
+      background: var(--sun);
+      border-color: var(--ink);
+      color: var(--ink);
+      box-shadow: 0 0 0 4px rgba(255, 194, 46, 0.25);
+    }
+    .step-node.completed {
+      background: var(--mint);
+      border-color: var(--mint);
+      color: #FFF;
+    }
+
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+      animation: revealUp 0.35s ease forwards;
+    }
+
+    .pledge-box {
+      background: rgba(255, 194, 46, 0.1);
+      border: 1px solid rgba(242, 166, 12, 0.4);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-page">
+    <div class="signup-split">
+      
+      <!-- Left Side: Brand Showcase & Bespoke Vernier Caliper & Crest Vector SVG -->
+      <div class="signup-brand-side">
+        <!-- Top Nav Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <a href="index.html" class="v3-brand" style="color:var(--paper-pure);">
+            <div class="v3-brand-icon" style="background:var(--paper-pure);">
+              <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
+                <circle cx="16" cy="16" r="14" stroke="#1A1712" stroke-width="2.5" fill="#FFC22E"/>
+                <ellipse cx="16" cy="16" rx="14" ry="6" stroke="#1A1712" stroke-width="1.8" transform="rotate(-25 16 16)" stroke-dasharray="2 2"/>
+                <circle cx="16" cy="16" r="4.5" fill="#1A1712"/>
+              </svg>
+            </div>
+            <div class="v3-brand-text">
+              <span class="v3-brand-title" style="color:var(--paper-pure);">إتقان <span class="badge badge-sun" style="font-size:0.65rem; color:#1A1712;">V3</span></span>
+              <span class="v3-brand-sub" style="color:rgba(255,255,255,0.7);" data-ar="ميثاق شرف المتفوقين" data-en="Scholarly Honour Charter">ميثاق شرف المتفوقين</span>
+            </div>
+          </a>
+          <button class="v3-btn" id="langToggle" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#FFF; font-size:0.75rem;">
+            <span class="lang-text">English</span>
+          </button>
+        </div>
+
+        <!-- Center: Bespoke Vernier Caliper (قدمة ذات ورنية) & Academic Crest SVG -->
+        <div class="caliper-wrap">
+          <svg viewBox="0 0 460 320" width="100%" >
+            <defs>
+              <linearGradient id="metalSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#E5E5E5"/>
+                <stop offset="50%" stop-color="#FFFDF8"/>
+                <stop offset="100%" stop-color="#C0C0C0"/>
+              </linearGradient>
+              <linearGradient id="brassSlide" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#FFC22E"/>
+                <stop offset="100%" stop-color="#F2A60C"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Technical Heading in SVG -->
+            <text x="230" y="30" font-family="var(--font-mono)" font-size="12" font-weight="700" fill="#FFC22E" text-anchor="middle">القدمة ذات الورنية — دقة القياس الفيزيائي (0.01 mm)</text>
+            <text x="230" y="48" font-family="var(--font-mono)" font-size="9" fill="rgba(255,255,255,0.5)" text-anchor="middle">VERNIER CALIPER METRIC SCALE & ROTATING THIMBLE</text>
+
+            <!-- Main Caliper Steel Bar (Fixed Beam) -->
+            <rect x="30" y="90" width="400" height="35" rx="3" fill="url(#metalSteel)" stroke="#1A1712" stroke-width="2"/>
+            
+            <!-- Metric Graduation Marks on Fixed Beam (0 to 12 cm) -->
+            <!-- 0 cm at x=60 -->
+            <g stroke="#1A1712" stroke-width="1.2">
+              <!-- cm lines and mm ticks -->
+              <line x1="60" y1="90" x2="60" y2="112" stroke-width="2"/>
+              <line x1="85" y1="90" x2="85" y2="102"/>
+              <line x1="110" y1="90" x2="110" y2="112" stroke-width="2"/>
+              <line x1="135" y1="90" x2="135" y2="102"/>
+              <line x1="160" y1="90" x2="160" y2="112" stroke-width="2"/>
+              <line x1="185" y1="90" x2="185" y2="102"/>
+              <line x1="210" y1="90" x2="210" y2="112" stroke-width="2"/>
+              <line x1="235" y1="90" x2="235" y2="102"/>
+              <line x1="260" y1="90" x2="260" y2="112" stroke-width="2"/>
+              <line x1="285" y1="90" x2="285" y2="102"/>
+              <line x1="310" y1="90" x2="310" y2="112" stroke-width="2"/>
+              <line x1="335" y1="90" x2="335" y2="102"/>
+              <line x1="360" y1="90" x2="360" y2="112" stroke-width="2"/>
+              <line x1="385" y1="90" x2="385" y2="102"/>
+              <line x1="410" y1="90" x2="410" y2="112" stroke-width="2"/>
+            </g>
+
+            <!-- Numbers on Fixed Beam -->
+            <text x="60" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">0</text>
+            <text x="110" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">1</text>
+            <text x="160" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">2</text>
+            <text x="210" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">3</text>
+            <text x="260" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">4</text>
+            <text x="310" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">5</text>
+            <text x="360" y="122" font-family="var(--font-mono)" font-size="9" fill="#1A1712" text-anchor="middle">6 cm</text>
+
+            <!-- Fixed Jaw (Left Jaw) -->
+            <path d="M30 90 L30 190 C30 205 50 205 50 190 L50 125 L60 125 L60 90 Z" fill="url(#metalSteel)" stroke="#1A1712" stroke-width="2"/>
+            <!-- Fixed Upper Inside Jaw -->
+            <path d="M30 90 L30 60 C30 50 45 50 45 60 L45 90 Z" fill="url(#metalSteel)" stroke="#1A1712" stroke-width="2"/>
+
+            <!-- Moving Sliding Vernier Unit (at position x=175) -->
+            <g transform="translate(145, 0)">
+              <!-- Sliding Body -->
+              <rect x="0" y="80" width="110" height="55" rx="4" fill="url(#brassSlide)" stroke="#1A1712" stroke-width="2.2"/>
+              <!-- Moving Lower Outside Jaw -->
+              <path d="M0 135 L0 190 C0 205 20 205 20 190 L20 135 Z" fill="url(#brassSlide)" stroke="#1A1712" stroke-width="2"/>
+              <!-- Moving Upper Inside Jaw -->
+              <path d="M0 80 L0 60 C0 50 15 50 15 60 L15 80 Z" fill="url(#brassSlide)" stroke="#1A1712" stroke-width="2"/>
+              <!-- Vernier Scale Window & Graduation (0 to 10) -->
+              <rect x="15" y="86" width="80" height="18" fill="#FFFDF8" stroke="#1A1712" stroke-width="1.2"/>
+              <g stroke="#1A1712" stroke-width="1">
+                <line x1="20" y1="86" x2="20" y2="98"/>
+                <line x1="27" y1="86" x2="27" y2="94"/>
+                <line x1="34" y1="86" x2="34" y2="94"/>
+                <line x1="41" y1="86" x2="41" y2="94"/>
+                <line x1="48" y1="86" x2="48" y2="94"/>
+                <line x1="55" y1="86" x2="55" y2="98"/>
+                <line x1="62" y1="86" x2="62" y2="94"/>
+                <line x1="69" y1="86" x2="69" y2="94"/>
+                <line x1="76" y1="86" x2="76" y2="94"/>
+                <line x1="83" y1="86" x2="83" y2="94"/>
+                <line x1="90" y1="86" x2="90" y2="98"/>
+              </g>
+              <text x="55" y="125" font-family="var(--font-mono)" font-size="10" font-weight="800" fill="#1A1712" text-anchor="middle">القراءة: 2.34 cm</text>
+            </g>
+
+            <!-- Measured Sphere / Test Object in between jaws -->
+            <circle cx="97" cy="180" r="37" fill="none" stroke="#3F9D7B" stroke-width="2.5" stroke-dasharray="3 2"/>
+            <circle cx="97" cy="180" r="3" fill="#3F9D7B"/>
+            <text x="97" y="235" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#3F9D7B" text-anchor="middle">قطر الكرة المقاس = 23.4 mm</text>
+
+            <!-- Physics Crest Diploma Seal in Bottom Right -->
+            <g transform="translate(350, 240)">
+              <circle cx="0" cy="0" r="34" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/>
+              <circle cx="0" cy="0" r="28" fill="none" stroke="#1A1712" stroke-width="1.2" stroke-dasharray="2 2"/>
+              <!-- Atom Orbit inside seal -->
+              <ellipse cx="0" cy="0" rx="20" ry="8" stroke="#1A1712" stroke-width="1.5" transform="rotate(30)"/>
+              <ellipse cx="0" cy="0" rx="20" ry="8" stroke="#1A1712" stroke-width="1.5" transform="rotate(-30)"/>
+              <circle cx="0" cy="0" r="4" fill="#1A1712"/>
+              <text x="0" y="44" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#FFC22E" text-anchor="middle">SEAL OF RIGOUR</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Academic Charter Note -->
+        <div>
+          <div style="font-size:0.9rem; line-height:1.6; opacity:0.85; margin-bottom:1rem;" data-ar="«الانضمام إلى إتقان يتطلب التزاماً علمياً صارماً؛ فكل مسألة تحلها هنا تصقل بنيتك العقلية لتكون في مقدمة أوائل الجمهورية في كليات القمة.»" data-en="«Enrolment in Itqan demands relentless dedication; every derivation mastered prepares you to lead the nation's top academic faculties.»">
+            «الانضمام إلى إتقان يتطلب التزاماً علمياً صارماً؛ فكل مسألة تحلها هنا تصقل بنيتك العقلية لتكون في مقدمة أوائل الجمهورية في كليات القمة.»
+          </div>
+          <div style="font-size:0.78rem; font-family:var(--font-mono); color:var(--sun);">
+            دفعة 2026 — اعتماد رسمي تحت إشراف لجنة أساتذة الفيزياء
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: 3-Step Wizard Form -->
+      <div class="signup-form-side">
+        <div class="form-wrapper">
+          
+          <!-- Stepper Progress Header -->
+          <div class="stepper-bar">
+            <div class="step-node active" id="node1">1</div>
+            <div class="step-node" id="node2">2</div>
+            <div class="step-node" id="node3">3</div>
+          </div>
+
+          <!-- Wizard Step 1: Personal & Academic Data -->
+          <div class="form-step active" id="step1">
+            <div style="margin-bottom: 1.5rem;">
+              <span class="badge badge-sun" style="font-size:0.75rem; margin-bottom:0.5rem;" data-ar="الخطوة 1 من 3: البيانات الأكاديمية" data-en="Step 1 of 3: Academic Baseline">الخطوة 1 من 3: البيانات الأكاديمية</span>
+              <h2 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;" data-ar="إنشاء الملف الأكاديمي للطالب" data-en="Create Candidate Profile">
+                إنشاء الملف الأكاديمي للطالب
+              </h2>
+              <p class="text-muted" style="margin: 0; font-size: 0.88rem;" data-ar="سجل بياناتك الحقيقية كما هي في بطاقة الرقم القومي لاعتماد الشهادات." data-en="Enter verified data matching national civil records for certification.">
+                سجل بياناتك الحقيقية كما هي في بطاقة الرقم القومي لاعتماد الشهادات.
+              </p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="الاسم الرباعي للطالب" data-en="Full Legal Name">الاسم الرباعي للطالب</label>
+                <input type="text" class="v3-input" required placeholder="مثال: يوسف أحمد محمود القاضي">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="الرقم القومي (14 رقم)" data-en="National ID (14 digits)">الرقم القومي (14 رقم)</label>
+                <input type="text" class="v3-input" required placeholder="308..." maxlength="14" style="direction:ltr; text-align:right;">
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="المحافظة / الإدارة التعليمية" data-en="Governorate">المحافظة</label>
+                <select class="v3-input" style="padding:0.6rem;">
+                  <option>القاهرة</option>
+                  <option>الجيزة</option>
+                  <option>الإسكندرية</option>
+                  <option>الدقهلية (المنصورة)</option>
+                  <option>الغربية (طنطا)</option>
+                  <option>الشرقية</option>
+                  <option>أسيوط</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="الشعبة والتخصص" data-en="Track">الشعبة والتخصص</label>
+                <select class="v3-input" style="padding:0.6rem;">
+                  <option>ثانوية عامة - علمي رياضة (الفيزياء المتقدمة)</option>
+                  <option>ثانوية عامة - علمي علوم</option>
+                  <option>أولمبياد الفيزياء والقبول الجامعي الدولي</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+              <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="كلمة المرور المشفرة" data-en="Secure Password">كلمة المرور المشفرة</label>
+              <input type="password" class="v3-input" required placeholder="8 خانات على الأقل تشمل أرقام ورموز">
+            </div>
+
+            <button type="button" class="v3-btn v3-btn-primary" style="width:100%;" onclick="goToStep(2)">
+              <span data-ar="المتابعة إلى بيانات ولي الأمر والاتصال ←" data-en="Next: Guardian & Contact Telemetry →">المتابعة إلى بيانات ولي الأمر والاتصال ←</span>
+            </button>
+          </div>
+
+          <!-- Wizard Step 2: Guardian & Sponsor -->
+          <div class="form-step" id="step2">
+            <div style="margin-bottom: 1.5rem;">
+              <span class="badge badge-sun" style="font-size:0.75rem; margin-bottom:0.5rem;" data-ar="الخطوة 2 من 3: شبكة المتابعة الأبوية" data-en="Step 2 of 3: Guardian Telemetry">الخطوة 2 من 3: شبكة المتابعة الأبوية</span>
+              <h2 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;" data-ar="بيانات التواصل وإشعارات درجات الاختبار" data-en="Contact & Grade Alerts">
+                بيانات التواصل وإشعارات الدرجات
+              </h2>
+              <p class="text-muted" style="margin: 0; font-size: 0.88rem;" data-ar="ترسل المنصة رسائل نصية وتقارير PDF دورية لولي الأمر عقب كل اختبار." data-en="Automatic SMS alerts and monthly PDF progress reports sent to parents.">
+                ترسل المنصة رسائل نصية وتقارير PDF دورية لولي الأمر عقب كل اختبار.
+              </p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="رقم هاتف الطالب (واتساب)" data-en="Student Mobile">رقم هاتف الطالب (واتساب)</label>
+                <input type="tel" class="v3-input" required placeholder="010..." style="direction:ltr; text-align:right;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="رقم هاتف ولي الأمر الأساسي" data-en="Guardian Mobile">رقم هاتف ولي الأمر</label>
+                <input type="tel" class="v3-input" required placeholder="011..." style="direction:ltr; text-align:right;">
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+              <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;" data-ar="البريد الإلكتروني للتقارير الرسمية" data-en="Official Email">البريد الإلكتروني للتقارير الرسمية</label>
+              <input type="email" class="v3-input" required placeholder="name@domain.com" style="direction:ltr; text-align:right;">
+            </div>
+
+            <div style="display:flex; gap:0.75rem;">
+              <button type="button" class="v3-btn v3-btn-secondary" style="flex:1;" onclick="goToStep(1)">
+                <span data-ar="→ العودة" data-en="← Back">→ العودة</span>
+              </button>
+              <button type="button" class="v3-btn v3-btn-primary" style="flex:2;" onclick="goToStep(3)">
+                <span data-ar="المتابعة إلى ميثاق الأمان وربط الجهاز ←" data-en="Next: Security Charter & Binding →">المتابعة إلى ميثاق الأمان وربط الجهاز ←</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Wizard Step 3: Hardware Lock & Pledge -->
+          <div class="form-step" id="step3">
+            <div style="margin-bottom: 1.5rem;">
+              <span class="badge badge-sun" style="font-size:0.75rem; margin-bottom:0.5rem;" data-ar="الخطوة 3 من 3: ميثاق النزاهة وربط العتاد" data-en="Step 3 of 3: Workstation Binding">الخطوة 3 من 3: ميثاق النزاهة وربط العتاد</span>
+              <h2 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;" data-ar="ميثاق الشرف الأكاديمي وربط الحاسوب" data-en="Academic Pledge & Rig Lock">
+                ميثاق الشرف الأكاديمي وربط الحاسوب
+              </h2>
+            </div>
+
+            <!-- Pledge Charter Box -->
+            <div class="pledge-box">
+              <strong data-ar="إقرار الالتزام الأكاديمي والأمني:" data-en="Academic Integrity Declaration:">إقرار الالتزام الأكاديمي والأمني:</strong>
+              <ul style="margin:0.5rem 0 0 1.25rem; padding:0; font-size:0.82rem;">
+                <li data-ar="أقر بأن هذا المتصفح/الجهاز هو عتادي الشخصي الوحيد لحضور المحاضرات والاختبارات." data-en="I certify this browser rig as my sole proctored hardware station.">أقر بأن هذا المتصفح/الجهاز هو عتادي الشخصي الوحيد لحضور المحاضرات والاختبارات.</li>
+                <li data-ar="أعلم أن مشاركة الحساب أو تسريب المحتوى يعرض الحساب للحظر النهائي الفوري." data-en="Account sharing triggers immediate cryptographic hardware lockout.">أعلم أن مشاركة الحساب أو تسريب المحتوى يعرض الحساب للحظر النهائي الفوري.</li>
+                <li data-ar="أوافق على قياس زمن الإجابات والتحقق الدوري من البصمة الرقمية." data-en="I consent to response-time latency proctoring and audit trail logging.">أوافق على قياس زمن الإجابات والتحقق الدوري من البصمة الرقمية.</li>
+              </ul>
+            </div>
+
+            <div style="background:var(--cream); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-light); margin-bottom:1.5rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; font-family:var(--font-mono);">
+                <span>بصمة المتصفح المكتشفة:</span>
+                <span style="color:var(--mint); font-weight:700;">TPM-FINGERPRINT-OK</span>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">
+                Windows 11 / Chrome 126 / AudioContext / Canvas SHA256
+              </div>
+            </div>
+
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; margin-bottom:1.5rem; cursor:pointer;">
+              <input type="checkbox" id="pledgeCheck" style="accent-color:var(--sun-deep); width:18px; height:18px;">
+              <span data-ar="قرأت ميثاق الشرف الأكاديمي وأتعهد بالالتزام التام ببنوده" data-en="I agree to the Scholarly Honour Charter">قرأت ميثاق الشرف الأكاديمي وأتعهد بالالتزام التام ببنوده</span>
+            </label>
+
+            <div style="display:flex; gap:0.75rem;">
+              <button type="button" class="v3-btn v3-btn-secondary" style="flex:1;" onclick="goToStep(2)">
+                <span data-ar="→ العودة" data-en="← Back">→ العودة</span>
+              </button>
+              <button type="button" class="v3-btn v3-btn-primary" style="flex:2;" onclick="finalizeSignup()">
+                <span data-ar="اعتماد التسجيل والدخول الفوري" data-en="Finalize Registration">اعتماد التسجيل والدخول الفوري</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="text-align:center; margin-top:2rem; font-size:0.85rem; color:var(--text-muted);">
+            <span data-ar="لديك حساب أكاديمي مسجل بالفعل؟" data-en="Already registered?">لديك حساب أكاديمي مسجل بالفعل؟</span>
+            <a href="login.html" style="color:var(--ink); font-weight:700; margin-right:0.35rem; text-decoration:underline;" data-ar="سجل دخولك هنا" data-en="Sign in here">سجل دخولك هنا</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="shared/itqan-v3.js"></script>
+  <script>
+    function goToStep(step) {
+      document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + step).classList.add('active');
+
+      // Update stepper nodes
+      for (let i = 1; i <= 3; i++) {
+        const node = document.getElementById('node' + i);
+        node.classList.remove('active', 'completed');
+        if (i < step) {
+          node.classList.add('completed');
+          node.innerHTML = '✓';
+        } else if (i === step) {
+          node.classList.add('active');
+          node.textContent = i;
+        } else {
+          node.textContent = i;
+        }
+      }
+    }
+
+    function finalizeSignup() {
+      const check = document.getElementById('pledgeCheck');
+      if (!check.checked) {
+        showToast('يرجى الموافقة على ميثاق الشرف الأكاديمي للمتابعة');
+        return;
+      }
+      showToast('🎉 تم توثيق الحساب وربط بصمة الجهاز بنجاح! جاري تحويلك للمقعد الأكاديمي...');
+      setTimeout(() => {
+        window.location.href = 'student-dashboard.html';
+      }, 1200);
+    }
+  </script>
+</body>
+</html>

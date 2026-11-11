@@ -1,0 +1,389 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>غرفة العمليات وإدارة القسم الأكاديمي · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v3: Faculty chair management dashboard, Gaussian normal distribution vector, live proctored radar, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  .faculty-layout {
+    max-width: var(--page-max);
+    margin: 28px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    gap: 32px;
+  }
+
+  /* 1. Faculty Executive Command Deck */
+  .executive-hero {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 36px 40px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .executive-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--sun), var(--mint), var(--cobalt));
+  }
+
+  /* 2. Radar & Gaussian Analytics Bento */
+  .analytics-master-bento {
+    display: grid;
+    grid-template-columns: 1.35fr 0.85fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .radar-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* 3. Four Core Metric Columns */
+  .metrics-four {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .metric-card-academic {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-tactile);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .metric-card-academic:hover { transform: translateY(-2px); }
+  .metric-card-academic b {
+    font-family: var(--f-display);
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1.1;
+    margin: 6px 0 2px;
+  }
+
+  /* 4. Petitions Triage Queue */
+  .queue-panel {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+  }
+  .petition-item-row {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 16px 20px;
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 0 var(--ink);
+    transition: all 0.15s ease;
+  }
+  .petition-item-row.resolved {
+    background: var(--mint-tint);
+    border-color: var(--mint);
+    opacity: 0.8;
+  }
+
+  @media (max-width: 980px) {
+    .executive-hero { flex-direction: column; align-items: start; }
+    .analytics-master-bento { grid-template-columns: 1fr; }
+    .metrics-four { grid-template-columns: repeat(2, 1fr); }
+    .petition-item-row { flex-direction: column; align-items: start; }
+  }
+  @media (max-width: 550px) {
+    .metrics-four { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Faculty Administration & Chair · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to content">تخطّ إلى المحتوى الرئيسي</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-wrapper" href="teacher-dashboard.html">
+      <div class="brand-crest-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-titles">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Faculty Chair & Administration">الإدارة الأكاديمية وهيئة التدريس</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links-list">
+        <li><a class="nav-anchor active" href="teacher-dashboard.html" data-en="Overview">نظرة عامة</a></li>
+        <li><a class="nav-anchor" href="quiz-builder.html" data-en="Quiz Builder">بنك الامتحانات</a></li>
+        <li><a class="nav-anchor" href="course-editor.html" data-en="Syllabus Editor">محرر المنهج</a></li>
+        <li><a class="nav-anchor" href="requests-management.html" data-en="Petitions (3)">التماسات الأجهزة (3)</a></li>
+        <li><a class="nav-anchor" href="student-dashboard.html" data-en="Student View">معاينة الطالب</a></li>
+      </ul>
+    </nav>
+
+    <div class="topbar-cta-group">
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <div class="hide-mobile" style="background:var(--sun); border:2px solid var(--ink); border-radius:var(--r-ctl); padding:6px 14px; font-size:13.5px; font-weight:800; box-shadow:0 2px 0 var(--ink);">
+        أ.د. كريم عبد المنعم (رئيس القسم)
+      </div>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px;">
+      <b style="font-size:17px; color:var(--ink);">إدارة القسم الأكاديمي</b>
+      <button class="btn btn-ghost btn-sm" data-drawer-close style="font-size:18px;">✕</button>
+    </div>
+    <ul class="mobile-nav-list">
+      <li><a class="mobile-nav-link active" href="teacher-dashboard.html" data-en="Overview">نظرة عامة</a></li>
+      <li><a class="mobile-nav-link" href="quiz-builder.html" data-en="Quiz Builder">بنك الامتحانات</a></li>
+      <li><a class="mobile-nav-link" href="course-editor.html" data-en="Syllabus Editor">محرر المنهج</a></li>
+      <li><a class="mobile-nav-link" href="requests-management.html" data-en="Petitions (3)">التماسات الأجهزة (3)</a></li>
+      <li><a class="mobile-nav-link" href="student-dashboard.html" data-en="Student View">معاينة الطالب</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main" class="faculty-layout">
+
+  <!-- 1. Faculty Executive Command Deck -->
+  <section class="executive-hero anim-reveal">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <span class="pill-badge pill-sun" data-en="Academic Year 2026">العام الدراسي 2026 · الثانوية العامة</span>
+        <span class="pill-badge pill-coral" data-en="Live Exam Active (412 Students)">امتحان منعقد الآن (412 طالب)</span>
+      </div>
+      <h1 style="font-size:clamp(24px, 3vw, 34px); font-weight:800; color:var(--ink);" data-en="Faculty Command: Prof. Dr. Karim Abdel Moneim">غرفة العمليات الأكاديمية: أ.د. كريم عبد المنعم</h1>
+      <p style="color:var(--ink-secondary); font-size:15px; line-height:1.6; margin-top:6px;" data-en="Overview of 1,480 enrolled scholars. Live monitoring of Chapter 3 proctored induction exam with 0 detected integrity breaches.">
+        متابعة لحظية لـ 1,480 طالب مسجل. تجري الآن جلسة امتحان الفصل الثالث (الحث الكهرومغناطيسي) مع انعدام كامل لأي محاولات اختراق أو تسريب.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn btn-primary" href="quiz-builder.html" data-en="+ Create New Exam">+ إعداد امتحان مقنن</a>
+      <a class="btn btn-secondary" href="requests-management.html" data-en="Triage Petitions (3)">فحص الالتماسات (3) ⚖️</a>
+    </div>
+  </section>
+
+  <!-- 2. Real-Time Proctored Radar & Gaussian Bell-Curve Analytics Bento -->
+  <section class="analytics-master-bento anim-reveal anim-delay-1">
+    
+    <!-- Left Asymmetric: Bespoke Gaussian & Radar Vector SVG -->
+    <article class="radar-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div>
+          <span class="pill-badge pill-cobalt" data-en="Live Grade Distribution">التوزيع الإحصائي للدرجات</span>
+          <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin-top:4px;" data-en="Gaussian Normal Distribution Curve">منحنى التوزيع الطبيعي (جاوس) للامتحان المقنن</h2>
+        </div>
+        <span class="formula-tag">μ = 84.6% · σ = 8.5%</span>
+      </div>
+
+      <!-- Bespoke Scientific SVG: Gaussian Distribution & Radar Sweep Vector -->
+      <div style="display:flex; justify-content:center; margin:10px 0;">
+        <svg viewBox="0 0 520 220" width="100%"  style="max-height:210px;" aria-label="رسم بياني لمنحنى جاوس التوزيعي للدرجات">
+          <defs>
+            <linearGradient id="bellGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#E9502E" stop-opacity="0.3"/>
+              <stop offset="35%" stop-color="#FFC22E" stop-opacity="0.6"/>
+              <stop offset="70%" stop-color="#3F9D7B" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#2B5FE3" stop-opacity="0.5"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Axes -->
+          <line x1="40" y1="180" x2="480" y2="180" stroke="#1A1712" stroke-width="2.5"/>
+          <line x1="40" y1="180" x2="40" y2="30" stroke="#1A1712" stroke-width="2.5"/>
+
+          <!-- Shaded Area Under Curve -->
+          <path d="M 50 180 
+                   C 140 180, 180 160, 220 90 
+                   C 250 30, 270 30, 300 90 
+                   C 340 160, 380 180, 470 180 Z" 
+                fill="url(#bellGradient)"/>
+
+          <!-- Outlined Curve -->
+          <path d="M 50 180 
+                   C 140 180, 180 160, 220 90 
+                   C 250 30, 270 30, 300 90 
+                   C 340 160, 380 180, 470 180" 
+                fill="none" stroke="#1A1712" stroke-width="3.5" stroke-linecap="round"/>
+
+          <!-- Mean Line μ (84.6%) -->
+          <line x1="260" y1="30" x2="260" y2="180" stroke="#2B5FE3" stroke-width="2" stroke-dasharray="4 3"/>
+          <circle cx="260" cy="30" r="4" fill="#2B5FE3"/>
+          <rect x="220" y="8" width="80" height="20" rx="4" fill="#1A1712"/>
+          <text x="260" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="bold" fill="#FFFDF8">المتوسط μ = 84%</text>
+
+          <!-- Standard Deviation Limits (±1σ) -->
+          <line x1="200" y1="110" x2="200" y2="180" stroke="#1A1712" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="200" y="196" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1A1712">75% (-1σ)</text>
+
+          <line x1="320" y1="110" x2="320" y2="180" stroke="#1A1712" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="320" y="196" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1A1712">93% (+1σ)</text>
+
+          <!-- Top Honors Percentile Callout (>90%) -->
+          <rect x="365" y="85" width="105" height="32" rx="6" fill="#FFFDF8" stroke="#3F9D7B" stroke-width="1.5"/>
+          <text x="417" y="100" text-anchor="middle" font-family="Readex Pro" font-size="10" font-weight="bold" fill="#3F9D7B">فئة الامتياز (32%)</text>
+          <text x="417" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1712">473 طالباً</text>
+        </svg>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; font-size:13px;">
+        <span style="font-weight:700;">معامل التباين الأكاديمي: سليم ومتزن بنسبة 94%</span>
+        <span class="pill-badge pill-mint">نموذج امتحاني معياري ✓</span>
+      </div>
+    </article>
+
+    <!-- Right Column: Live Proctor Telemetry & Test Takers Radar -->
+    <article class="academic-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <b style="font-size:16px; color:var(--ink);" data-en="Active Test-Takers Radar">رادار الجلسة المقننة الحية</b>
+          <span class="pill-badge pill-coral" data-en="412 Live">412 جهاز متصل</span>
+        </div>
+
+        <div style="background:var(--ink); border:2px solid var(--ink); border-radius:var(--r-card); padding:16px; color:#FFFDF8; margin-bottom:14px; text-align:center;">
+          <div style="font-family:var(--f-mono); font-size:32px; font-weight:800; color:var(--sun);">412 / 415</div>
+          <small style="color:var(--paper); font-size:12px;">حضور الطلاب للاختبار التراكمي (99.2%)</small>
+        </div>
+
+        <div style="display:grid; gap:8px; font-size:13.5px;">
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+            <span>زمن الإجابة المتوسط:</span>
+            <b style="font-family:var(--f-mono);">34 دقيقة</b>
+          </div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:6px;">
+            <span>أعلى سؤال في نسبة الخطأ:</span>
+            <b style="color:var(--coral);">السؤال 09 (قاعدة لينز)</b>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>المخالفات الأمنية المرصودة:</span>
+            <b style="color:var(--mint);">0 حالات (نزاهة تامة) ✓</b>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <a class="btn btn-secondary btn-sm" style="width:100%;" href="requests-management.html" data-en="Review Active Hardware Locks">معاينة الأجهزة المربوطة حالياً ←</a>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- 3. Four Core Institutional Metric Columns -->
+  <section class="metrics-four anim-reveal anim-delay-2" aria-label="مؤشرات أداء القسم الأكاديمي">
+    <div class="metric-card-academic">
+      <small data-en="Total Enrolled Scholars">إجمالي الطلاب المسجلين</small>
+      <b>1,480</b>
+      <span style="color:var(--mint); font-size:12px; font-weight:700;">+48 هذا الشهر ✓</span>
+    </div>
+    <div class="metric-card-academic">
+      <small data-en="Exam Pass Rate">نسبة النجاح العامة</small>
+      <b>91.4%</b>
+      <span style="color:var(--mint); font-size:12px; font-weight:700;">ضمن النطاق القياسي</span>
+    </div>
+    <div class="metric-card-academic">
+      <small data-en="Average GPA">المعدل التراكمي للدفعة</small>
+      <b>84.6%</b>
+      <span style="color:var(--sun); font-size:12px; font-weight:700;">تقدير جيد جداً مرتفع</span>
+    </div>
+    <div class="metric-card-academic">
+      <small data-en="Bound Hardware Stations">محطات العمل المقيدة</small>
+      <b>1,477</b>
+      <span style="color:var(--coral); font-size:12px; font-weight:700;">3 التماسات معلقة</span>
+    </div>
+  </section>
+
+  <!-- 4. Urgent Hardware Transfer Petitions Queue -->
+  <section class="queue-panel anim-reveal anim-delay-3">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+      <div>
+        <h2 style="font-size:20px; font-weight:800; color:var(--ink);" data-en="Urgent Hardware Transfer Petitions Queue">قائمة مراجعة التماسات استبدال الأجهزة العاجلة</h2>
+        <small style="color:var(--ink-secondary); font-weight:600;" data-en="Requires instructor certification to ensure examination continuity">تتطلب اعتماد أمانة القسم لتمكين الطلاب من دخول الامتحانات المقننة</small>
+      </div>
+      <a class="btn btn-secondary btn-sm" href="requests-management.html" data-en="View Full Triage Matrix (3) →">عرض مصفوفة الفرز الكاملة (3) ←</a>
+    </div>
+
+    <!-- Petition 1 -->
+    <div class="petition-item-row" id="pet1">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <b style="font-size:15px; color:var(--ink);">محمود خالد الشافعي</b>
+          <span class="pill-badge pill-sun" style="font-size:11px;">طالب معتمد</span>
+          <span style="font-family:var(--f-mono); font-size:12px; color:var(--ink-secondary);">ITQ-3829</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; color:var(--ink-secondary);">
+          السبب: عطل فني في اللوحة الأم للكمبيوتر القديم (HP) ويطلب النقل لجهاز جديد (Lenovo ThinkPad). تطابق الهوية: 98%.
+        </p>
+      </div>
+      <div style="display:flex; gap:8px; flex-shrink:0;">
+        <button class="btn btn-primary btn-sm" onclick="this.closest('.petition-item-row').classList.add('resolved'); this.innerText='تم الاعتماد ✓';">اعتماد النقل فوراً ✓</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.open('https://wa.me/201012345678')">واتساب ولي الأمر 💬</button>
+      </div>
+    </div>
+
+    <!-- Petition 2 -->
+    <div class="petition-item-row" id="pet2">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <b style="font-size:15px; color:var(--ink);">فاطمة الزهراء إبراهيم</b>
+          <span class="pill-badge pill-sun" style="font-size:11px;">طالبة معتمدة</span>
+          <span style="font-family:var(--f-mono); font-size:12px; color:var(--ink-secondary);">ITQ-4102</span>
+        </div>
+        <p style="margin:0; font-size:13.5px; color:var(--ink-secondary);">
+          السبب: إعادة تثبيت نظام ويندوز بعد إصابة بفيروس وفقدان بصمة المتصفح. تطابق الهوية: 94%.
+        </p>
+      </div>
+      <div style="display:flex; gap:8px; flex-shrink:0;">
+        <button class="btn btn-primary btn-sm" onclick="this.closest('.petition-item-row').classList.add('resolved'); this.innerText='تم الاعتماد ✓';">اعتماد النقل فوراً ✓</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.open('https://wa.me/201012345678')">واتساب ولي الأمر 💬</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة لوحة الكلية">
+  <span class="demo-toolbar-label" data-en="Faculty View:">طريقة العرض:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Standard">الوضع الطبيعي</button>
+    <button class="demo-btn" type="button" data-state="exam-peak" aria-pressed="false" data-en="Peak Exam Live">ذروة الامتحان</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

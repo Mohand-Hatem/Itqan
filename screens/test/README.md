@@ -17,12 +17,39 @@ The images in `references/` set the direction:
 
 ## Files
 
+### Student Portal (`/learn`)
+| File | Screen | Preview states (bottom bar) |
+|---|---|---|
+| `ahmd-student-dashboard.html` | Student Dashboard (`/learn`) | normal, exam live alert, urgent announcement |
+| `ahmd-course-viewer.html` | Course Player & Notes (`/learn/courses/...`) | lecture notes, PDF attachments, Q&A |
+| `ahmd-exam-taking.html` | Live Exam Interface (`/learn/exams/...`) | normal, warning timer, submit modal |
+| `ahmd-student-results.html` | Exam Results & Model Answer Review (`/learn/results`) | all questions, mistakes only, correct |
+| `ahmd-student-devices.html` | Student Authorized Device (`/learn/devices`) | normal, transfer pending |
+
+### Teacher & Staff Portal (`/manage`)
+| File | Screen | Preview states (bottom bar) |
+|---|---|---|
+| `ahmd-teacher-dashboard.html` | Teacher Overview (`/manage`) | normal, requests queue |
+| `ahmd-course-editor.html` | Course Hierarchy Editor (`/manage/courses/...`) | tree view, upload modal with progress |
+| `ahmd-quiz-builder.html` | Quiz Builder & Question Banks (`/manage/quizzes/...`) | normal, question editor, anti-cheat rules |
+| `ahmd-requests-management.html` | Device & Sign-out Request Approvals (`/manage/requests`) | pending requests, 1-click approve |
+
+### Platform Super Admin & Security
+| File | Screen | Preview states (bottom bar) |
+|---|---|---|
+| `ahmd-admin-tenants.html` | Super Admin Tenants Directory (`admin.<root>/tenants`) | tenants directory, new tenant modal |
+| `ahmd-blocked.html` | Security Blocked Screen (`/blocked`) | device limit, session active, account paused |
+| `ahmd-error-404.html` | 404 & 500 Error Screen | 404 not found, 500 server error |
+
+### Public & Authentication
 | File | Screen | Preview states (bottom bar) |
 |---|---|---|
 | `hero.html` | Teacher site hero + services strip | n/a |
-| `login.html` | Log in | normal, wrong password, other device (`DEVICE_LIMIT`), open session (`SESSION_ON_OTHER_DEVICE`), success after submit |
+| `login.html` | Log in | normal, wrong password, device limit, session conflict, success |
 | `signup.html` | Register with access code (`/redeem`) | normal, used code, email sent |
-| `forgot-password.html` | Request reset link | form, link sent (with resend countdown) |
+| `ahmd-join.html` | Register with teacher invitation & guardian consent (`/join`) | normal, success |
+| `forgot-password.html` | Request reset link | form, link sent |
+| `ahmd-reset-password.html` | Set new password with match check | normal, success |
 | `how-it-works.html` | Four steps from code to first lecture | n/a |
 | `shared/itqan.css` | Tokens and shared components | |
 | `shared/itqan.js` | Language switch, password peek, fake submit with field errors, preview states | |
@@ -30,10 +57,6 @@ The images in `references/` set the direction:
 ## System
 
 - Colours: sun `#FFC22E`, honey `#F2A60C`, cream `#FFF6E2`, paper `#FFFDF8`, ink `#1A1712`; accents coral `#E9502E`, blue `#2B5FE3`, mint `#3F9D7B`.
-- Fonts (Google Fonts): **Baloo Bhaijaan 2** for headings (the rounded Arabic sibling of Baloo 2, close to the shop reference's lettering), **Readex Pro** for body and forms, **Playpen Sans Arabic** kept for hand-written notes (not used on the screens yet).
-- Arabic RTL first. The English button flips the page to LTR, and the choice is remembered in `localStorage`.
-- All illustrations are inline SVG with CSS or SMIL animation. They rest under `prefers-reduced-motion`.
-
-## Made-up content
-
-"Physics with Mr. Karim", "Term one course · 24 lectures · 6 exams" and the code `KRM4-7FQ2` are samples for preview only.
+- Fonts (Google Fonts): **Baloo Bhaijaan 2** for headings (the rounded Arabic sibling of Baloo 2), **Readex Pro** for body and forms, **Playpen Sans Arabic** for hand-written notes.
+- Arabic RTL first with full bilingual support. The English button flips the page to LTR, and the choice is remembered in `localStorage`.
+- All illustrations are inline SVG with CSS keyframe animation, resting under `prefers-reduced-motion`.

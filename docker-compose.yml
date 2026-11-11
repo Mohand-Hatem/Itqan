@@ -6,6 +6,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - DATABASE_URL=${DOCKER_DATABASE_URL:-postgresql://itqan:itqan@postgres:5432/itqan}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:8080}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
     expose:
       - "3000"
     restart: unless-stopped
@@ -17,6 +22,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
+      - DATABASE_URL=${DOCKER_DATABASE_URL:-postgresql://itqan:itqan@postgres:5432/itqan}
+      - PLATFORM_ROOT_DOMAIN=${PLATFORM_ROOT_DOMAIN:-localhost}
     expose:
       - "4000"
     restart: unless-stopped

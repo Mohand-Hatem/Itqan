@@ -1,0 +1,396 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>السجل الأكاديمي والشهادة المعتمدة · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v3: Certified academic transcript, ornate Guilloche rosette seal vector, concept mastery diagnostics, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  .results-layout {
+    max-width: var(--page-max);
+    margin: 28px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    gap: 32px;
+  }
+
+  /* 1. Formal Classical Guilloche Diploma Master Deck */
+  .diploma-card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 40px;
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 36px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .diploma-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--sun), var(--honey), var(--mint));
+  }
+
+  /* 2. Concept Diagnostic Mastery Grid */
+  .mastery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .mastery-box {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* 3. Itemized Review Feed */
+  .review-feed {
+    display: grid;
+    gap: 20px;
+  }
+  .question-review-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 26px;
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: 16px;
+  }
+  .question-review-card.correct {
+    border-inline-start: 8px solid var(--mint);
+  }
+  .question-review-card.incorrect {
+    border-inline-start: 8px solid var(--coral);
+  }
+
+  [data-state="errors"] .question-review-card.correct {
+    display: none !important;
+  }
+
+  @media (max-width: 980px) {
+    .diploma-card {
+      grid-template-columns: 1fr;
+      text-align: center;
+      padding: 28px 20px;
+    }
+    .mastery-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body data-state="all" data-title-en="Certified Academic Results · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to results">تخطّ إلى النتائج</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-wrapper" href="student-dashboard.html">
+      <div class="brand-crest-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-titles">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Certified Examination Transcript">السجل الأكاديمي والشهادات المعتمدة</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links-list">
+        <li><a class="nav-anchor" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+        <li><a class="nav-anchor" href="course-viewer.html" data-en="Lectures">قاعة المحاضرات</a></li>
+        <li><a class="nav-anchor" href="exam-taking.html" data-en="Proctored Hall">قاعة الامتحان</a></li>
+        <li><a class="nav-anchor active" href="student-results.html" data-en="Certified Grades">النتائج وسجل الدرجات</a></li>
+        <li><a class="nav-anchor" href="student-devices.html" data-en="Security">توثيق الجهاز</a></li>
+      </ul>
+    </nav>
+
+    <div class="topbar-cta-group">
+      <a class="btn btn-secondary btn-sm hide-mobile" href="student-dashboard.html" data-en="← Return to Dashboard">← العودة للوحة المتابعة</a>
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px;">
+      <b style="font-size:17px; color:var(--ink);">النتائج الأكاديمية</b>
+      <button class="btn btn-ghost btn-sm" data-drawer-close style="font-size:18px;">✕</button>
+    </div>
+    <ul class="mobile-nav-list">
+      <li><a class="mobile-nav-link" href="student-dashboard.html">لوحة المتابعة</a></li>
+      <li><a class="mobile-nav-link" href="course-viewer.html">قاعة المحاضرات</a></li>
+      <li><a class="mobile-nav-link" href="exam-taking.html">قاعة الامتحان</a></li>
+      <li><a class="mobile-nav-link active" href="student-results.html">النتائج وسجل الدرجات</a></li>
+      <li><a class="mobile-nav-link" href="student-devices.html">توثيق الجهاز</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main" class="results-layout">
+
+  <!-- 1. Formal Classical Guilloche Diploma Master Deck -->
+  <section class="diploma-card anim-reveal">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+        <span class="pill-badge pill-sun" data-en="Official Examination Certification">شهادة تقييم أكاديمي مقننة</span>
+        <span style="font-size:13px; color:var(--ink-secondary); font-weight:700;" data-en="Certification ID: ITQ-2026-EX9482">رقم الاعتماد: ITQ-EX9482</span>
+        <span class="pill-badge pill-mint" data-en="Cryptographically Sealed">موثقة ومحفوظة بالسجل العام ✓</span>
+      </div>
+
+      <h1 style="font-size:clamp(26px, 3.2vw, 36px); font-weight:800; color:var(--ink);" data-en="Honor Roll: Ahmed Ayman Mohamed">بيان التفوق الأكاديمي: أحمد أيمن محمد علي</h1>
+      
+      <p style="color:var(--ink-secondary); font-size:15.5px; line-height:1.7; margin-top:8px;" data-en="Successfully completed the General Secondary Proctored Physics Examination for Module 03 (Electromagnetic Induction & Faraday Laws) on 10 Nov 2026 under single-workstation cryptographic lockdown.">
+        أتم بنجاح اجتياز الامتحان المقنن الشامل على الفصل الثالث (الحث الكهرومغناطيسي وقوانين فاراداي) المنعقد بتاريخ 10 نوفمبر 2026، تحت بروتوكول تأمين محطة العمل الفردية، وحصل على تقدير <b>امتياز مع مرتبة الشرف الأولى</b>.
+      </p>
+
+      <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="window.print()" data-en="Print Certified Diploma 📄">طباعة الشهادة المعتمدة 📄</button>
+        <button class="btn btn-secondary" data-modal-open="modal-qr" data-en="Verify Cryptographic QR 🛡️">التحقق المشفر عبر QR 🛡️</button>
+      </div>
+    </div>
+
+    <!-- Bespoke Guilloche Rosette Certificate Seal Vector SVG -->
+    <div style="display:flex; justify-content:center; align-items:center;">
+      <svg viewBox="0 0 240 240" width="220" height="220" aria-label="ختم الشهادة الأكاديمية الرسمي">
+        <defs>
+          <radialGradient id="sealShine" cx="50%" cy="50%" r="50%">
+            <stop offset="65%" stop-color="#FFC22E"/>
+            <stop offset="90%" stop-color="#F2A60C"/>
+            <stop offset="100%" stop-color="#1A1712"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Outer Ribbon Tails in Vermillion Coral (#E9502E) -->
+        <polygon points="120,170 70,235 95,200 65,220 120,165" fill="#E9502E" stroke="#1A1712" stroke-width="2.5"/>
+        <polygon points="120,170 170,235 145,200 175,220 120,165" fill="#E9502E" stroke="#1A1712" stroke-width="2.5"/>
+
+        <!-- Guilloche Scallop Rosette Edges -->
+        <circle cx="120" cy="115" r="94" fill="#F2A60C" stroke="#1A1712" stroke-width="3"/>
+        <circle cx="120" cy="115" r="88" fill="url(#sealShine)" stroke="#1A1712" stroke-width="2"/>
+        <circle cx="120" cy="115" r="78" fill="none" stroke="#FFFDF8" stroke-width="2" stroke-dasharray="4 3"/>
+
+        <!-- Inscribed Golden Circular Text Path -->
+        <circle cx="120" cy="115" r="66" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+
+        <!-- Score Dial in Center -->
+        <text x="120" y="105" text-anchor="middle" font-family="Baloo Bhaijaan 2" font-size="34" font-weight="800" fill="#1A1712">92%</text>
+        <text x="120" y="126" text-anchor="middle" font-family="Readex Pro" font-size="12" font-weight="700" fill="#3F9D7B">مرتبة الشرف</text>
+        <text x="120" y="142" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#1A1712">ITQAN ACADEMY</text>
+
+        <!-- Laurel Leaf Twig Decorative Points -->
+        <circle cx="120" cy="50" r="4" fill="#1A1712"/>
+        <circle cx="108" cy="53" r="3" fill="#1A1712"/>
+        <circle cx="132" cy="53" r="3" fill="#1A1712"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 2. Concept Diagnostic Mastery Grid -->
+  <section class="anim-reveal anim-delay-1">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="Diagnostic Concept Breakdown">التشخيص المعرفي وتفكيك المهارات</h2>
+      <span class="pill-badge pill-mint" data-en="3 Core Domains Analyzed">3 مجالات فيزيائية تم تحليلها</span>
+    </div>
+
+    <div class="mastery-grid">
+      <!-- Domain 1 -->
+      <article class="mastery-box">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="pill-badge pill-mint" style="font-size:11.5px;">إتقان كامل (100%)</span>
+            <b style="font-family:var(--f-mono); font-size:16px;">5 / 5</b>
+          </div>
+          <h3 style="font-size:17px; font-weight:800; color:var(--ink);" data-en="Faraday Induction & Flux">قانون فاراداي والمعدل الزمني للفيض</h3>
+          <p style="color:var(--ink-secondary); font-size:13px; line-height:1.5; margin-top:6px;">
+            استيعاب ممتاز للعلاقة الطردية بين معدل قطع خطوط الفيض والقوة الدافعة المتولدة وحساب ميل المنحنيات.
+          </p>
+        </div>
+        <div style="height:10px; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-pill); overflow:hidden; margin-top:14px;">
+          <div style="height:100%; width:100%; background:var(--mint);"></div>
+        </div>
+      </article>
+
+      <!-- Domain 2 -->
+      <article class="mastery-box">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="pill-badge pill-coral" style="font-size:11.5px;">تنبيه مراجعة (85%)</span>
+            <b style="font-family:var(--f-mono); font-size:16px;">6 / 7</b>
+          </div>
+          <h3 style="font-size:17px; font-weight:800; color:var(--ink);" data-en="Lenz's Law & Direction">تطبيق قاعدة لينز ومقاومة الحركة</h3>
+          <p style="color:var(--ink-secondary); font-size:13px; line-height:1.5; margin-top:6px;">
+            الخطأ الوحيد كان في السؤال 09 (تحديد نوع القطب المتكون عند سحب الملف بسرعة منتظمة).
+          </p>
+        </div>
+        <div style="height:10px; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-pill); overflow:hidden; margin-top:14px;">
+          <div style="height:100%; width:85%; background:var(--coral);"></div>
+        </div>
+      </article>
+
+      <!-- Domain 3 -->
+      <article class="mastery-box">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="pill-badge pill-mint" style="font-size:11.5px;">إتقان متقدم (100%)</span>
+            <b style="font-family:var(--f-mono); font-size:16px;">8 / 8</b>
+          </div>
+          <h3 style="font-size:17px; font-weight:800; color:var(--ink);" data-en="Moving Conductor Rod">السلك المستقيم وحسابات الدينامو</h3>
+          <p style="color:var(--ink-secondary); font-size:13px; line-height:1.5; margin-top:6px;">
+            حل رياضي سليم لجميع أسئلة القوة الدافعة في سلك مستقيم (emf = -BLv sin θ) وحساب المقاومة المكافئة.
+          </p>
+        </div>
+        <div style="height:10px; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-pill); overflow:hidden; margin-top:14px;">
+          <div style="height:100%; width:100%; background:var(--mint);"></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. Step-by-Step Itemized Diagnostic Review Dossier -->
+  <section class="anim-reveal anim-delay-2">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <h2 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="Detailed Question Review & Model Solutions">المراجعة التفصيلية والحلول النموذجية</h2>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm btn-secondary active" data-en="All Questions (20)">كافة الأسئلة (20)</button>
+        <button class="btn btn-sm btn-secondary" data-en="Mistakes Only (1)">الأسئلة الخاطئة فقط (1)</button>
+      </div>
+    </div>
+
+    <div class="review-feed">
+      <!-- Missed Question 09 -->
+      <article class="question-review-card incorrect">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="pill-badge pill-coral" data-en="Question 09 · Incorrect">السؤال 09 · إجابة غير صحيحة (-2 درجة)</span>
+            <span style="font-size:13px; color:var(--ink-secondary); font-weight:700;">الموضوع: قاعدة لينز في حلقة مغلقة</span>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="course-viewer.html" data-en="Replay Lecture Segment ↗">إعادة مشاهدة مقطع الشرح (الدقيقة 18:30) ↗</a>
+        </div>
+
+        <p style="font-size:16px; font-weight:700; color:var(--ink); line-height:1.6; margin:0;">
+          س: عند إبعاد القطب الشمالي لمغناطيس عن وجه حلقة نحاسية مغلقة؛ ما هو نوع القطب المغناطيسي المتولد على هذا الوجه، وما اتجاه حركة الإلكترونات؟
+        </p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+          <div style="background:var(--coral-tint); border:1.5px solid var(--coral); border-radius:var(--r-ctl); padding:12px 14px;">
+            <small style="color:var(--coral); font-weight:800; display:block; margin-bottom:4px;">❌ إجابتك المسجلة:</small>
+            <span style="font-size:14px; font-weight:700; color:var(--ink);">قطب شمالي لمقاومة النقصان (مع عقارب الساعة)</span>
+          </div>
+
+          <div style="background:var(--mint-tint); border:1.5px solid var(--mint); border-radius:var(--r-ctl); padding:12px 14px;">
+            <small style="color:var(--mint); font-weight:800; display:block; margin-bottom:4px;">✓ الإجابة النموذجية المعتمدة:</small>
+            <span style="font-size:14px; font-weight:700; color:var(--ink);">قطب جنوبي لجذب المغناطيس ومقاومة الابتعاد (عكس عقارب الساعة)</span>
+          </div>
+        </div>
+
+        <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:14px 18px; font-size:14px; line-height:1.6;">
+          <b style="color:var(--ink); display:block; margin-bottom:4px;">تعليل أستاذ المادة (د. كريم):</b>
+          تنص قاعدة لينز على أن التيار المستحث يولد فيضاً يعاكس التغير المسبب له. عند ابتعاد القطب الشمالي يقل الفيض، فيتكون قطب جنوبي على الوجه ليحدث تجاذباً يقاوم الابتعاد، ويكون اتجاه التيار في هذا الوجه مع عقارب الساعة لحركة الشحنات الموجبة التقليدية.
+        </div>
+      </article>
+
+      <!-- Correct Question 08 -->
+      <article class="question-review-card correct">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="pill-badge pill-mint" data-en="Question 08 · Full Marks (+2)">السؤال 08 · درجة كاملة (+2 درجة)</span>
+            <span style="font-size:13px; color:var(--ink-secondary); font-weight:700;">الموضوع: الساق المنزلقة وقوة لورنتز</span>
+          </div>
+          <span style="color:var(--mint); font-weight:800; font-size:14px;">✓ إجابة صحيحة نموذجية</span>
+        </div>
+
+        <p style="font-size:15.5px; font-weight:700; color:var(--ink); line-height:1.6; margin:0;">
+          س: سلك موصل مستقيم طوله 0.5 م يتحرك بسرعة 4 م/ث في مجال 0.8 تسلا. احسب التيار المار إذا كانت المقاومة 2 أوم.
+        </p>
+
+        <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px; font-family:var(--f-mono); font-size:13px;">
+          <div>emf = B · L · v = 0.8 × 0.5 × 4 = 1.6 V</div>
+          <div>I = emf / R = 1.6 / 2 = 0.8 A (الاتجاه من b إلى a بقاعدة فليمنج لليد اليمنى)</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<!-- QR Cryptographic Verification Modal -->
+<div class="modal-overlay" id="modal-qr" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:12px; margin-bottom:18px;">
+      <h3 style="font-size:20px; font-weight:800; color:var(--ink);" data-en="Official Seal Verification">التحقق المشفر من الشهادة الأكاديمية</h3>
+      <button class="btn btn-sm btn-ghost" data-modal-close>✕</button>
+    </div>
+
+    <!-- QR Code Mock Graphic -->
+    <div style="background:var(--cream); border:2.5px solid var(--ink); border-radius:var(--r-card); padding:24px; display:inline-block; margin-bottom:16px;">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <rect x="10" y="10" width="40" height="40" fill="#1A1712"/>
+        <rect x="16" y="16" width="28" height="28" fill="#FFFDF8"/>
+        <rect x="22" y="22" width="16" height="16" fill="#1A1712"/>
+
+        <rect x="110" y="10" width="40" height="40" fill="#1A1712"/>
+        <rect x="116" y="16" width="28" height="28" fill="#FFFDF8"/>
+        <rect x="122" y="22" width="16" height="16" fill="#1A1712"/>
+
+        <rect x="10" y="110" width="40" height="40" fill="#1A1712"/>
+        <rect x="16" y="116" width="28" height="28" fill="#FFFDF8"/>
+        <rect x="22" y="122" width="16" height="16" fill="#1A1712"/>
+
+        <rect x="60" y="20" width="10" height="10" fill="#1A1712"/>
+        <rect x="80" y="20" width="10" height="10" fill="#1A1712"/>
+        <rect x="70" y="40" width="10" height="10" fill="#1A1712"/>
+        <rect x="60" y="70" width="20" height="20" fill="#FFC22E"/>
+        <rect x="90" y="70" width="10" height="10" fill="#1A1712"/>
+        <rect x="110" y="70" width="20" height="10" fill="#1A1712"/>
+        <rect x="30" y="70" width="10" height="20" fill="#1A1712"/>
+        <rect x="70" y="100" width="20" height="20" fill="#1A1712"/>
+        <rect x="100" y="110" width="20" height="20" fill="#FFC22E"/>
+        <rect x="130" y="130" width="20" height="20" fill="#1A1712"/>
+      </svg>
+    </div>
+
+    <div style="font-family:var(--f-mono); font-size:12px; color:var(--ink-secondary); word-break:break-all; margin-bottom:14px;">
+      SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+    </div>
+
+    <p style="font-size:13.5px; color:var(--ink); line-height:1.5;">
+      هذه الشهادة مسجلة في السجل الأكاديمي الرقمي الموحد ومربوطة ببصمة الطالب وجهازه الموثق.
+    </p>
+
+    <div style="margin-top:18px;">
+      <button class="btn btn-secondary btn-sm" data-modal-close data-en="Done">إغلاق نافذة التحقق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة النتائج">
+  <span class="demo-toolbar-label" data-en="Review Filter:">تصفية العرض:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="all" aria-pressed="true" data-en="All Questions">كافة الأسئلة</button>
+    <button class="demo-btn" type="button" data-state="errors" aria-pressed="false" data-en="Mistakes Only">الأخطاء فقط</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

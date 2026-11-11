@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أكاديمية الفيزياء المتقدمة · الأستاذ د. كريم عبد المنعم</title>
+<meta name="description" content="Itqan v2: Re-architected classical modern academic portal with particle cyclotron vector SVG, interactive induction simulator, and responsive bento deck.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E<ellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  /* Notice Ribbon */
+  .notice-ticker {
+    background: var(--ink); color: #FFF; padding: 10px var(--gutter);
+    font-size: 13.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px;
+    border-bottom: 2px solid var(--sun);
+  }
+  .notice-ticker span b { color: var(--sun); }
+
+  .hero-canvas {
+    max-width: var(--page-max); margin: 0 auto; padding: 36px var(--gutter) 80px;
+    display: grid; gap: 48px;
+  }
+
+  /* NEW STRUCTURE: Centered Immersive Hero Deck with Cyclotron Core */
+  .hero-master-deck {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(28px, 5vw, 60px); box-shadow: var(--shadow-lg); text-align: center;
+    position: relative; overflow: hidden; display: grid; gap: 28px;
+  }
+  .hero-master-deck::before {
+    content:''; position: absolute; inset-inline: 0; top: 0; height: 6px; background: var(--sun);
+  }
+
+  .hero-heading {
+    max-width: 900px; margin: 0 auto;
+  }
+  .hero-heading h1 {
+    font-size: clamp(30px, 4.8vw, 60px); font-weight: 800; color: var(--ink); line-height: 1.15;
+    margin: 12px 0 16px;
+  }
+  .hero-heading p {
+    font-size: clamp(16px, 1.8vw, 19px); color: var(--ink-secondary); line-height: 1.7; max-width: 70ch;
+    margin: 0 auto 24px;
+  }
+
+  /* Particle Cyclotron Vector Art Box */
+  .cyclotron-box {
+    max-width: 640px; margin: 0 auto; width: 100%;
+    background: var(--cream); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 20px; box-shadow: 0 4px 0 var(--ink);
+  }
+
+  /* Quick Stats Strip */
+  .stats-bar {
+    display: flex; justify-content: center; align-items: center; gap: clamp(16px, 4vw, 48px);
+    flex-wrap: wrap; border-top: 2px solid var(--line); padding-top: 24px;
+  }
+  .stat-unit { text-align: center; }
+  .stat-unit b { font-family: var(--f-display); font-size: clamp(28px, 3vw, 36px); font-weight: 800; color: var(--ink); display: block; line-height: 1; }
+  .stat-unit small { font-size: 13px; font-weight: 700; color: var(--ink-secondary); margin-top: 4px; display: block; }
+
+  /* Bento Grid Layout */
+  .bento-grid {
+    display: grid; grid-template-columns: 1.25fr 0.85fr; gap: 28px; align-items: stretch;
+  }
+  .bento-card {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-card);
+    padding: 28px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  /* Induction Simulator Widget */
+  .sim-widget {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: var(--r-ctl);
+    padding: 20px; margin-top: 16px; box-shadow: 0 2px 0 var(--ink);
+  }
+  .sim-slider-row {
+    display: flex; align-items: center; gap: 14px; margin: 12px 0;
+  }
+  .sim-slider {
+    flex: 1; accent-color: var(--ink); height: 8px; cursor: pointer;
+  }
+
+  /* Curriculum Accordion */
+  .accordion-item {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-ctl);
+    margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 0 var(--ink);
+  }
+  .accordion-header {
+    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; font-weight: 800; font-size: 16px; background: var(--paper); user-select: none;
+  }
+  .accordion-header:hover { background: var(--sun-tint); }
+  .accordion-content {
+    padding: 0 20px 18px; font-size: 14.5px; color: var(--ink-secondary); line-height: 1.6;
+    border-top: 1.5px solid var(--line);
+  }
+
+  @media (max-width: 900px) {
+    .bento-grid { grid-template-columns: 1fr; }
+    .hero-master-deck { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body data-title-en="Advanced Physics Academy · Faculty Portal">
+<a class="skip" href="#main" data-en="Skip to content">تخطّ إلى المحتوى الرئيسي</a>
+
+<!-- Top Notice Ribbon -->
+<aside class="notice-ticker" role="region" aria-label="شريط الإعلانات الأكاديمية">
+  <span>📢 <b>إعلان رسمي:</b> فتح باب القيد للدفعة الأكاديمية للفصل الدراسي الثاني واختبارات قياس المستوى المعتمدة.</span>
+  <a class="btn btn-sm btn-primary" href="signup.html" style="min-height:30px; padding:2px 10px; font-size:12px;" data-en="Register Now">الالتحاق الآن</a>
+</aside>
+
+<!-- Classical Modern Topbar with V1 Colors -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="hero.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Academy of Advanced Physics">أكاديمية الفيزياء المتقدمة</b>
+        <small data-en="Faculty of Secondary Physics · Cairo">قسم العلوم الفيزيائية · القاهرة</small>
+      </div>
+    </a>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a class="nav-link active" href="hero.html" data-en="Home">الرئيسية</a></li>
+        <li><a class="nav-link" href="student-dashboard.html" data-en="Student Portal">بوابة الطالب</a></li>
+        <li><a class="nav-link" href="teacher-dashboard.html" data-en="Faculty Administration">إدارة الكلية</a></li>
+        <li><a class="nav-link" href="login.html" data-en="Sign In">تسجيل الدخول</a></li>
+      </ul>
+    </nav>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a class="btn btn-sm btn-primary" href="signup.html" data-en="Enroll Now">انضم للدفعة</a>
+      <button class="lang-btn" type="button">English</button>
+      <button class="mobile-nav-toggle" type="button" aria-label="القائمة" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-nav-drawer">
+    <div style="display:grid; gap:14px;">
+      <a class="btn btn-secondary" href="hero.html" data-en="Home">الرئيسية</a>
+      <a class="btn btn-secondary" href="student-dashboard.html" data-en="Student Portal">بوابة الطالب</a>
+      <a class="btn btn-secondary" href="teacher-dashboard.html" data-en="Faculty Administration">إدارة الكلية</a>
+      <a class="btn btn-secondary" href="login.html" data-en="Sign In">تسجيل الدخول</a>
+      <a class="btn btn-primary" href="signup.html" data-en="Enroll Now">انضم للدفعة الأكاديمية</a>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="hero-canvas">
+  
+  <!-- NEW STRUCTURE: Centered Immersive Hero Deck with Cyclotron Vector SVG -->
+  <section class="hero-master-deck">
+    <div class="hero-heading">
+      <div class="pill-badge pill-sun" data-en="Under Supervision: Prof. Dr. Karim Abdel-Moneim">
+        <span>🏛️</span>
+        <span>بإشراف أستاذ المادة: أ.د. كريم عبد المنعم (رئيس قسم الفيزياء السابق)</span>
+      </div>
+
+      <h1 data-en="Physics Mastered Through Empirical Proof & Mathematical Rigor">الفيزياء المتقدمة: الفهم والبرهان والنزاهة الأكاديمية</h1>
+      
+      <p data-en="An authoritative curriculum designed for secondary scholars with synchronized proctoring, hardware binding, interactive physics simulations, and authentic derivation sheets.">
+        منهاج أكاديمي مقنن لطلاب الثانوية العامة والشهادات الدولية؛ يجمع بين البراهين الرياضية العميقة، المحاكاة المعملية التفاعلية، ومنظومة الامتحانات الرقمية الموثقة بعتاد آمن لضمان التفوق المستحق.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
+        <a class="btn btn-primary btn-lg" href="student-dashboard.html" data-en="Enter Academic Dashboard →">الدخول للبوابة الأكاديمية ←</a>
+        <a class="btn btn-secondary btn-lg" href="course-viewer.html" data-en="Experience Lecture Theater ▶">تجربة قاعة المحاضرات ▶</a>
+      </div>
+    </div>
+
+    <!-- NEW BESPOKE VECTOR: Cyclotron Particle Accelerator & Lorentz Force Deflection SVG -->
+    <div class="cyclotron-box">
+      <svg viewBox="0 0 560 300" width="100%" height="auto" aria-label="رسم السيكلوترون ومسار الجسيمات في المجال المغناطيسي">
+        <defs>
+          <radialGradient id="cyclotronGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFC22E" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#FFF6E2" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Ambient circular glow -->
+        <circle cx="280" cy="150" r="130" fill="url(#cyclotronGlow)"/>
+
+        <!-- Outer Cyclotron Boundary Ring -->
+        <circle cx="280" cy="150" r="120" fill="none" stroke="#1A1712" stroke-width="3" stroke-dasharray="4 6"/>
+        <circle cx="280" cy="150" r="105" fill="none" stroke="#FFC22E" stroke-width="4"/>
+        <circle cx="280" cy="150" r="95" fill="none" stroke="#1A1712" stroke-width="1.5"/>
+
+        <!-- Two 'Dee' Magnetic Chambers -->
+        <!-- Dee 1 (Right) -->
+        <path d="M 288,55 A 95 95 0 0 1 288,245 Z" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <text x="325" y="155" font-family="Plus Jakarta Sans" font-weight="800" font-size="18" fill="#1A1712">D₁</text>
+
+        <!-- Dee 2 (Left) -->
+        <path d="M 272,55 A 95 95 0 0 0 272,245 Z" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <text x="225" y="155" font-family="Plus Jakarta Sans" font-weight="800" font-size="18" fill="#1A1712">D₂</text>
+
+        <!-- Spiral Particle Trajectory from Center -->
+        <path d="M 280,150 
+                 A 12 12 0 0 1 280,162 
+                 A 24 24 0 0 1 280,138 
+                 A 36 36 0 0 1 280,186 
+                 A 48 48 0 0 1 280,114 
+                 A 60 60 0 0 1 280,210 
+                 A 75 75 0 0 1 280,85 
+                 L 390,75" 
+              fill="none" stroke="#E9502E" stroke-width="3.5" stroke-linecap="round"/>
+
+        <!-- High-Energy Beam Exit Port -->
+        <line x1="390" y1="75" x2="445" y2="70" stroke="#FFC22E" stroke-width="4"/>
+        <polygon points="445,70 435,64 435,76" fill="#1A1712"/>
+
+        <!-- Magnetic Field Polar Markers (⊗ into page) -->
+        <g fill="#1A1712" font-family="Plus Jakarta Sans" font-weight="800" font-size="12">
+          <text x="230" y="95">⊗ B</text>
+          <text x="325" y="95">⊗ B</text>
+          <text x="230" y="215">⊗ B</text>
+          <text x="325" y="215">⊗ B</text>
+        </g>
+
+        <!-- Labels -->
+        <text x="140" y="30" font-family="Baloo Bhaijaan 2, serif" font-weight="800" font-size="16" fill="#1A1712">مسار الجسيم المشحون في السيكلوترون (قوة لورنتز: F = q·v·B)</text>
+      </svg>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-unit">
+        <b>1,280+</b>
+        <small data-en="Enrolled Scholars">طالب مقيد بالدفعة</small>
+      </div>
+      <div class="stat-unit">
+        <b>94.2%</b>
+        <small data-en="High Honors Pass Rate">نسبة التفوق والامتياز</small>
+      </div>
+      <div class="stat-unit">
+        <b>24</b>
+        <small data-en="Certified Lectures">محاضرة تفصيلية وبراهين</small>
+      </div>
+      <div class="stat-unit">
+        <b>100%</b>
+        <small data-en="Anti-Cheat Hardware Lock">نزاهة ومراقبة موثقة</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW SECTION: Interactive Bento Deck of Academic Mastery -->
+  <section class="bento-grid">
+    
+    <!-- Bento 1: Live Physics Induction Interactive Simulator -->
+    <div class="bento-card">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span class="pill-badge pill-sun" data-en="Interactive Laboratory Widget">معمل المحاكاة الفيزيائي التفاعلي</span>
+          <span class="formula-tag">emf = -N(ΔΦ/Δt)</span>
+        </div>
+        <h2 style="font-size:24px; font-weight:800; color:var(--ink);" data-en="Faraday Coil Angle Simulator">محاكي زاوية ميل الملف والقوة الدافعة الحثية</h2>
+        <p style="color:var(--ink-secondary); font-size:14.5px; margin-top:6px; line-height:1.6;" data-en="Drag the angle slider below to observe instantaneous induced electromotive force (e.m.f) calculation.">
+          حرك مؤشر الزاوية ($\theta$) بالأسفل لرؤية التغير اللحظي في الفيض المغناطيسي والقوة الدافعة المتولدة طبقاً لقانون فاراداي.
+        </p>
+
+        <div class="sim-widget">
+          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px;">
+            <span>زاوية ميل الملف مع المجال (&theta;): <b id="sim-angle-val" style="color:var(--coral);">90°</b></span>
+            <span>القوة الدافعة (e.m.f): <b id="sim-emf-val" style="color:var(--mint);">10.00 V (أقصى قيمة)</b></span>
+          </div>
+          <div class="sim-slider-row">
+            <span style="font-size:12px; font-weight:700;">0°</span>
+            <input class="sim-slider" id="sim-slider" type="range" min="0" max="90" value="90">
+            <span style="font-size:12px; font-weight:700;">90°</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--ink-secondary);">
+            <span>كثافة الفيض: B = 0.5 T · المساحة: A = 0.2 m²</span>
+            <button class="btn btn-sm btn-secondary" data-copy="emf = -N \cdot B \cdot A \cdot \omega \cdot \sin(\theta)">نسخ المعادلة</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; border-top:2px solid var(--line); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:13.5px; color:var(--ink-secondary);">مشروح تفصيلياً بالمحاضرة 14</span>
+        <a class="btn btn-sm btn-primary" href="course-viewer.html" data-en="Watch Lecture 14">مشاهدة الشرح مع د. كريم</a>
+      </div>
+    </div>
+
+    <!-- Bento 2: Honors Hall of Fame & Quick Accordion -->
+    <div class="bento-card" style="background:var(--cream);">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span class="pill-badge pill-mint" data-en="Honors Board">لوحة شرف الأكاديمية</span>
+          <span>🏆</span>
+        </div>
+        <h3 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="National Top Scorers">أوائل الجمهورية بالفيزياء</h3>
+        <p style="font-size:14px; color:var(--ink-secondary); margin-top:4px; line-height:1.6;" data-en="Scholars certified through our proctored exam hall who secured full marks in national exams.">
+          طلاب حققوا الدرجة النهائية 60/60 بعد اجتياز الامتحانات المقننة في أكاديمية الفيزياء.
+        </p>
+
+        <div style="display:grid; gap:10px; margin-top:16px;">
+          <div style="background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:14.5px; color:var(--ink); display:block;">زياد طارق إبراهيم</b>
+              <small style="color:var(--ink-secondary);">المركز الثاني جمهورية · فيزياء 60/60</small>
+            </div>
+            <span class="pill-badge pill-sun">🥇 ذهبي</span>
+          </div>
+
+          <div style="background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:14.5px; color:var(--ink); display:block;">مريم محمود سالم</b>
+              <small style="color:var(--ink-secondary);">هندسة القاهرة · فيزياء 59.5/60</small>
+            </div>
+            <span class="pill-badge pill-paper">🥈 فضي</span>
+          </div>
+
+          <div style="background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-size:14.5px; color:var(--ink); display:block;">أحمد أيمن محمد</b>
+              <small style="color:var(--ink-secondary);">هندسة عين شمس · فيزياء 59/60</small>
+            </div>
+            <span class="pill-badge pill-sun">🥉 برونزي</span>
+          </div>
+        </div>
+      </div>
+
+      <a class="btn btn-secondary btn-sm" href="signup.html" style="width:100%; margin-top:18px;" data-en="Enroll and Join Honors">سجل اسمك في لوحة الشرف القادمة</a>
+    </div>
+
+  </section>
+
+  <!-- NEW RE-ORDERED SECTION: Interactive Curriculum Accordion -->
+  <section>
+    <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <span class="pill-badge pill-sun" style="margin-bottom:8px;" data-en="Complete Syllabus">المنهاج الكامل</span>
+        <h2 style="font-size:30px; font-weight:800; color:var(--ink);" data-en="4 Accredited Scientific Units">خريطة الوحدات الدراسية المقررة</h2>
+      </div>
+      <a class="btn btn-secondary btn-sm" href="course-viewer.html" data-en="Go to Course Player">قاعة المحاضرات ←</a>
+    </div>
+
+    <!-- Accordion Units -->
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAcc(this)">
+        <span>الوحدة الأولى: التيار الكهربي وقانون أوم وقوانين كيرشوف</span>
+        <span class="pill-badge pill-mint">8 محاضرات · مكتمل ✓</span>
+      </div>
+      <div class="accordion-content">
+        دراسة الأسس النظرية لشدة التيار وفرق الجهد الكهربي، توصيل المقاومات التوالي والتوازي، قانون أوم للدوائر المغلقة، وحل شبكات كيرشوف المتقدمة بالمعادلات المصفوفية.
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAcc(this)">
+        <span>الوحدة الثانية: التأثير المغناطيسي للتيار الكهربي وأجهزة القياس</span>
+        <span class="pill-badge pill-mint">6 محاضرات · مكتمل ✓</span>
+      </div>
+      <div class="accordion-content">
+        كثافة الفيض المغناطيسي لسلك مستقيم وملف دائري ولولبي، القوة المغناطيسية المؤثرة على سلك، عزم الازدواج وعزم ثنائي القطب، وتصميم الجلفانومتر والأميتر والفولتميتر والأوميتر.
+      </div>
+    </div>
+
+    <div class="accordion-item" style="border-color:var(--sun);">
+      <div class="accordion-header" onclick="toggleAcc(this)" style="background:var(--sun-tint);">
+        <span style="color:var(--ink); font-weight:800;">الوحدة الثالثة: الحث الكهرومغناطيسي والمولدات (الوحدة الحالية النشطة)</span>
+        <span class="pill-badge pill-coral">امتحان الخميس المقنن ⏱️</span>
+      </div>
+      <div class="accordion-content">
+        قانون فاراداي، قاعدة لينز وبقاء الطاقة، الحث المتبادل والحث الذاتي، التيارات الدوامية، مولد التيار المتردد (الدينامو)، المحول الكهربي والمحرك.
+        <div style="margin-top:10px;">
+          <a class="btn btn-primary btn-sm" href="course-viewer.html">بدء المحاضرة 14 مباشرة ▶</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAcc(this)">
+        <span>الوحدة الرابعة: دوائر التيار المتردد والفيزياء الحديثة</span>
+        <span class="pill-badge pill-paper">قريباً بالفصل القادم</span>
+      </div>
+      <div class="accordion-content">
+        دوائر المعاوقة والرنين، ازدواجية الموجة والجسيم، إشعاع الجسم الأسود وتأثير كومبتون، وأشعة الليزر والإلكترونيات الحديثة.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="shared/itqan-v2.js"></script>
+<script>
+  // Accordion Toggle Logic
+  function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    const isVisible = content.style.display === 'block';
+    document.querySelectorAll('.accordion-content').forEach(c => c.style.display = 'none');
+    content.style.display = isVisible ? 'none' : 'block';
+  }
+
+  // Interactive Simulator Logic
+  const slider = document.getElementById('sim-slider');
+  const angleVal = document.getElementById('sim-angle-val');
+  const emfVal = document.getElementById('sim-emf-val');
+  slider.addEventListener('input', (e) => {
+    const deg = e.target.value;
+    angleVal.textContent = deg + '°';
+    const rad = deg * (Math.PI / 180);
+    const emf = (10 * Math.sin(rad)).toFixed(2);
+    emfVal.textContent = emf + ' V ' + (deg == 90 ? '(أقصى قيمة)' : (deg == 0 ? '(صفر)' : ''));
+  });
+</script>
+</body>
+</html>

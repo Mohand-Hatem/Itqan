@@ -43,12 +43,16 @@ afterAll(async () => {
   await cleanup();
   // Platform entries have no tenant to cascade from.
   await raw.auditLog.deleteMany({ where: { id: { in: platformIds } } });
+  await raw.user.deleteMany({ where: { email: { startsWith: "actor-" } } });
   await raw.$disconnect();
 });
 
 describe("AuditService (integration)", () => {
   it("records the tenant, ip and user agent from the request context", async () => {
-    const actorUserId = randomUUID();
+    const actor = await raw.user.create({
+      data: { email: `actor-${randomUUID()}@example.com`, name: "Actor" },
+    });
+    const actorUserId = actor.id;
     const entry = await inTenant(a, () =>
       audit.record({
         action: "device.revoke",

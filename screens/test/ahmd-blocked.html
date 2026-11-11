@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تنبيه أمان الحساب · منصة إتقان</title>
+<meta name="description" content="Itqan security blocked screen: device limit, session on other device, or paused membership.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .blocked-wrap {
+    min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center;
+    padding: 30px var(--gutter);
+  }
+  .blocked-card {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--r-panel);
+    max-width: 720px; width: 100%; padding: clamp(28px, 4vw, 48px); box-shadow: var(--shadow-lift);
+    display: grid; gap: 24px; text-align: center;
+  }
+  
+  /* SVG Padlock animation */
+  .padlock-shake { animation: lockShake 4s ease-in-out infinite; transform-origin: center; }
+  @keyframes lockShake { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-8deg); } 90% { transform: rotate(8deg); } 95% { transform: rotate(-4deg); } }
+  .key-sparkle { animation: pulseKey 2s infinite alternate; }
+  @keyframes pulseKey { 0% { opacity: .5; transform: scale(.95); } 100% { opacity: 1; transform: scale(1.05); } }
+
+  /* Reason Panels (Driven by body[data-state]) */
+  .reason-panel { display: none; }
+  [data-state="device"] #p-device { display: grid; gap: 18px; }
+  [data-state="session"] #p-session { display: grid; gap: 18px; }
+  [data-state="paused"] #p-paused { display: grid; gap: 18px; }
+
+  /* Device details box */
+  .dev-box-detail {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 14px;
+    padding: 16px; text-align: start; display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body data-state="device" data-title-en="Access Notice · Itqan Platform">
+
+<!-- Top bar -->
+<header class="topbar">
+  <a class="brand" href="hero.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Security Gateway">بوابة الأمان</span></span>
+  </a>
+  <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+</header>
+
+<main class="blocked-wrap">
+  <div class="blocked-card">
+    
+    <!-- Custom Animated Character with Padlock Illustration -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 340 180" width="100%" height="auto" style="max-height:180px;" aria-hidden="true">
+        <!-- Sun disc -->
+        <circle cx="170" cy="90" r="75" fill="#FFE9B0"/>
+        
+        <!-- Big Animated Padlock -->
+        <g class="padlock-shake" transform="translate(170, 90)">
+          <!-- Shackle -->
+          <path d="M-22 -16 v-24 a22 22 0 0 1 44 0 v24" fill="none" stroke="#1A1712" stroke-width="7" stroke-linecap="round"/>
+          <!-- Body -->
+          <rect x="-38" y="-16" width="76" height="62" rx="12" fill="#FFC22E" stroke="#1A1712" stroke-width="3.5"/>
+          <!-- Keyhole -->
+          <circle cx="0" cy="10" r="6" fill="#1A1712"/>
+          <polygon points="-4,14 4,14 6,28 -6,28" fill="#1A1712"/>
+        </g>
+
+        <!-- Small Yellow Sweater Student looking at lock (Left) -->
+        <circle cx="70" cy="95" r="18" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <g fill="#1A1712"><circle cx="62" cy="85" r="9"/><circle cx="74" cy="82" r="9"/></g>
+        <circle cx="68" cy="96" r="2.5" fill="#1A1712"/>
+        <path d="M68 103 Q72 107 76 103" fill="none" stroke="#1A1712" stroke-width="2"/>
+        <path d="M50 145 Q56 115 72 113 Q88 115 94 145 Z" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/>
+
+        <!-- Key Sparkle (Right) -->
+        <g class="key-sparkle" transform="translate(260, 80)">
+          <polygon points="0,-12 4,-4 12,0 4,4 0,12 -4,4 -12,0 -4,-4" fill="#3F9D7B"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Reason 1: DEVICE_LIMIT -->
+    <div class="reason-panel" id="p-device">
+      <h1 style="font-size:clamp(24px, 3.2vw, 34px); font-weight:800;" data-en="This account is registered on another device">هذا الحساب مربوط بجهاز آخر مسجل مسبقًا</h1>
+      <p style="color:var(--ink-2); font-size:16.5px; line-height:1.6;" data-en="In accordance with Itqan anti-sharing policy (ADR-004), your subscription is authorized to access videos and exams from 1 device only.">
+        حفاظًا على بياناتك ومنعًا لمشاركة الحسابات، يسمح نظام إتقان بالدخول من جهاز واحد فقط. للدخول من هذا الجهاز الجديد، يرجى طلب نقل الترخيص من مدرسك.
+      </p>
+
+      <div class="dev-box-detail">
+        <div>
+          <b data-en="Current Registered Device: HP Pavilion (Windows)">الجهاز المسجل حاليًا: لابتوب HP Pavilion (Windows)</b>
+          <small style="color:var(--ink-2); display:block; margin-top:2px;">تم تسجيله في 12 سبتمبر 2026 · آخر نشاط: أمس 08:30 م</small>
+        </div>
+        <span class="c-badge" data-en="Active">نشط</span>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px;">
+        <a class="btn" href="ahmd-student-devices.html" data-en="Request Device Transfer">طلب نقل الحساب لهذا الجهاز ←</a>
+        <a class="btn btn-light" href="login.html" data-en="Sign In with Another Account">تسجيل الخروج</a>
+      </div>
+    </div>
+
+    <!-- Reason 2: SESSION_ON_OTHER_DEVICE -->
+    <div class="reason-panel" id="p-session">
+      <h1 style="font-size:clamp(24px, 3.2vw, 34px); font-weight:800;" data-en="Active Session Open on Another Device">حسابك مفتوح حاليًا على جهاز آخر</h1>
+      <p style="color:var(--ink-2); font-size:16.5px; line-height:1.6;" data-en="Single-session policy is active (ADR-005). Please sign out from your other browser first, or request remote session termination.">
+        قاعدة الجلسة الواحدة النشطة: لا يمكنك فتح جلستين في نفس اللحظة. يرجى تسجيل الخروج من الجهاز الآخر أولًا، أو الضغط بالأسفل لطلب إنهاء الجلسة القديمة.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px;">
+        <button class="btn" type="button" onclick="alert('تم إرسال طلب إنهاء الجلسة للمدرس')" data-en="Request Remote Sign-Out">طلب إنهاء الجلسة الأخرى</button>
+        <a class="btn btn-light" href="login.html" data-en="Back to Login">العودة</a>
+      </div>
+    </div>
+
+    <!-- Reason 3: MEMBERSHIP_PAUSED -->
+    <div class="reason-panel" id="p-paused">
+      <h1 style="font-size:clamp(24px, 3.2vw, 34px); font-weight:800;" data-en="Subscription Temporarily Paused">تم إيقاف الاشتراك مؤقتًا</h1>
+      <p style="color:var(--ink-2); font-size:16.5px; line-height:1.6;" data-en="Your student access has been temporarily suspended by the teacher or administration. Please contact Mr. Karim's assistant.">
+        تم تعليق حسابك مؤقتًا من قِبل إدارة المنصة. يرجى التواصل مع مساعد أ. كريم عبر واتساب لتسوية الاشتراك وتفعيل الحساب.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px;">
+        <a class="btn" href="https://wa.me/201029384756" target="_blank" data-en="Contact Assistant on WhatsApp">تواصل مع الدعم عبر واتساب 💬</a>
+        <a class="btn btn-light" href="login.html" data-en="Sign In Later">تسجيل الخروج</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Bottom preview bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview Security Reason:">نوع حظر الأمان:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="device" aria-pressed="true" data-en="Device Limit">جهاز آخر مسجل</button>
+    <button type="button" data-state="session" aria-pressed="false" data-en="Session Active">جلسة نشطة أخرى</button>
+    <button type="button" data-state="paused" aria-pressed="false" data-en="Account Paused">حساب معلق</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+</body>
+</html>

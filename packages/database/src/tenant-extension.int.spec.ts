@@ -18,18 +18,28 @@ const asTenant = (t: { id: string; slug: string }): RequestContext => ({
 // Prisma queries run when awaited, so the await must happen inside the context.
 const inA = <T>(fn: () => Promise<T>) => runWithContext(asTenant(a), async () => await fn());
 
+const userIds: string[] = [];
+
 beforeAll(async () => {
   const slug = () => `t-${randomUUID().slice(0, 8)}`;
   a = await raw.tenant.create({ data: { slug: slug(), name: "A" } });
   b = await raw.tenant.create({ data: { slug: slug(), name: "B" } });
-  await raw.membership.create({ data: { tenantId: a.id, userId: randomUUID(), role: "student" } });
+  const userA = await raw.user.create({
+    data: { email: `a-${randomUUID()}@example.com`, name: "A" },
+  });
+  const userB = await raw.user.create({
+    data: { email: `b-${randomUUID()}@example.com`, name: "B" },
+  });
+  userIds.push(userA.id, userB.id);
+  await raw.membership.create({ data: { tenantId: a.id, userId: userA.id, role: "student" } });
   rowB = await raw.membership.create({
-    data: { tenantId: b.id, userId: randomUUID(), role: "student" },
+    data: { tenantId: b.id, userId: userB.id, role: "student" },
   });
 });
 
 afterAll(async () => {
   await raw.tenant.deleteMany({ where: { id: { in: [a.id, b.id] } } });
+  await raw.user.deleteMany({ where: { id: { in: userIds } } });
   await raw.$disconnect();
 });
 
@@ -46,8 +56,12 @@ describe("tenant extension against the database (integration)", () => {
   });
 
   it("sets tenantId on create from the context", async () => {
+    const user = await raw.user.create({
+      data: { email: `u-${randomUUID()}@example.com`, name: "U" },
+    });
+    userIds.push(user.id);
     const created = await inA(() =>
-      db.membership.create({ data: { userId: randomUUID(), role: "assistant" } as never }),
+      db.membership.create({ data: { userId: user.id, role: "assistant" } as never }),
     );
     expect(created.tenantId).toBe(a.id);
   });

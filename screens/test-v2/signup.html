@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الالتحاق الأكاديمي والتوثيق · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v2: Re-architected student enrollment dossier, vernier caliper & diploma crest vector, 3-step cohort wizard, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  .signup-wrapper {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px var(--gutter);
+  }
+  .signup-dossier-card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    max-width: 760px;
+    width: 100%;
+    padding: clamp(32px, 5vw, 44px);
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .signup-dossier-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--sun), var(--honey), var(--mint));
+  }
+
+  /* 3-Step Pill Bar */
+  .step-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .step-pill {
+    padding: 10px 14px;
+    border-radius: var(--r-ctl);
+    background: var(--cream);
+    border: 2px solid var(--line);
+    text-align: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-secondary);
+    transition: all 0.15s ease;
+  }
+  .step-pill.active {
+    background: var(--sun);
+    border-color: var(--ink);
+    color: var(--ink);
+    font-weight: 800;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  /* Cohort Selection Card */
+  .cohort-card-opt {
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: var(--r-card);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .cohort-card-opt:hover {
+    border-color: var(--ink);
+    background: var(--cream);
+  }
+  .cohort-card-opt.selected {
+    background: var(--sun-tint);
+    border: 2.5px solid var(--ink);
+    box-shadow: 0 3px 0 var(--ink);
+  }
+
+  [data-state="success"] #signup-form-body { display: none !important; }
+  [data-state="success"] #signup-success-body { display: grid !important; }
+
+  @media (max-width: 600px) {
+    .step-bar { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Scholar Admission & Enrollment · Itqan Academy">
+<a class="skip" href="#main" data-en="Skip to registration">تخطّ إلى الالتحاق</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="hero.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Scholar Admission Gateway">بوابة القيد والالتحاق الأكاديمي المعتمد</small>
+      </div>
+    </a>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a class="btn btn-sm btn-secondary" href="login.html" data-en="Already registered? Sign In">لديك حساب مسجل؟ الدخول ←</a>
+      <button class="lang-btn" type="button">English</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="signup-wrapper">
+  
+  <article class="signup-dossier-card">
+
+    <!-- Success Pane -->
+    <div id="signup-success-body" style="display:none; text-align:center; gap:16px;">
+      <div style="width:76px; height:76px; border-radius:50%; background:var(--mint-tint); border:3px solid var(--mint); margin:0 auto; display:flex; align-items:center; justify-content:center; color:var(--mint); font-size:38px; font-weight:800; box-shadow:0 3px 0 var(--ink);">✓</div>
+      <h2 style="font-size:26px; font-weight:800; color:var(--ink);" data-en="Scholar Enrollment Certified">تم قيد الطالب وتوثيق محطة العمل بنجاح!</h2>
+      <p style="font-size:15px; color:var(--ink-secondary); line-height:1.6;" data-en="Your academic ID is ITQ-2026-4892. This PC has been designated as your bound study machine.">
+        الرقم الأكاديمي المخصص لك: <b style="font-family:var(--f-mono); color:var(--ink);">ITQ-4892</b>. تم قفل الجهاز الحالي تلقائياً لتمكينك من دخول قاعة المحاضرات والامتحانات فوراً.
+      </p>
+      <a class="btn btn-primary btn-lg" href="student-dashboard.html" style="justify-self:center; margin-top:8px;" data-en="Proceed to Scholar Dashboard →">الدخول إلى لوحة المتابعة والمحاضرات ←</a>
+    </div>
+
+    <!-- Main Registration Body -->
+    <div id="signup-form-body" style="display:grid; gap:20px;">
+      
+      <!-- Top Crest & Bespoke Vernier Caliper & Diploma Vector SVG -->
+      <div style="display:grid; grid-template-columns: 1fr auto; gap:20px; align-items:center;">
+        <div>
+          <span class="pill-badge pill-sun" data-en="Fall Cohort 2026">الدفعة الدراسية 2026 · الثانوية العامة</span>
+          <h1 style="font-size:clamp(22px, 2.8vw, 30px); font-weight:800; color:var(--ink); margin-top:6px;" data-en="Enroll in Advanced Physics Program">استمارة الالتحاق وتوثيق محطة العمل الأكاديمية</h1>
+          <p style="color:var(--ink-secondary); font-size:14px; margin-top:4px;" data-en="Register your details under Prof. Dr. Karim Abdel Moneim. Enforces single-workstation integrity.">
+            سجل بياناتك المعتمدة للانضمام لبرنامج التفوق، مع الإقرار بربط الحساب بجهازك الدراسي الفردي.
+          </p>
+        </div>
+
+        <!-- Bespoke Vernier Caliper & Parchment Diploma Vector SVG -->
+        <div style="width:140px; height:90px; flex-shrink:0;">
+          <svg viewBox="0 0 160 100" width="100%" height="100%" aria-label="شعار القيد الأكاديمي ودقة القياس">
+            <!-- Parchment Diploma Scroll -->
+            <rect x="25" y="15" width="110" height="70" rx="6" fill="#FFF6E2" stroke="#1A1712" stroke-width="2.5"/>
+            <line x1="40" y1="30" x2="110" y2="30" stroke="#FFC22E" stroke-width="3"/>
+            <line x1="40" y1="45" x2="120" y2="45" stroke="#1A1712" stroke-width="1.5"/>
+            <line x1="40" y1="58" x2="105" y2="58" stroke="#1A1712" stroke-width="1.5"/>
+            <!-- Wax Seal in Mint Emerald -->
+            <circle cx="115" cy="65" r="12" fill="#3F9D7B" stroke="#1A1712" stroke-width="2"/>
+            <text x="115" y="69" text-anchor="middle" font-family="Baloo Bhaijaan 2" font-size="11" fill="#FFFDF8">✓</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 3-Step Progress Bar -->
+      <nav class="step-bar">
+        <div class="step-pill active" data-en="1. Academic Info">١. البيانات الأكاديمية</div>
+        <div class="step-pill" data-en="2. Curriculum Cohort">٢. الشعبة الدراسية</div>
+        <div class="step-pill" data-en="3. Device Lockdown">٣. إقرار قفل الجهاز</div>
+      </nav>
+
+      <!-- Form Inputs -->
+      <form onsubmit="event.preventDefault(); document.body.setAttribute('data-state', 'success');" style="display:grid; gap:16px;">
+        <div>
+          <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:4px;">اسم الطالب رباعياً كما هو في بطاقة الرقم القومي:</label>
+          <input type="text" required placeholder="أحمد أيمن محمد علي" value="أحمد أيمن محمد علي" style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:4px;">الرقم القومي (14 رقماً):</label>
+            <input type="text" required minlength="14" maxlength="14" value="29804120104829" style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px; font-family:var(--f-mono); direction:ltr;">
+          </div>
+          <div>
+            <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:4px;">رقم هاتف ولي الأمر (واتساب):</label>
+            <input type="tel" required value="01012345678" style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14px; font-family:var(--f-mono); direction:ltr;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block; font-weight:700; font-size:13.5px; margin-bottom:8px;">اختر الشعبة الدراسية للثانوية العامة 2026:</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <label class="cohort-card-opt selected">
+              <input type="radio" name="cohort" checked style="display:none;">
+              <b style="color:var(--ink); font-size:14.5px; display:block;">شعبة علمي علوم</b>
+              <small style="color:var(--ink-secondary);">فيزياء عامة وتطبيقات طبية وحيوية</small>
+            </label>
+            <label class="cohort-card-opt">
+              <input type="radio" name="cohort" style="display:none;">
+              <b style="color:var(--ink); font-size:14.5px; display:block;">شعبة علمي رياضة</b>
+              <small style="color:var(--ink-secondary);">فيزياء متقدمة وتطبيقات هندسية وتفاضلية</small>
+            </label>
+          </div>
+        </div>
+
+        <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:14px; font-size:13px; line-height:1.6;">
+          <b style="color:var(--ink); display:block; margin-bottom:4px;">📜 إقرار ميثاق النزاهة وقفل الجهاز (ADR-004):</b>
+          أقر بأن هذا الجهاز الحالي (HP Pavilion 15) هو جهازي الدراسي المعتمد، وأتعهد بعدم مشاركة بيانات الدخول مع أي طالب آخر حفظاً لتكافؤ الفرص في الامتحانات.
+        </div>
+
+        <button class="btn btn-primary btn-lg" type="submit" style="width:100%;" data-en="Complete Enrollment & Lock Workstation 🚀">
+          اعتماد القيد وتوثيق محطة العمل 🚀
+        </button>
+      </form>
+
+    </div>
+
+  </article>
+
+</main>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة استمارة القيد">
+  <span class="demo-toolbar-label" data-en="Registration Step:">مرحلة القيد:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Form">الاستمارة</button>
+    <button class="demo-btn" type="button" data-state="success" aria-pressed="false" data-en="Enrolled">تم الاعتماد</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v2.js"></script>
+</body>
+</html>

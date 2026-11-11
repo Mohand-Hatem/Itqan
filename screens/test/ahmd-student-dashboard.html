@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم الطالب · الفيزياء مع أ. كريم</title>
+<meta name="description" content="Itqan student dashboard: courses, progress, upcoming exams, and announcements.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .dash-layout { max-width: var(--page); margin: 0 auto; padding: 24px var(--gutter) 60px; display: grid; gap: 32px; }
+  
+  /* Welcome banner */
+  .hero-dash {
+    background: var(--sun); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(24px, 4vw, 42px); display: grid; grid-template-columns: 1.25fr .95fr;
+    gap: 32px; align-items: center; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .hero-dash::after {
+    content: ''; position: absolute; inset-inline-end: -60px; top: -60px; width: 220px; height: 220px;
+    border-radius: 50%; background: var(--honey); opacity: .35; pointer-events: none;
+  }
+  .hero-dash h1 { font-size: clamp(28px, 3.2vw, 44px); font-weight: 800; color: var(--ink); line-height: 1.2; }
+  .hero-dash p { font-size: 17px; color: var(--ink-2); margin: 12px 0 24px; max-width: 52ch; }
+  
+  .stats-strip { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+  .stat-pill {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
+    padding: 10px 18px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 0 var(--ink);
+  }
+  .stat-pill b { font-family: var(--f-display); font-size: 20px; color: var(--ink); }
+  .stat-pill small { color: var(--ink-2); font-size: 13.5px; }
+
+  /* SVG illustration motion */
+  .float-paper { animation: float 3.2s ease-in-out infinite; }
+  .steam-dash path { stroke-dasharray: 30; animation: steam 2.4s ease-in-out infinite; }
+  .steam-dash path:nth-child(2) { animation-delay: -.8s; }
+  .sparkle { animation: pulse 2.2s infinite; transform-origin: center; }
+  .wave-hand { transform-box: fill-box; transform-origin: bottom center; animation: waveHand 2.8s var(--ease-out) infinite; }
+  
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.2); opacity: 1; } }
+  @keyframes waveHand { 0%, 60%, 100% { transform: rotate(0); } 15%, 45% { transform: rotate(12deg); } 30% { transform: rotate(-8deg); } }
+  @keyframes steam { 0% { stroke-dashoffset: 30; opacity: 0; } 50% { opacity: 1; } 100% { stroke-dashoffset: -30; opacity: 0; transform: translateY(-8px); } }
+
+  /* Grid section */
+  .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title h2 { font-size: 26px; font-weight: 800; }
+  .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+  
+  .c-card {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform .2s var(--ease-out), box-shadow .2s;
+  }
+  .c-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+  .c-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; }
+  .c-badge { background: var(--sun-tint); border: 1.5px solid var(--ink); padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .c-card h3 { font-size: 21px; font-weight: 800; margin-bottom: 8px; }
+  .c-card p { color: var(--ink-2); font-size: 14.5px; margin-bottom: 20px; line-height: 1.5; }
+  
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .progress-track { height: 12px; background: var(--cream); border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--mint); border-inline-end: 2px solid var(--ink); }
+
+  /* Alerts & Exams section */
+  .two-cols { display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; }
+  .widget { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card); padding: 24px; box-shadow: var(--shadow); }
+  .widget h3 { font-size: 20px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  
+  .exam-item {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 14px;
+    padding: 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .exam-info b { font-family: var(--f-display); font-size: 17px; display: block; margin-bottom: 4px; }
+  .exam-info small { color: var(--ink-2); font-size: 13.5px; }
+
+  /* Preview states */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .demo-bar span { font-size: 13px; font-weight: 600; }
+  .demo-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px;
+    font-size: 12.5px; cursor: pointer; transition: background .15s;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  [data-state="exam"] .banner-exam-live { display: flex !important; }
+  [data-state="announcement"] .banner-announcement { display: flex !important; }
+
+  @media (max-width: 900px) {
+    .hero-dash, .two-cols { grid-template-columns: 1fr; }
+    .hero-dash svg { max-width: 320px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Student Dashboard · Physics with Mr. Karim">
+<a class="skip" href="#main" data-en="Skip to content">تخطّ إلى المحتوى الرئيسي</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-student-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/><circle cx="22" cy="22" r="3.4" fill="#1A1712"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(60 22 22)"/><ellipse cx="22" cy="22" rx="13" ry="5.5" fill="none" stroke="#1A1712" stroke-width="2.2" transform="rotate(-60 22 22)"/></svg>
+    <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Student Portal">بوابة الطالب</span></span>
+  </a>
+  
+  <div style="display:flex; align-items:center; gap:16px;">
+    <nav style="display:flex; gap:12px;" class="topbar-nav">
+      <a class="btn btn-sm btn-ghost" href="ahmd-student-dashboard.html" style="font-weight:700;" data-en="Dashboard">لوحة التحكم</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-course-viewer.html" data-en="My Lectures">محاضراتي</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-student-results.html" data-en="Results">النتائج</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-student-devices.html" data-en="My Device">جهازي</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="lang" type="button">English</button>
+      <div style="width:40px; height:40px; border-radius:50%; background:var(--sun); border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;" title="أحمد أيمن">أ</div>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="dash-layout">
+  
+  <!-- Urgent banners for states -->
+  <div class="banner danger banner-exam-live" style="display:none;" role="alert">
+    <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#E9502E" stroke="#1A1712" stroke-width="2.5"/><path d="M20 11v11" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="28" r="2" fill="#fff"/></svg>
+    <div>
+      <strong data-en="Exam Live Now: Term 1 Physics Comprehensive Exam!">امتحان مباشر الآن: الاختبار الشامل على الفصل الثاني!</strong>
+      <p data-en="The exam closes in 1 hour and 15 minutes. One attempt allowed.">ينتهي موعد الامتحان بعد ساعة و١٥ دقيقة. لديك محاولة واحدة فقط ومربوط بهذا الجهاز.</p>
+      <a class="btn btn-sm" href="ahmd-exam-taking.html" style="margin-top:8px; background:var(--sun);" data-en="Enter Exam Now">ابدأ الامتحان الآن</a>
+    </div>
+  </div>
+
+  <div class="banner banner-announcement" style="display:none; background:var(--mint-tint); border-color:var(--mint);" role="status">
+    <svg class="b-ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#3F9D7B" stroke="#1A1712" stroke-width="2.5"/><path d="M20 13v8l5 5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <div>
+      <strong data-en="New Live Session on Thursday at 7:00 PM">تنبيه هام: مراجعة مباشرة يوم الخميس الساعة 7:00 مساءً</strong>
+      <p data-en="Mr. Karim will answer student questions on Faraday's law. Have your homework ready!">سيقوم أ. كريم بالإجابة على أسئلة الطلاب حول قانون فاراداي وحل أهم أفكار المسائل الصعبة.</p>
+    </div>
+  </div>
+
+  <!-- Hero welcome banner -->
+  <section class="hero-dash">
+    <div>
+      <h1 data-en="Welcome back, Ahmed! ⚡">مرحبًا بعودتك يا أحمد! ⚡</h1>
+      <p data-en="You are making great progress in Term 1. Keep the momentum going to achieve top marks in Physics!">مستواك ممتاز في منهج الفصل الدراسي الأول. استمر بنفس الحماس لتصل لأعلى درجات الإتقان في الفيزياء!</p>
+      
+      <div class="stats-strip">
+        <div class="stat-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+          <div><b>18 / 24</b> <small data-en="Lectures done">محاضرة منجزة</small></div>
+        </div>
+        <div class="stat-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E9502E" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          <div><b>94%</b> <small data-en="Exams average">متوسط الامتحانات</small></div>
+        </div>
+        <div class="stat-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2B5FE3" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <div><b>3</b> <small data-en="Days to next exam">أيام للاختبار القادم</small></div>
+        </div>
+      </div>
+
+      <a class="btn" href="ahmd-course-viewer.html" data-en="Resume Lecture 14: Induction">
+        <svg class="flip-rtl" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span data-en="Resume Lecture 14: Electromagnetic Induction">استئناف المحاضرة 14: الحث الكهرومغناطيسي</span>
+      </a>
+    </div>
+
+    <!-- Custom Animated Ink + Yellow Sweater Character SVG -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 420 320" width="100%" height="auto" style="max-height:280px;" aria-hidden="true">
+        <!-- Desk Surface -->
+        <rect x="30" y="270" width="360" height="14" rx="6" fill="#1A1712"/>
+        <line x1="60" y1="284" x2="60" y2="315" stroke="#1A1712" stroke-width="6" stroke-linecap="round"/>
+        <line x1="360" y1="284" x2="360" y2="315" stroke="#1A1712" stroke-width="6" stroke-linecap="round"/>
+        
+        <!-- Laptop -->
+        <polygon points="120,270 210,270 200,220 130,220" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+        <line x1="110" y1="270" x2="220" y2="270" stroke="#1A1712" stroke-width="4" stroke-linecap="round"/>
+        <!-- Code lines on laptop screen -->
+        <line x1="140" y1="235" x2="190" y2="235" stroke="#2B5FE3" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="140" y1="245" x2="175" y2="245" stroke="#FFC22E" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="140" y1="255" x2="185" y2="255" stroke="#3F9D7B" stroke-width="2.5" stroke-linecap="round"/>
+        
+        <!-- Coffee Mug with Animated Steam -->
+        <rect x="90" y="246" width="20" height="24" rx="4" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <path d="M90 252 h-6 a4 4 0 0 0 -4 4 v4 a4 4 0 0 0 4 4 h6" fill="none" stroke="#1A1712" stroke-width="2"/>
+        <g class="steam-dash" stroke="#E9502E" stroke-width="2" stroke-linecap="round" fill="none">
+          <path d="M96 240 Q94 232 97 226"/>
+          <path d="M103 240 Q106 232 103 226"/>
+        </g>
+
+        <!-- Floating Physics Formulas -->
+        <g class="float-paper">
+          <rect x="40" y="70" width="75" height="50" rx="8" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5" transform="rotate(-8 77 95)"/>
+          <text x="52" y="100" font-family="Readex Pro, sans-serif" font-weight="700" font-size="14" fill="#1A1712" transform="rotate(-8 77 95)">E = mc²</text>
+          <circle cx="110" cy="65" r="4" fill="#E9502E"/>
+        </g>
+        <g class="float-paper" style="animation-delay: -1.5s;">
+          <rect x="300" y="60" width="85" height="54" rx="8" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5" transform="rotate(10 342 87)"/>
+          <text x="312" y="92" font-family="Readex Pro, sans-serif" font-weight="700" font-size="14" fill="#2B5FE3" transform="rotate(10 342 87)">Φ = B·A</text>
+          <polygon points="375,55 382,62 378,65 372,58" fill="#FFC22E" stroke="#1A1712" stroke-width="1.5"/>
+        </g>
+
+        <!-- Student Character (Yellow Sweater, Curly Hair, Ink Outline) -->
+        <!-- Torso & Yellow Sweater -->
+        <path d="M230 270 Q240 180 275 175 Q310 180 320 270 Z" fill="#FFC22E" stroke="#1A1712" stroke-width="3.5"/>
+        <!-- Neck & Collar -->
+        <rect x="265" y="160" width="20" height="20" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+        <path d="M260 178 Q275 188 290 178" fill="none" stroke="#1A1712" stroke-width="3"/>
+
+        <!-- Head -->
+        <circle cx="275" cy="130" r="34" fill="#FFFDF8" stroke="#1A1712" stroke-width="3.5"/>
+        
+        <!-- Expressive Curly Black Hair -->
+        <g fill="#1A1712">
+          <circle cx="250" cy="115" r="14"/>
+          <circle cx="265" cy="100" r="16"/>
+          <circle cx="285" cy="98" r="16"/>
+          <circle cx="305" cy="110" r="15"/>
+          <circle cx="295" cy="125" r="12"/>
+          <circle cx="250" cy="130" r="10"/>
+        </g>
+
+        <!-- Face Details -->
+        <circle cx="265" cy="132" r="3.5" fill="#1A1712"/> <!-- Eye 1 -->
+        <circle cx="288" cy="132" r="3.5" fill="#1A1712"/> <!-- Eye 2 -->
+        <path d="M272 144 Q277 150 282 144" fill="none" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/> <!-- Smile -->
+        <ellipse cx="256" cy="140" rx="4.5" ry="3" fill="#FFE9B0"/> <!-- Cheek blush -->
+        <ellipse cx="297" cy="140" rx="4.5" ry="3" fill="#FFE9B0"/>
+
+        <!-- Left Arm Resting on Desk -->
+        <path d="M242 205 Q215 230 185 268" fill="none" stroke="#FFC22E" stroke-width="20" stroke-linecap="round"/>
+        <path d="M242 205 Q215 230 185 268" fill="none" stroke="#1A1712" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="185" cy="268" r="8" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+
+        <!-- Right Waving Arm -->
+        <g class="wave-hand">
+          <path d="M308 205 Q345 175 355 140" fill="none" stroke="#FFC22E" stroke-width="20" stroke-linecap="round"/>
+          <path d="M308 205 Q345 175 355 140" fill="none" stroke="#1A1712" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="355" cy="138" r="10" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+          <path d="M358 130 l6 -8 M362 135 l8 -3 M362 142 l7 3" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Enrolled Courses Section -->
+  <section>
+    <div class="section-title">
+      <h2 data-en="My Active Courses">كورساتي المسجلة</h2>
+      <a class="btn btn-sm btn-ghost" href="#" data-en="All courses (3)">جميع الكورسات (3)</a>
+    </div>
+
+    <div class="courses-grid">
+      <!-- Course 1 -->
+      <article class="c-card">
+        <div>
+          <div class="c-header">
+            <span class="c-badge" data-en="Third Year Secondary">الصف الثالث الثانوي</span>
+            <span style="font-size:13px; font-weight:700; color:var(--mint);" data-en="Active">● مفعّل</span>
+          </div>
+          <h3 data-en="General Physics: Term 1 (Comprehensive)">الفيزياء العامة: الفصل الدراسي الأول</h3>
+          <p data-en="Master mechanics, electricity, magnetic induction with 24 deep lectures and 6 verified exams.">شرح تفصيلي للمنهج بالكامل، حل آلاف المسائل النموذجية، ومتابعة امتحانات دورية مصححة آليًا.</p>
+        </div>
+        <div>
+          <div class="progress-wrap">
+            <div class="progress-meta">
+              <span data-en="Course Progress">نسبة الإنجاز</span>
+              <span>75%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:75%;"></div></div>
+          </div>
+          <a class="btn btn-block" href="ahmd-course-viewer.html" data-en="Enter Course Room">ادخل قاعة المحاضرات</a>
+        </div>
+      </article>
+
+      <!-- Course 2 -->
+      <article class="c-card">
+        <div>
+          <div class="c-header">
+            <span class="c-badge" data-en="Specialized Workshop">ورشة مكثفة</span>
+            <span style="font-size:13px; font-weight:700; color:var(--mint);" data-en="Active">● مفعّل</span>
+          </div>
+          <h3 data-en="Kirchhoff's Laws & Circuit Mastery">أسرار قوانين كيرشوف والدوائر المعقدة</h3>
+          <p data-en="A dedicated 6-hour intensive bootcamp solving high-difficulty exam questions from previous years.">ورشة تدريبية مكثفة لحل المسائل المعقدة والأفكار غير النمطية من امتحانات السنوات السابقة.</p>
+        </div>
+        <div>
+          <div class="progress-wrap">
+            <div class="progress-meta">
+              <span data-en="Course Progress">نسبة الإنجاز</span>
+              <span>100%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:100%; background:var(--sun);"></div></div>
+          </div>
+          <a class="btn btn-light btn-block" href="ahmd-course-viewer.html" data-en="Review Materials">مراجعة المحاضرات والملخص</a>
+        </div>
+      </article>
+
+      <!-- Course 3 (Code Redeem Teaser) -->
+      <article class="c-card" style="border-style:dashed; background:var(--cream); justify-content:center; text-align:center; padding:36px 24px;">
+        <svg style="margin:0 auto 16px;" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+        <h3 data-en="Have an Access Code?">لديك كود كورس جديد؟</h3>
+        <p data-en="Enter the scratch code printed on your booklet to unlock the next term immediately.">أدخل الكود المطبوع على مذكرتك لفتح الكورس القادم فورًا والبدء في المذاكرة.</p>
+        <a class="btn btn-sm btn-light" href="signup.html" style="align-self:center;" data-en="Redeem Access Code">تفعيل كود جديد</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- Two column widgets: Upcoming Exams & Announcements -->
+  <section class="two-cols">
+    <!-- Exams Widget -->
+    <div class="widget">
+      <h3 data-en="Upcoming & Active Exams">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-en="Exams Schedule">جدول الامتحانات</span>
+      </h3>
+
+      <div class="exam-item">
+        <div class="exam-info">
+          <b data-en="Quiz 4: Magnetic Induction">امتحان 4: الحث الكهرومغناطيسي</b>
+          <small data-en="Available until Thursday, 10:00 PM · 30 Mins">متاح حتى يوم الخميس الساعة 10:00 م · المدة: 30 دقيقة</small>
+        </div>
+        <a class="btn btn-sm" href="ahmd-exam-taking.html" data-en="Start">ابدأ الآن</a>
+      </div>
+
+      <div class="exam-item" style="opacity:.85;">
+        <div class="exam-info">
+          <b data-en="Comprehensive Term 1 Exam">الاختبار الشامل لنصف العام</b>
+          <small data-en="Starts Nov 20 · 60 Questions · 2 Hours">يبدأ في 20 نوفمبر · 60 سؤالًا · المدة: ساعتان</small>
+        </div>
+        <span class="c-badge" style="background:var(--paper);" data-en="Coming Soon">قريبًا</span>
+      </div>
+    </div>
+
+    <!-- Announcements Widget -->
+    <div class="widget">
+      <h3 data-en="Teacher Announcements">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span data-en="Announcements">إعلانات أ. كريم</span>
+      </h3>
+
+      <div style="display:grid; gap:16px;">
+        <div style="border-inline-start:4px solid var(--sun); padding-inline-start:14px;">
+          <strong style="display:block; font-size:15.5px;" data-en="PDF Summary for Chapter 3 Uploaded">تم رفع ملخص قوانين الفصل الثالث بصيغة PDF</strong>
+          <small style="color:var(--ink-2); display:block; margin-top:4px;" data-en="Yesterday · Mr. Karim's Assistant">أمس · مساعد أ. كريم</small>
+        </div>
+
+        <div style="border-inline-start:4px solid var(--mint); padding-inline-start:14px;">
+          <strong style="display:block; font-size:15.5px;" data-en="Top students list announced!">إعلان أوائل امتحان الدوائر الكهربية!</strong>
+          <small style="color:var(--ink-2); display:block; margin-top:4px;" data-en="3 days ago · Physics Department">منذ 3 أيام · قسم الفيزياء</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Bottom preview state bar -->
+<div class="demo-bar demo" role="region" aria-label="شريط معاينة الحالات">
+  <span data-en="Preview States:">حالات المعاينة:</span>
+  <div class="demo-btns">
+    <button type="button" data-state="normal" aria-pressed="true" data-en="Normal">الوضع الطبيعي</button>
+    <button type="button" data-state="exam" aria-pressed="false" data-en="Exam Live Alert">تنبيه امتحان مباشر</button>
+    <button type="button" data-state="announcement" aria-pressed="false" data-en="Urgent Announcement">إعلان هام</button>
+  </div>
+</div>
+
+<script src="shared/itqan.js"></script>
+</body>
+</html>

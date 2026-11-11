@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم المدرس · إدارة منصة إتقان</title>
+<meta name="description" content="Itqan teacher management overview: metrics, pending device requests, and course management.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .manage-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Top Banner */
+  .teacher-hero {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: clamp(24px, 4vw, 40px); box-shadow: var(--shadow); display: grid;
+    grid-template-columns: 1.25fr .95fr; gap: 32px; align-items: center;
+  }
+  .teacher-hero h1 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 800; }
+  .teacher-hero p { font-size: 16.5px; color: var(--ink-2); margin-top: 8px; }
+
+  /* 4 Metrics Strip */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .stat-card {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform .18s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-card b { font-family: var(--f-display); font-size: 32px; font-weight: 800; line-height: 1.1; margin: 8px 0 4px; }
+  .stat-card small { color: var(--ink-2); font-size: 13.5px; }
+
+  /* Pending Requests Queue */
+  .queue-card {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-card);
+    padding: 26px; box-shadow: var(--shadow);
+  }
+  .req-row {
+    background: var(--cream); border: 2px solid var(--ink); border-radius: 14px; padding: 16px 20px;
+    margin-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    transition: all .2s;
+  }
+  .req-row.approved { background: var(--mint-tint); border-color: var(--mint); opacity: .7; }
+
+  /* Chart / Content area */
+  .two-split { display: grid; grid-template-columns: 1.15fr .85fr; gap: 28px; }
+
+  /* Bar chart SVG styling */
+  .bar-grow { transform-box: fill-box; transform-origin: bottom; animation: growBar 1.5s var(--ease-out); }
+  @keyframes growBar { 0% { transform: scaleY(0); } 100% { transform: scaleY(1); } }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 950px) {
+    .teacher-hero, .two-split { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .req-row { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Teacher Dashboard · Itqan Management">
+<a class="skip" href="#main" data-en="Skip to content">تخطّ إلى المحتوى</a>
+
+<!-- Top navigation for Teacher / Staff -->
+<header class="topbar">
+  <a class="brand" href="ahmd-teacher-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#1A1712"/><path d="M13 30 L22 13 L31 30" fill="none" stroke="#FFC22E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 25 l3.5 3.5 6.5 -7" fill="none" stroke="#FFFDF8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span><span class="brand-name" data-en="Itqan · Teacher Portal">إتقان · إدارة المنصة</span><span class="brand-sub" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span></span>
+  </a>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <nav style="display:flex; gap:12px;" class="topbar-nav">
+      <a class="btn btn-sm btn-ghost" href="ahmd-teacher-dashboard.html" style="font-weight:700;" data-en="Overview">نظرة عامة</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-course-editor.html" data-en="Curriculum & Lessons">الكورسات والمناهج</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-quiz-builder.html" data-en="Quizzes & Banks">الامتحانات وبنك الأسئلة</a>
+      <a class="btn btn-sm btn-ghost" href="ahmd-requests-management.html" data-en="Requests (3)">الطلبات (3)</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="lang" type="button">English</button>
+      <div style="background:var(--sun); border:2px solid var(--ink); border-radius:10px; padding:6px 12px; font-weight:800; font-size:14px;" data-en="Mr. Karim (Owner)">أ. كريم (المدرس)</div>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="manage-layout">
+  
+  <!-- Teacher Hero Banner -->
+  <section class="teacher-hero">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:var(--sun-tint); border:1.5px solid var(--ink); border-radius:8px; padding:4px 10px; font-size:13px; font-weight:700; margin-bottom:12px;">
+        <span>⚡</span> <span data-en="First Term Active Cohort">الدفعة الذهبية للثانوية العامة (2026/2027)</span>
+      </div>
+      <h1 data-en="Good Morning, Mr. Karim! 📚">صباح الخير والبركة يا أستاذ كريم! 📚</h1>
+      <p data-en="Here is your platform summary for today. 1,280 students are actively studying with 3 pending device transfer requests.">
+        إليك ملخص أداء منصتك اليوم: 1,280 طالبًا مسجلين في كورساتك، مع 3 طلبات نقل أجهزة بانتظار موافقتك السريعة.
+      </p>
+
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <a class="btn btn-sm" href="ahmd-course-editor.html" data-en="+ Upload New Lecture">+ رفع محاضرة جديدة</a>
+        <a class="btn btn-sm btn-light" href="ahmd-quiz-builder.html" data-en="Create Quick Quiz">إنشاء امتحان جديد</a>
+      </div>
+    </div>
+
+    <!-- Custom Animated Teacher & Students SVG -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 380 240" width="100%" height="auto" style="max-height:220px;" aria-hidden="true">
+        <!-- Chalkboard Backdrop -->
+        <rect x="20" y="20" width="340" height="190" rx="14" fill="#FFF6E2" stroke="#1A1712" stroke-width="3"/>
+        <line x1="20" y1="180" x2="360" y2="180" stroke="#EBDDBF" stroke-width="2"/>
+        
+        <!-- Formula & Chart on Board -->
+        <text x="40" y="55" font-family="Baloo Bhaijaan 2" font-weight="700" font-size="18" fill="#1A1712">emf = -N (ΔΦ / Δt)</text>
+        <path d="M40 140 L70 120 L110 130 L150 90 L190 70" fill="none" stroke="#3F9D7B" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="190" cy="70" r="5" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+
+        <!-- Teacher Character (Right) -->
+        <!-- White sleeve & Yellow Vest -->
+        <path d="M250 210 Q260 130 290 125 Q320 130 330 210 Z" fill="#FFC22E" stroke="#1A1712" stroke-width="3"/>
+        <rect x="280" y="112" width="20" height="18" fill="#FFFDF8" stroke="#1A1712" stroke-width="2.5"/>
+        <circle cx="290" cy="85" r="28" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+        
+        <!-- Teacher Hair & Beard/Glasses -->
+        <path d="M268 76 Q290 56 312 76" fill="#1A1712"/>
+        <circle cx="282" cy="84" r="3" fill="#1A1712"/>
+        <circle cx="298" cy="84" r="3" fill="#1A1712"/>
+        <path d="M285 96 Q290 102 295 96" fill="none" stroke="#1A1712" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- Pointer Arm -->
+        <path d="M260 150 L200 110" stroke="#1A1712" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="198" cy="108" r="5" fill="#FFC22E"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 4 Metrics Strip -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:14px;" data-en="Total Enrolled Students">إجمالي الطلاب</span>
+        <span class="c-badge" style="background:var(--mint-tint); color:var(--mint);" data-en="+42 this week">+42 هذا الأسبوع</span>
+      </div>
+      <b>1,280</b>
+      <small data-en="Active student accounts">حسابات مفعلة على المنصة</small>
+    </div>
+
+    <div class="stat-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:14px;" data-en="Lecture Completions">مشاهدات الدروس</span>
+        <span class="c-badge" style="background:var(--sun-tint);" data-en="81% Completion Rate">81% نسبة الإكمال</span>
+      </div>
+      <b>3,420</b>
+      <small data-en="Recorded video plays this month">محاضرة تمت مشاهدتها هذا الشهر</small>
+    </div>
+
+    <div class="stat-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:14px;" data-en="Pending Exam Reviews">تصحيح الامتحانات</span>
+        <span class="c-badge" style="background:var(--cream);" data-en="Autograded 94%">94% تصحيح آلي</span>
+      </div>
+      <b>18</b>
+      <small data-en="Essay answers to grade manually">سؤال مقالي بانتظار تقييمك</small>
+    </div>
+
+    <div class="stat-card" style="border-color:var(--coral);">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:14px; color:var(--coral);" data-en="Pending Device Requests">طلبات الأجهزة ⚠️</span>
+        <span class="c-badge" style="background:#FDE8E4; color:var(--coral);" data-en="Urgent Action">عاجل</span>
+      </div>
+      <b style="color:var(--coral);">3</b>
+      <small data-en="Students locked out after device change">طلاب معطلون بانتظار الموافقة</small>
+    </div>
+  </section>
+
+  <!-- Urgent Action Queue: Device Transfers -->
+  <section class="queue-card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="font-size:22px; font-weight:800;" data-en="Urgent: Pending Device Transfer Requests">الطلبات العاجلة: طلبات نقل الأجهزة للطلاب</h2>
+        <p style="color:var(--ink-2); font-size:14.5px; margin-top:4px;" data-en="Students who changed computers or phones and need your approval to log back in (FR-D06).">طلاب اشتروا أجهزة جديدة أو تعطلت أجهزتهم القديمة وينتظرون موافقتك لبدء المذاكرة.</p>
+      </div>
+      <a class="btn btn-sm btn-ghost" href="ahmd-requests-management.html" data-en="View All Requests →">عرض كل الطلبات ←</a>
+    </div>
+
+    <!-- Request Row 1 -->
+    <div class="req-row" id="row-1">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <b style="font-size:16.5px;" data-en="Student: Ahmed Ayman">الطالب: أحمد أيمن</b>
+          <span class="c-badge" data-en="Physics Term 1">فيزياء 3 ثانوي</span>
+          <small style="color:var(--ink-2); direction:ltr;">ahmed@itqan.edu · 01029384756</small>
+        </div>
+        <p style="font-size:14.5px; color:var(--ink);">
+          <span style="font-weight:700;" data-en="Reason:">السبب:</span> "شاشة اللابتوب القديم تعطلت واشتريت لابتوب HP Pavilion جديد للمذاكرة والامتحان القادم."
+        </p>
+      </div>
+
+      <div style="display:flex; gap:10px; flex:none;">
+        <button class="btn btn-sm" style="background:var(--mint);" onclick="approveRow('row-1')" data-en="Approve Transfer ✓">موافقة وتفعيل ✓</button>
+        <button class="btn btn-sm btn-light" data-en="Reject">رفض</button>
+      </div>
+    </div>
+
+    <!-- Request Row 2 -->
+    <div class="req-row" id="row-2">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <b style="font-size:16.5px;" data-en="Student: Mariam Mahmoud">الطالبة: مريم محمود</b>
+          <span class="c-badge" data-en="Physics Term 1">فيزياء 3 ثانوي</span>
+          <small style="color:var(--ink-2); direction:ltr;">mariam@gmail.com · 01148291039</small>
+        </div>
+        <p style="font-size:14.5px; color:var(--ink);">
+          <span style="font-weight:700;" data-en="Reason:">السبب:</span> "الجهاز القديم تم عمل فورمات له وتغير الـ Fingerprint للمتصفح."
+        </p>
+      </div>
+
+      <div style="display:flex; gap:10px; flex:none;">
+        <button class="btn btn-sm" style="background:var(--mint);" onclick="approveRow('row-2')" data-en="Approve Transfer ✓">موافقة وتفعيل ✓</button>
+        <button class="btn btn-sm btn-light" data-en="Reject">رفض</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two Split: Course Activity & Weekly Engagement Chart -->
+  <section class="two-split">
+    <!-- Courses Snapshot -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:20px; font-weight:800;" data-en="Active Published Courses">الكورسات المنشورة حاليًا</h3>
+        <a class="btn btn-sm btn-light" href="ahmd-course-editor.html" data-en="Edit Curriculum">تعديل المنهج</a>
+      </div>
+
+      <div style="display:grid; gap:14px;">
+        <div style="border:2px solid var(--line); border-radius:12px; padding:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <b style="font-size:16.5px; display:block;" data-en="General Physics: Term 1 (2026/2027)">الفيزياء العامة: الفصل الدراسي الأول</b>
+            <small style="color:var(--ink-2);" data-en="24 Lectures · 6 Quizzes · 940 Students">24 محاضرة · 6 امتحانات · 940 طالبًا مسجلين</small>
+          </div>
+          <span class="c-badge" style="background:var(--mint-tint);" data-en="Published">منشور علنًا</span>
+        </div>
+
+        <div style="border:2px solid var(--line); border-radius:12px; padding:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <b style="font-size:16.5px; display:block;" data-en="Kirchhoff's Intensive Workshop">ورشة قوانين كيرشوف المعقدة</b>
+            <small style="color:var(--ink-2);" data-en="6 Lectures · 1 Quiz · 340 Students">6 محاضرات · امتحان واحد · 340 طالبًا</small>
+          </div>
+          <span class="c-badge" style="background:var(--mint-tint);" data-en="Published">منشور علنًا</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly Engagement Vector Chart -->
+    <div class="card">
+      <h3 style="font-size:20px; font-weight:800; margin-bottom:12px;" data-en="Weekly Student Video Views">مشاهدات المحاضرات الأسبوعية</h3>
+      <p style="color:var(--ink-2); font-size:13.5px; margin-bottom:16px;" data-en="Highest engagement occurs on Thursdays and Fridays after new lecture uploads.">أعلى معدل مشاهدة يتزامن مع مساء يومي الخميس والجمعة بعد نزول الشرح.</p>
+
+      <svg viewBox="0 0 320 180" width="100%" height="auto" aria-label="رسم بياني للمشاهدات">
+        <!-- Axes -->
+        <line x1="30" y1="20" x2="30" y2="150" stroke="#1A1712" stroke-width="2"/>
+        <line x1="30" y1="150" x2="310" y2="150" stroke="#1A1712" stroke-width="2"/>
+        
+        <!-- Bars (Sat, Sun, Mon, Tue, Wed, Thu, Fri) -->
+        <rect class="bar-grow" x="45" y="70" width="26" height="80" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="85" y="85" width="26" height="65" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="125" y="95" width="26" height="55" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="165" y="80" width="26" height="70" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="205" y="60" width="26" height="90" rx="4" fill="#FFC22E" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="245" y="35" width="26" height="115" rx="4" fill="#3F9D7B" stroke="#1A1712" stroke-width="2"/>
+        <rect class="bar-grow" x="285" y="45" width="26" height="105" rx="4" fill="#3F9D7B" stroke="#1A1712" stroke-width="2"/>
+
+        <!-- Day labels -->
+        <text x="50" y="168" font-family="Readex Pro" font-size="12" fill="#5A5142">سبت</text>
+        <text x="130" y="168" font-family="Readex Pro" font-size="12" fill="#5A5142">إثنين</text>
+        <text x="210" y="168" font-family="Readex Pro" font-size="12" fill="#5A5142">أربعاء</text>
+        <text x="250" y="168" font-family="Readex Pro" font-size="12" font-weight="700" fill="#1A1712">خميس</text>
+        <text x="290" y="168" font-family="Readex Pro" font-size="12" font-weight="700" fill="#1A1712">جمعة</text>
+      </svg>
+    </div>
+  </section>
+
+</main>
+
+<script src="shared/itqan.js"></script>
+<script>
+  function approveRow(id) {
+    const row = document.getElementById(id);
+    row.classList.add('approved');
+    row.querySelector('button').textContent = 'تمت الموافقة ✓';
+    row.querySelector('button').disabled = true;
+  }
+</script>
+</body>
+</html>

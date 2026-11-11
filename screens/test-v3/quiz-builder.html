@@ -1,0 +1,329 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محرر الامتحانات المقننة وبنك الأسئلة · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v3: Assessment authoring studio, hardware anti-cheat enclave vector, live formula compiler, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v3.css">
+<style>
+  .builder-layout {
+    max-width: var(--page-max);
+    margin: 28px auto 80px;
+    padding: 0 var(--gutter);
+    display: grid;
+    gap: 28px;
+  }
+
+  /* 1. Assessment Command Banner */
+  .assessment-banner {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px 36px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .assessment-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--sun), var(--honey), var(--mint));
+  }
+
+  /* 2. Master Split */
+  .authoring-split {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .proctor-engine-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    display: grid;
+    gap: 16px;
+    position: sticky;
+    top: 90px;
+  }
+  .toggle-control {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+  .toggle-control input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--ink);
+    cursor: pointer;
+  }
+
+  .question-workshop {
+    display: grid;
+    gap: 24px;
+  }
+  .editor-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+    display: grid;
+    gap: 20px;
+  }
+
+  .choice-input-group {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .choice-input-group input[type="text"] {
+    flex: 1;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 980px) {
+    .authoring-split { grid-template-columns: 1fr; }
+    .proctor-engine-card { position: static; }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Assessment Studio & Exam Builder · Itqan Academy">
+<a class="skip-to-content" href="#main" data-en="Skip to authoring">تخطّ إلى إعداد الاختبار</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-wrapper" href="teacher-dashboard.html">
+      <div class="brand-crest-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-titles">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Faculty Assessment Studio">استوديو صياغة الامتحانات المقننة</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links-list">
+        <li><a class="nav-anchor" href="teacher-dashboard.html" data-en="Dashboard">نظرة عامة</a></li>
+        <li><a class="nav-anchor active" href="quiz-builder.html" data-en="Quiz Builder">بنك الامتحانات</a></li>
+        <li><a class="nav-anchor" href="course-editor.html" data-en="Syllabus Editor">محرر المنهج</a></li>
+        <li><a class="nav-anchor" href="requests-management.html" data-en="Petitions (3)">التماسات الأجهزة (3)</a></li>
+      </ul>
+    </nav>
+
+    <div class="topbar-cta-group">
+      <a class="btn btn-secondary btn-sm hide-mobile" href="teacher-dashboard.html" data-en="← Back to Office">← العودة للإدارة</a>
+      <button class="lang-btn btn btn-secondary btn-sm" type="button">English</button>
+      <button class="mobile-nav-toggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px;">
+      <b style="font-size:17px; color:var(--ink);">بنك الامتحانات</b>
+      <button class="btn btn-ghost btn-sm" data-drawer-close style="font-size:18px;">✕</button>
+    </div>
+    <ul class="mobile-nav-list">
+      <li><a class="mobile-nav-link" href="teacher-dashboard.html">نظرة عامة</a></li>
+      <li><a class="mobile-nav-link active" href="quiz-builder.html">بنك الامتحانات</a></li>
+      <li><a class="mobile-nav-link" href="course-editor.html">محرر المنهج</a></li>
+      <li><a class="mobile-nav-link" href="requests-management.html">التماسات الأجهزة (3)</a></li>
+    </ul>
+  </div>
+</div>
+
+<main id="main" class="builder-layout">
+
+  <!-- 1. Assessment Command Banner -->
+  <section class="assessment-banner anim-reveal">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+        <span class="pill-badge pill-sun" data-en="Assessment Draft #04">مسودة امتحان مقنن رقم 04</span>
+        <span class="pill-badge pill-mint" data-en="20 Questions · 40 Marks">20 سؤالاً · 40 درجة</span>
+        <span style="font-family:var(--f-mono); font-size:13px; color:var(--ink-secondary);">الوحدة: الحث الكهرومغناطيسي</span>
+      </div>
+      <h1 style="font-size:clamp(22px, 2.8vw, 30px); font-weight:800; color:var(--ink);" data-en="Comprehensive Exam: Induction & Moving Conductor">الامتحان التراكمي الشامل: الحث وتطبيقات قوانين فاراداي</h1>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn btn-secondary btn-sm" href="exam-taking.html" data-en="Preview Student Hall 👁️">معاينة قاعة الامتحان 👁️</a>
+      <button class="btn btn-primary" onclick="alert('تم حفظ وتحديث مسودة الامتحان بنجاح!')" data-en="Publish & Lock Schedule 🚀">نشر وتثبيت موعد الامتحان 🚀</button>
+    </div>
+  </section>
+
+  <!-- 2. Master Authoring Layout Split -->
+  <section class="authoring-split anim-reveal anim-delay-1">
+    
+    <!-- Left: Proctor Integrity & Anti-Cheat Control Engine -->
+    <aside class="proctor-engine-card">
+      <div style="border-bottom:2px solid var(--line); padding-bottom:12px;">
+        <b style="font-size:16px; color:var(--ink); display:block;" data-en="Anti-Cheat Security Rules">بروتوكول حماية ونزاهة الاختبار</b>
+        <small style="color:var(--ink-secondary); font-size:12px;">تطبيق معايير الاعتماد الأكاديمي (ADR-004)</small>
+      </div>
+
+      <!-- Bespoke Anti-Cheat Hardware Lockdown Enclave Vector SVG -->
+      <div style="display:flex; justify-content:center;">
+        <svg viewBox="0 0 260 140" width="100%"  style="max-height:130px;" aria-label="رسم توضيحي لبروتوكول قفل محطة العمل">
+          <rect x="20" y="15" width="220" height="110" rx="10" fill="#1A1712" stroke="#FFC22E" stroke-width="2"/>
+          <circle cx="130" cy="65" r="34" fill="#2B5FE3" opacity="0.3"/>
+          <circle cx="130" cy="65" r="26" fill="none" stroke="#FFC22E" stroke-width="2" stroke-dasharray="4 3"/>
+          
+          <circle cx="130" cy="58" r="7" fill="#FFC22E"/>
+          <polygon points="126,58 134,58 132,74 128,74" fill="#FFC22E"/>
+
+          <rect x="30" y="25" width="55" height="18" rx="4" fill="#3F9D7B"/>
+          <text x="57" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="bold" fill="#FFFDF8">LOCKED</text>
+
+          <rect x="175" y="25" width="55" height="18" rx="4" fill="#E9502E"/>
+          <text x="202" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="bold" fill="#FFFDF8">1-DEVICE</text>
+
+          <text x="130" y="112" text-anchor="middle" font-family="Readex Pro" font-size="11" fill="#FFF6E2">قفل محطة العمل الفردية نشط</text>
+        </svg>
+      </div>
+
+      <!-- Interactive Toggles -->
+      <label class="toggle-control">
+        <div>
+          <b style="font-size:13.5px; display:block;">قفل الجهاز الفردي المعتمد</b>
+          <small style="color:var(--ink-secondary); font-size:11.5px;">منع فتح الامتحان إلا من الحاسوب الموثق</small>
+        </div>
+        <input type="checkbox" checked>
+      </label>
+
+      <label class="toggle-control">
+        <div>
+          <b style="font-size:13.5px; display:block;">رصد مغادرة نافذة الامتحان</b>
+          <small style="color:var(--ink-secondary); font-size:11.5px;">إنذار فوري وسحب ورقة الإجابة بعد مرتين</small>
+        </div>
+        <input type="checkbox" checked>
+      </label>
+
+      <label class="toggle-control">
+        <div>
+          <b style="font-size:13.5px; display:block;">إتاحة الآلة الحاسبة العلمية المدمجة</b>
+          <small style="color:var(--ink-secondary); font-size:11.5px;">تفعيل نافذة الحسابات الرياضية</small>
+        </div>
+        <input type="checkbox" checked>
+      </label>
+
+      <label class="toggle-control">
+        <div>
+          <b style="font-size:13.5px; display:block;">الخلط العشوائي للأسئلة والخيارات</b>
+          <small style="color:var(--ink-secondary); font-size:11.5px;">تسلسل مختلف لكل طالب لمنع التطابق</small>
+        </div>
+        <input type="checkbox" checked>
+      </label>
+    </aside>
+
+    <!-- Right: Question Workshop & Formula Previewer -->
+    <article class="question-workshop">
+      <div class="editor-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="pill-badge pill-sun">السؤال الحالي: 08</span>
+            <span class="pill-badge pill-cobalt">درجتان</span>
+          </div>
+          <span style="font-size:13px; color:var(--ink-secondary); font-weight:700;">نوع السؤال: اختيار من متعدد (MCQ)</span>
+        </div>
+
+        <div>
+          <label style="display:block; font-weight:800; font-size:14px; margin-bottom:6px;">نص السؤال الأكاديمي والصيغة الرياضية:</label>
+          <textarea rows="4" style="width:100%; padding:12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:14.5px; line-height:1.6;">ساق موصلة (ab) طولها L = 0.5 m ومقاومتها R = 2 Ω تنزلق بسرعة منتظمة v = 4 m/s عمودياً على مجال مغناطيسي منتظم كثافة فيضه B = 0.8 T اتجاهه عمودي على الصفحة إلى الداخل. احسب شدة واتجاه التيار المستحث:</textarea>
+        </div>
+
+        <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px;">
+          <small style="display:block; color:var(--ink-secondary); font-weight:800; margin-bottom:4px;">المعادلة المرجعية المرتبطة:</small>
+          <div style="font-family:var(--f-mono); font-size:14px; font-weight:bold; color:var(--ink);">
+            emf = -B · L · v · sin θ  ==>  I = emf / R = (0.8 × 0.5 × 4) / 2 = 0.8 A
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block; font-weight:800; font-size:14px; margin-bottom:10px;">خيارات الإجابة وتحديد البديل الصحيح:</label>
+          <div style="display:grid; gap:10px;">
+            <div class="choice-input-group" style="background:var(--mint-tint); border-color:var(--mint);">
+              <input type="radio" name="optCorrect" checked style="width:20px; height:20px; accent-color:var(--mint);">
+              <b style="color:var(--mint);">أ (الإجابة الصحيحة):</b>
+              <input type="text" value="0.8 A من النقطة (b) إلى النقطة (a) داخل الساق">
+            </div>
+
+            <div class="choice-input-group">
+              <input type="radio" name="optCorrect" style="width:20px; height:20px; accent-color:var(--ink);">
+              <b>ب:</b>
+              <input type="text" value="0.8 A من النقطة (a) إلى النقطة (b) داخل الساق">
+            </div>
+
+            <div class="choice-input-group">
+              <input type="radio" name="optCorrect" style="width:20px; height:20px; accent-color:var(--ink);">
+              <b>ج:</b>
+              <input type="text" value="1.6 A من النقطة (b) إلى النقطة (a) داخل الساق">
+            </div>
+
+            <div class="choice-input-group">
+              <input type="radio" name="optCorrect" style="width:20px; height:20px; accent-color:var(--ink);">
+              <b>د:</b>
+              <input type="text" value="0.4 A من النقطة (a) إلى النقطة (b) داخل الساق">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block; font-weight:800; font-size:14px; margin-bottom:6px;">الشرح النموذجي الذي يظهر للطالب بعد إعلان النتيجة:</label>
+          <textarea rows="2" style="width:100%; padding:10px 12px; border:2px solid var(--ink); border-radius:var(--r-ctl); font-size:13.5px;">تطبق قاعدة فليمنج لليد اليمنى: السبابة مع اتجاه المجال (للداخل)، الإبهام مع الحركة (يميناً)، فيشير الوسطى للتيار من b إلى a لأعلى.</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:2px solid var(--line); padding-top:16px;">
+          <button class="btn btn-secondary btn-sm" onclick="alert('تم تكرار السؤال لإنشاء بديل')">إنشاء نسخة بديلة 📋</button>
+          <button class="btn btn-primary" onclick="alert('تم حفظ السؤال وتحديث بنك الأسئلة ✓')">حفظ السؤال 08 والانتقال للسؤال 09 ←</button>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة محرر الأسئلة">
+  <span class="demo-toolbar-label" data-en="Authoring Mode:">وضع الصياغة:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Single Question">سؤال فردي</button>
+    <button class="demo-btn" type="button" data-state="bulk" aria-pressed="false" data-en="Batch Overview">عرض الكافة</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v3.js"></script>
+</body>
+</html>

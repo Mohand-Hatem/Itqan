@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بوابة الطالب الأكاديمية · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v2: Upgraded classic modern academic student dashboard with new element architecture, bespoke induction torus vector, telemetry ribbon, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  .dash-container {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 28px var(--gutter) 80px;
+    display: grid;
+    gap: 28px;
+  }
+
+  /* 1. Academic Telemetry Ribbon (New Top Element) */
+  .telemetry-ribbon {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .telemetry-card {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-tactile);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.15s ease;
+  }
+  .telemetry-card:hover { transform: translateY(-2px); }
+  .telemetry-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-ctl);
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .telemetry-num {
+    font-family: var(--f-display);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .telemetry-lbl {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-secondary);
+  }
+
+  /* 2. Asymmetric Academic Master Deck (New Order: Apparatus + Profile) */
+  .deck-master {
+    display: grid;
+    grid-template-columns: 1.25fr 0.95fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  
+  .apparatus-showcase {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .apparatus-showcase::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--sun), var(--mint), var(--cobalt));
+  }
+
+  .scholar-profile-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* 3. High-Focus Active Lecture Player Card */
+  .active-theater-card {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-panel);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+  }
+  .theater-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .theater-split {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    gap: 24px;
+  }
+  .video-preview-box {
+    background: var(--ink);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-card);
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-tactile);
+  }
+  .video-watermark {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(26,23,18,0.7);
+    color: var(--paper);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .play-circle-pulse {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--sun);
+    border: 3px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 0 var(--ink);
+    transition: transform 0.15s ease;
+  }
+  .play-circle-pulse:hover {
+    transform: scale(1.08);
+  }
+
+  /* 4. Secondary Bento: Schedule vs Exam Dossier */
+  .bento-lower {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+  }
+
+  .calendar-strip {
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--r-card);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .day-card {
+    background: var(--cream);
+    border: 2px solid var(--line);
+    border-radius: var(--r-ctl);
+    padding: 12px 8px;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+  .day-card.active {
+    border-color: var(--ink);
+    background: var(--sun);
+    box-shadow: 0 2px 0 var(--ink);
+    font-weight: 800;
+  }
+  .day-card.completed {
+    background: var(--mint-tint);
+    border-color: var(--mint);
+  }
+  .day-card small { display: block; font-size: 12px; color: var(--ink-secondary); margin-bottom: 2px; }
+  .day-card b { font-family: var(--f-display); font-size: 17px; }
+
+  /* State Alerts */
+  [data-state="exam"] .alert-exam-live { display: flex !important; }
+  [data-state="announcement"] .alert-faculty { display: flex !important; }
+
+  @media (max-width: 980px) {
+    .telemetry-ribbon { grid-template-columns: repeat(2, 1fr); }
+    .deck-master, .theater-split, .bento-lower { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .telemetry-ribbon { grid-template-columns: 1fr; }
+    .calendar-days { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body data-state="normal" data-title-en="Academic Student Portal · Itqan Academy">
+<a class="skip" href="#main" data-en="Skip to portal">تخطّ إلى المحتوى الرئيسي</a>
+
+<!-- Topbar with full responsiveness -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="student-dashboard.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Student Academic Workstation">بوابة الطالب الأكاديمية المقننة</small>
+      </div>
+    </a>
+
+    <nav class="hide-mobile">
+      <ul class="nav-links">
+        <li><a class="nav-link active" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+        <li><a class="nav-link" href="course-viewer.html" data-en="Lecture Hall">قاعة المحاضرات</a></li>
+        <li><a class="nav-link" href="student-results.html" data-en="Certified Grades">النتائج وسجل الدرجات</a></li>
+        <li><a class="nav-link" href="student-devices.html" data-en="Workstation Security">توثيق الجهاز</a></li>
+      </ul>
+    </nav>
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button class="btn btn-sm btn-secondary hide-mobile" type="button" data-modal-open="modal-formulas" data-en="Cheat-Sheet 📐">مسودة القوانين 📐</button>
+      <button class="lang-btn" type="button">English</button>
+      <div class="hide-mobile" style="background:var(--sun); border:2px solid var(--ink); border-radius:var(--r-ctl); padding:5px 12px; font-size:13.5px; font-weight:800; box-shadow:0 2px 0 var(--ink);">
+        أحمد أيمن (دفعة 2026)
+      </div>
+      <button class="mobile-nav-toggle" aria-label="فتح القائمة الرئيسية">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobileDrawer">
+  <ul class="mobile-nav-list">
+    <li><a class="mobile-nav-link active" href="student-dashboard.html" data-en="Dashboard">لوحة المتابعة</a></li>
+    <li><a class="mobile-nav-link" href="course-viewer.html" data-en="Lecture Hall">قاعة المحاضرات</a></li>
+    <li><a class="mobile-nav-link" href="student-results.html" data-en="Grades & Transcripts">النتائج وسجل الدرجات</a></li>
+    <li><a class="mobile-nav-link" href="student-devices.html" data-en="Workstation Security">توثيق الجهاز</a></li>
+    <li><button class="btn btn-secondary btn-sm" style="width:100%; margin-top:8px;" data-modal-open="modal-formulas" data-en="Formula Cheat-Sheet">مسودة القوانين 📐</button></li>
+  </ul>
+</div>
+
+<main id="main" class="dash-container">
+
+  <!-- Interactive State Alert: Live Proctored Exam -->
+  <div class="academic-card alert-exam-live" style="display:none; background:var(--coral-tint); border-color:var(--coral);" role="alert">
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:16px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span style="font-size:28px;">⏱️</span>
+        <div>
+          <b style="font-size:17.5px; color:var(--coral); display:block;" data-en="Active Examination: Comprehensive Chapter 3 Test">امتحان منعقد الآن: الاختبار التراكمي على الفصل الثالث (الحث الكهرومغناطيسي)</b>
+          <small style="color:var(--ink-secondary); font-weight:600;" data-en="Proctored · Anti-Cheat Security Protocol Active">متبقي 38 دقيقة على غلق باب الإجابات · محطة العمل مقفلة تلقائياً</small>
+        </div>
+      </div>
+      <a class="btn btn-sm btn-coral" href="exam-taking.html" data-en="Enter Examination Now">دخول قاعة الاختبار فوراً ←</a>
+    </div>
+  </div>
+
+  <!-- Interactive State Alert: Faculty Note -->
+  <div class="academic-card alert-faculty" style="display:none; background:var(--mint-tint); border-color:var(--mint);" role="status">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span style="font-size:28px;">📢</span>
+      <div>
+        <b style="font-size:16.5px; color:var(--mint); display:block;" data-en="Faculty Seminar: Problem Solving Session Tomorrow at 20:00 CLT">جلسة مراجعة مسائية مع د. كريم عبد المنعم غداً في تمام 8:00 مساءً</b>
+        <small style="color:var(--ink-secondary); font-weight:600;" data-en="Topic: Dissecting challenging Lenz's Law and Self-Induction problems.">المحور: تفكيك المسائل المركبة على قاعدة لينز والحث المتبادل بين ملفين.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Top Element: Academic Telemetry Ribbon -->
+  <section class="telemetry-ribbon" aria-label="إحصائيات الأداء الأكاديمي">
+    <div class="telemetry-card">
+      <div class="telemetry-icon" style="background:var(--sun-tint); color:var(--honey);">🏆</div>
+      <div>
+        <div class="telemetry-num">94.2%</div>
+        <div class="telemetry-lbl" data-en="Cumulative GPA">المعدل التراكمي المقنن</div>
+      </div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-icon" style="background:var(--mint-tint); color:var(--mint);">⚡</div>
+      <div>
+        <div class="telemetry-num">482</div>
+        <div class="telemetry-lbl" data-en="Physics Problems Solved">مسألة فيزيائية تم حلها</div>
+      </div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-icon" style="background:var(--cobalt-tint); color:var(--cobalt);">📚</div>
+      <div>
+        <div class="telemetry-num">18 / 24</div>
+        <div class="telemetry-lbl" data-en="Lectures Mastered">محاضرة تم اجتيازها</div>
+      </div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-icon" style="background:var(--coral-tint); color:var(--coral);">🔥</div>
+      <div>
+        <div class="telemetry-num">14 يوماً</div>
+        <div class="telemetry-lbl" data-en="Study Streak">التزام دراسي متصل</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Master Deck: Bespoke Apparatus Laboratory Torus Vector + Scholar Identity -->
+  <section class="deck-master">
+    
+    <!-- Left Asymmetric Column: Bespoke Toroidal Solenoid & Flux Vector SVG -->
+    <article class="apparatus-showcase">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span class="pill-badge pill-cobalt" data-en="Unit 3: Electromagnetic Induction">الوحدة 3: الحث الكهرومغناطيسي</span>
+          <span class="formula-tag">B = \mu_0 \cdot n \cdot I</span>
+        </div>
+        <h2 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="Toroidal Solenoid Field & Flux Induction">المجال المغناطيسي داخل الملف الحلقي وتوليد الحث</h2>
+        <p style="color:var(--ink-secondary); font-size:14.5px; line-height:1.6; margin-top:4px;" data-en="Live visualization of internal magnetic field lines B circulating inside the ferrite core with no external leakage.">
+          المجال المغناطيسي المغلق الناشئ عن تيار الملف الحلقي، حيث تنعدم خطوط الفيض خارج القلب الحديدي وتتكاثف بانتظام داخله.
+        </p>
+      </div>
+
+      <!-- Bespoke Scientific SVG: Torus & Magnetic Flux -->
+      <div style="display:flex; justify-content:center; margin:16px 0;">
+        <svg viewBox="0 0 460 210" width="100%" height="auto" style="max-height:200px;" aria-label="رسم بياني توضيحي للملف الحلقي">
+          <defs>
+            <marker id="arrowCobalt" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#2B5FE3" />
+            </marker>
+            <radialGradient id="torusCore" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stop-color="#FFF6E2"/>
+              <stop offset="90%" stop-color="#F2A60C" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#FFC22E"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Outer Core -->
+          <ellipse cx="230" cy="105" rx="180" ry="75" fill="none" stroke="#1A1712" stroke-width="4"/>
+          <!-- Inner Hole Core -->
+          <ellipse cx="230" cy="105" rx="90" ry="38" fill="none" stroke="#1A1712" stroke-width="4"/>
+
+          <!-- Magnetic Flux Streamlines circulating inside the torus (Cobalt Blue) -->
+          <ellipse cx="230" cy="105" rx="145" ry="60" fill="none" stroke="#2B5FE3" stroke-width="2.5" stroke-dasharray="10 6" marker-end="url(#arrowCobalt)"/>
+          <ellipse cx="230" cy="105" rx="125" ry="50" fill="none" stroke="#2B5FE3" stroke-width="2" stroke-dasharray="8 6"/>
+
+          <!-- Copper Wire Windings (V1 Sun Yellow & Honey Amber) wrapped around the core -->
+          <!-- Left side windings -->
+          <path d="M 50 105 C 50 75, 140 75, 140 105" fill="none" stroke="#F2A60C" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 50 105 C 50 135, 140 135, 140 105" fill="none" stroke="#FFC22E" stroke-width="5" stroke-linecap="round"/>
+          <line x1="50" y1="105" x2="140" y2="105" stroke="#1A1712" stroke-width="2" stroke-dasharray="3 3"/>
+
+          <!-- Top-left winding -->
+          <path d="M 100 50 C 130 30, 190 70, 185 85" fill="none" stroke="#FFC22E" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 185 85 C 180 100, 100 70, 100 50" fill="none" stroke="#F2A60C" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Top-center winding -->
+          <path d="M 230 30 C 245 30, 245 67, 230 67" fill="none" stroke="#FFC22E" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 230 67 C 215 67, 215 30, 230 30" fill="none" stroke="#F2A60C" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Top-right winding -->
+          <path d="M 360 50 C 330 30, 270 70, 275 85" fill="none" stroke="#FFC22E" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 275 85 C 280 100, 360 70, 360 50" fill="none" stroke="#F2A60C" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Right side windings -->
+          <path d="M 410 105 C 410 75, 320 75, 320 105" fill="none" stroke="#F2A60C" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 410 105 C 410 135, 320 135, 320 105" fill="none" stroke="#FFC22E" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Bottom windings -->
+          <path d="M 230 180 C 245 180, 245 143, 230 143" fill="none" stroke="#FFC22E" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 230 143 C 215 143, 215 180, 230 180" fill="none" stroke="#F2A60C" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Terminals / Current injection -->
+          <line x1="20" y1="130" x2="50" y2="105" stroke="#1A1712" stroke-width="3.5"/>
+          <circle cx="20" cy="130" r="4" fill="#E9502E" stroke="#1A1712" stroke-width="2"/>
+          <text x="12" y="152" font-family="JetBrains Mono, monospace" font-size="12" font-weight="bold" fill="#E9502E">+ I (in)</text>
+
+          <line x1="20" y1="80" x2="50" y2="105" stroke="#1A1712" stroke-width="3.5"/>
+          <circle cx="20" cy="80" r="4" fill="#2B5FE3" stroke="#1A1712" stroke-width="2"/>
+          <text x="12" y="72" font-family="JetBrains Mono, monospace" font-size="12" font-weight="bold" fill="#2B5FE3">- I (out)</text>
+
+          <!-- Core Callout Annotation -->
+          <rect x="270" y="150" width="165" height="34" rx="6" fill="#FFFDF8" stroke="#1A1712" stroke-width="1.5"/>
+          <text x="352" y="172" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="12" font-weight="600" fill="#1A1712">مسار الفيض الحلقي المغلق</text>
+        </svg>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:10px 16px;">
+        <span style="font-weight:700; font-size:13.5px;" data-en="Calculated Permeability: μ = 4π × 10⁻⁷ H/m">معامل النفاذية للقلب: μ = 4π × 10⁻⁷ H/m</span>
+        <span class="pill-badge pill-mint" data-en="Verified Apparatus">نموذج معملي معتمد ✓</span>
+      </div>
+    </article>
+
+    <!-- Right Asymmetric Column: Scholar Profile & Immediate Academic Directive -->
+    <article class="scholar-profile-card">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <span class="pill-badge pill-sun" data-en="Thanaweya Amma 2026">الثانوية العامة المصرية · شعبة علمي علوم/رياضة</span>
+            <h1 style="font-size:26px; font-weight:800; margin-top:8px;" data-en="Scholar: Ahmed Ayman">الطالب: أحمد أيمن محمد علي</h1>
+            <p style="color:var(--ink-secondary); font-size:14px; margin-top:4px;" data-en="Academic ID: ITQ-2026-4892 · Bound Workstation Active">
+              الرقم الأكاديمي: <b style="font-family:var(--f-mono);">ITQ-4892</b> · محطة العمل موثقة ومحمية
+            </p>
+          </div>
+          <div style="width:52px; height:52px; border-radius:50%; background:var(--sun); border:2.5px solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 3px 0 var(--ink);">
+            🎓
+          </div>
+        </div>
+
+        <div style="background:var(--paper); border:2px solid var(--line); border-radius:var(--r-card); padding:16px; margin:20px 0;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13.5px; font-weight:700;">
+            <span data-en="Induction Curriculum Mastery">إتقان باب الحث الكهرومغناطيسي:</span>
+            <span style="color:var(--mint); font-family:var(--f-mono);">75%</span>
+          </div>
+          <div class="progress-bar-academic" style="height:10px; margin:0;">
+            <div class="progress-fill-academic" style="width:75%;"></div>
+          </div>
+          <small style="color:var(--ink-secondary); display:block; margin-top:8px; font-size:12px;" data-en="Remaining: 2 Application Problem-Solving Lectures before Final Quiz.">متبقي: محاضرتان في حل المسائل قبل موعد الامتحان النهائي للوحدة.</small>
+        </div>
+
+        <div style="display:grid; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px; font-size:13.5px;">
+            <span style="color:var(--mint); font-weight:bold;">✓</span>
+            <span data-en="Single Workstation Lock: Active & Monitored">قفل الجهاز الفردي: مفعل وموثق برقم اللوحة الأم</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:13.5px;">
+            <span style="color:var(--mint); font-weight:bold;">✓</span>
+            <span data-en="Proctored Quizzes Completed: 12 / 12">الامتحانات المقننة المنجزة: 12 من 12 امتحان</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <a class="btn btn-primary" style="width:100%;" href="course-viewer.html" data-en="Resume Lecture 14: Faraday's Law ▶">
+          <span>▶</span>
+          <span data-en="Resume Lecture 14 Now">متابعة المحاضرة 14 الآن</span>
+        </a>
+      </div>
+    </article>
+  </section>
+
+  <!-- 3. Active Lecture Theater Master Deck -->
+  <section class="active-theater-card">
+    <div class="theater-header">
+      <div>
+        <span class="pill-badge pill-coral" data-en="In-Progress Lecture">محاضرة قيد الاستماع</span>
+        <h2 style="font-size:22px; font-weight:800; margin-top:6px;" data-en="Lecture 14: Quantitative Derivations of Lenz's Rule">المحاضرة 14: الاستنتاجات الرياضية لقانون فاراداي وقاعدة لينز</h2>
+        <p style="color:var(--ink-secondary); font-size:14px;" data-en="Instructor: Dr. Karim Abdel Moneim · Video Duration: 38:24 mins (Paused at 14:18)">
+          المحاضر: د. كريم عبد المنعم · المدة الكلية: 38 دقيقة (متوقفة عند الدقيقة 14:18)
+        </p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a class="btn btn-primary btn-sm" href="course-viewer.html" data-en="Expand Lecture Theater ↗">فتح شاشة العرض الكاملة ↗</a>
+      </div>
+    </div>
+
+    <div class="theater-split">
+      <div class="video-preview-box">
+        <!-- Floating Security Watermark Simulator -->
+        <div class="video-watermark">ITQ-4892 · 192.168.1.42</div>
+
+        <!-- Video Art Center Graphic -->
+        <div style="text-align:center;">
+          <a href="course-viewer.html" class="play-circle-pulse" aria-label="تشغيل المحاضرة">
+            <span style="color:var(--ink); margin-inline-start:3px;">▶</span>
+          </a>
+          <div style="color:var(--paper); margin-top:12px; font-weight:700; font-size:14px;" data-en="Click to resume playback from 14:18">
+            انقر لاستئناف المشاهدة من الدقيقة 14:18
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter Outline Inside This Lecture -->
+      <div style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <b style="font-size:15px; color:var(--ink); display:block; margin-bottom:12px;" data-en="Curriculum Timeline in this Lecture:">محطات الشرح في هذه المحاضرة:</b>
+          <div style="display:grid; gap:8px;">
+            <div style="background:var(--mint-tint); border:1.5px solid var(--mint); border-radius:var(--r-ctl); padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b style="color:var(--mint);">✓ المحطة 1: تجربة فاراداي الحثية</b>
+                <small style="display:block; color:var(--ink-secondary);">00:00 - 08:30</small>
+              </div>
+              <span class="pill-badge pill-mint" style="font-size:11px;">مكتمل</span>
+            </div>
+
+            <div style="background:var(--sun-tint); border:2px solid var(--ink); border-radius:var(--r-ctl); padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 0 var(--ink);">
+              <div>
+                <b style="color:var(--ink);">▶ المحطة 2: تحديد اتجاه التيار بقاعدة لينز</b>
+                <small style="display:block; color:var(--ink-secondary);">08:31 - 24:10 (أنت هنا)</small>
+              </div>
+              <span class="pill-badge pill-sun" style="font-size:11px;">الآن</span>
+            </div>
+
+            <div style="background:var(--cream); border:1.5px solid var(--line); border-radius:var(--r-ctl); padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b style="color:var(--ink-muted);">⏳ المحطة 3: حل المسائل الوزارية الصعبة</b>
+                <small style="display:block; color:var(--ink-secondary);">24:11 - 38:24</small>
+              </div>
+              <span class="pill-badge pill-subtle" style="font-size:11px;">قيد الانتظار</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <button class="btn btn-secondary btn-sm" style="width:100%;" data-modal-open="modal-formulas" data-en="Review Formulas for this Lecture">
+            استعراض معادلات هذه المحاضرة 📐
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Lower Bento: Weekly Academic Rhythm vs Proctored Exam Dossier -->
+  <section class="bento-lower">
+    
+    <!-- Weekly Study Rhythm -->
+    <article class="calendar-strip">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <h3 style="font-size:18px; font-weight:800; color:var(--ink);" data-en="Weekly Academic Rhythm">الجدول الدراسي الأسبوعي</h3>
+          <small style="color:var(--ink-secondary); font-weight:600;" data-en="Week 06: Electromagnetic Induction & Problem Sets">الأسبوع السادس: تطبيقات الحث وحل كراسة المسائل</small>
+        </div>
+        <span class="pill-badge pill-mint" data-en="5 / 7 Days Completed">5 من 7 أيام أنجزت بنجاح ✓</span>
+      </div>
+
+      <div class="calendar-days">
+        <div class="day-card completed">
+          <small>السبت</small>
+          <b>07</b>
+          <span style="color:var(--mint); font-size:11.5px; font-weight:700;">✓ أنجز</span>
+        </div>
+        <div class="day-card completed">
+          <small>الأحد</small>
+          <b>08</b>
+          <span style="color:var(--mint); font-size:11.5px; font-weight:700;">✓ أنجز</span>
+        </div>
+        <div class="day-card completed">
+          <small>الإثنين</small>
+          <b>09</b>
+          <span style="color:var(--mint); font-size:11.5px; font-weight:700;">✓ أنجز</span>
+        </div>
+        <div class="day-card active">
+          <small>الثلاثاء</small>
+          <b>10</b>
+          <span style="color:var(--ink); font-size:11.5px; font-weight:800;">اليوم ▶</span>
+        </div>
+        <div class="day-card">
+          <small>الأربعاء</small>
+          <b>11</b>
+          <span style="color:var(--ink-muted); font-size:11.5px;">تطبيقات 3</span>
+        </div>
+        <div class="day-card" style="border-color:var(--coral); background:var(--coral-tint);">
+          <small style="color:var(--coral); font-weight:800;">الخميس</small>
+          <b style="color:var(--coral);">12</b>
+          <span style="color:var(--coral); font-size:11.5px; font-weight:800;">امتحان ⏱️</span>
+        </div>
+        <div class="day-card">
+          <small>الجمعة</small>
+          <b>13</b>
+          <span style="color:var(--ink-muted); font-size:11.5px;">مراجعة</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Upcoming Proctored Examination Dossier -->
+    <article class="academic-card" style="background:var(--sun-tint); display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span class="pill-badge pill-coral" data-en="Upcoming Proctored Exam">امتحان مقنن قادم</span>
+          <span style="font-family:var(--f-mono); font-size:13px; font-weight:700; color:var(--coral);">45 دقيقة</span>
+        </div>
+        <h3 style="font-size:19px; font-weight:800; color:var(--ink);" data-en="Comprehensive Exam: Induction & Lenz's Law">الامتحان التراكمي: الحث الكهرومغناطيسي وقاعدة لينز</h3>
+        <p style="color:var(--ink-secondary); font-size:13.5px; line-height:1.5; margin-top:6px;" data-en="Scheduled for Thursday 12 Nov at 10:00 AM CLT. Requires single authorized workstation.">
+          الموعد: الخميس 12 نوفمبر في تمام 10:00 صباحاً. يتطلب فتح الامتحان من جهازك المعتمد حصراً.
+        </p>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:10px;">
+        <a class="btn btn-coral btn-sm" style="flex:1;" href="exam-taking.html" data-en="Simulate Exam ⏱️">معاينة بيئة الامتحان ⏱️</a>
+        <a class="btn btn-secondary btn-sm" href="student-devices.html" data-en="Check Device 🔒">فحص توثيق الجهاز 🔒</a>
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<!-- Formula Cheat-Sheet Modal -->
+<div class="modal-overlay" id="modal-formulas" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:640px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--line); padding-bottom:14px; margin-bottom:18px;">
+      <h3 style="font-size:22px; font-weight:800; color:var(--ink);" data-en="Physics Formula Cheat-Sheet">مسودة القوانين والمعادلات السريعة</h3>
+      <button class="btn btn-sm btn-ghost" data-modal-close style="font-size:18px;">✕</button>
+    </div>
+
+    <div style="display:grid; gap:14px; max-height:400px; overflow-y:auto;">
+      <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b style="color:var(--ink); font-size:14.5px; display:block;">قانون فاراداي للحث الكهرومغناطيسي:</b>
+          <span class="formula-tag" style="margin-top:4px;">emf = -N · (ΔΦ / Δt)</span>
+        </div>
+        <button class="btn btn-sm btn-secondary" data-copy="emf = -N (\Delta \Phi / \Delta t)">نسخ</button>
+      </div>
+
+      <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b style="color:var(--ink); font-size:14.5px; display:block;">القوة الدافعة المتولدة في سلك مستقيم:</b>
+          <span class="formula-tag" style="margin-top:4px;">emf = -B · L · v · sin θ</span>
+        </div>
+        <button class="btn btn-sm btn-secondary" data-copy="emf = -B \cdot L \cdot v \cdot \sin \theta">نسخ</button>
+      </div>
+
+      <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:var(--r-ctl); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b style="color:var(--ink); font-size:14.5px; display:block;">معامل الحث الذاتي لملف لولبي:</b>
+          <span class="formula-tag" style="margin-top:4px;">L = μ · A · N² / l</span>
+        </div>
+        <button class="btn btn-sm btn-secondary" data-copy="L = \mu \cdot A \cdot N^2 / l">نسخ</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; text-align:end;">
+      <button class="btn btn-secondary btn-sm" data-modal-close data-en="Close">إغلاق المسودة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة لوحة الطالب">
+  <span class="demo-toolbar-label" data-en="Student Portal States:">حالات بوابة الطالب:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="normal" aria-pressed="true" data-en="Normal">الوضع الطبيعي</button>
+    <button class="demo-btn" type="button" data-state="exam" aria-pressed="false" data-en="Active Exam Live">امتحان منعقد الآن</button>
+    <button class="demo-btn" type="button" data-state="announcement" aria-pressed="false" data-en="Faculty Note">إعلان أستاذ المادة</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v2.js"></script>
+</body>
+</html>

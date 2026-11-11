@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>صندوق طلبات الطلاب والأجهزة · إدارة منصة إتقان</title>
+<meta name="description" content="Itqan request inbox: device transfer approvals, remote sign-out, and support tickets.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shared/itqan.css">
+<style>
+  .req-layout { max-width: var(--page); margin: 24px auto 80px; padding: 0 var(--gutter); display: grid; gap: 32px; }
+  
+  /* Top card */
+  .req-hero {
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: var(--r-panel);
+    padding: 24px 32px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  }
+  .req-hero h1 { font-size: 26px; font-weight: 800; }
+
+  /* Tabs strip */
+  .req-tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--line); padding-bottom: 12px; }
+  .req-tab-btn {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 18px;
+    font-family: var(--f-display); font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 2px 0 var(--ink);
+  }
+  .req-tab-btn[aria-selected="true"] { background: var(--sun); }
+
+  /* Request Card */
+  .request-card {
+    background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card);
+    padding: 24px; box-shadow: var(--shadow); margin-bottom: 18px; display: grid; gap: 16px;
+    transition: all .2s;
+  }
+  .request-card.approved { background: var(--mint-tint); border-color: var(--mint); }
+  .req-head { display: flex; justify-content: space-between; align-items: start; border-bottom: 1.5px solid var(--line); padding-bottom: 14px; }
+  
+  .compare-devices {
+    background: var(--cream); border: 1.5px solid var(--ink); border-radius: 12px;
+    padding: 14px 18px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;
+  }
+  .dev-box { font-size: 14.5px; }
+  .dev-box b { display: block; font-size: 15px; color: var(--ink); margin-bottom: 2px; }
+  .dev-box small { color: var(--ink-2); }
+
+  /* Demo bar */
+  .demo-bar {
+    position: fixed; bottom: 16px; inset-inline: 16px; max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 100;
+  }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btns button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+  }
+  .demo-btns button[aria-pressed="true"] { background: var(--sun); color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 800px) {
+    .compare-devices { grid-template-columns: 1fr; }
+    .req-head { flex-direction: column; gap: 10px; }
+    .req-hero { flex-direction: column; align-items: start; }
+  }
+</style>
+</head>
+<body data-state="pending" data-title-en="Student Request Inbox · Itqan Management">
+<a class="skip" href="#main" data-en="Skip to requests">تخطّ إلى الطلبات</a>
+
+<!-- Top navigation -->
+<header class="topbar">
+  <a class="brand" href="ahmd-teacher-dashboard.html">
+    <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#1A1712"/><path d="M13 30 L22 13 L31 30" fill="none" stroke="#FFC22E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 25 l3.5 3.5 6.5 -7" fill="none" stroke="#FFFDF8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span><span class="brand-name" data-en="Itqan · Requests Inbox">إتقان · صندوق الطلبات</span><span class="brand-sub" data-en="Device Approvals (FR-D06)">الموافقة على الأجهزة والدعم</span></span>
+  </a>
+  <div class="topbar-actions">
+    <a class="btn btn-sm btn-ghost" href="ahmd-teacher-dashboard.html" data-en="← Dashboard">← لوحة الإدارة</a>
+    <button class="lang" type="button">English</button>
+  </div>
+</header>
+
+<main id="main" class="req-layout">
+  
+  <!-- Hero summary -->
+  <section class="req-hero">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:var(--sun-tint); border:1.5px solid var(--ink); border-radius:8px; padding:4px 10px; font-size:13px; font-weight:700; margin-bottom:6px;">
+        <span>🔒</span> <span data-en="Anti-Sharing Security Queue">طابور الأمان ومنع مشاركة الحسابات</span>
+      </div>
+      <h1 data-en="Student Device & Session Requests">طلبات نقل الأجهزة وإنهاء الجلسات</h1>
+      <p style="color:var(--ink-2); font-size:14.5px; margin-top:4px;" data-en="Approve requests to allow students to log in from their new computer without compromising security.">
+        بضغطة واحدة، يمكنك اعتماد نقل حساب الطالب إلى جهازه الجديد أو إغلاق جلسته المنسية في جهاز آخر.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <span class="c-badge" style="background:#FDE8E4; color:var(--coral); font-size:15px; padding:6px 14px;" data-en="3 Urgent Pending">3 طلبات معلقة ⚠️</span>
+    </div>
+  </section>
+
+  <!-- Filter tabs -->
+  <div class="req-tabs" role="tablist">
+    <button class="req-tab-btn" role="tab" aria-selected="true" data-en="Device Transfers (3)">طلبات نقل الأجهزة (3)</button>
+    <button class="req-tab-btn" role="tab" aria-selected="false" data-en="Sign-Out Other Sessions (1)">إنهاء الجلسات العالقة (1)</button>
+    <button class="req-tab-btn" role="tab" aria-selected="false" data-en="General Questions (4)">استفسارات عامة (4)</button>
+  </div>
+
+  <!-- Requests List -->
+  <section>
+    
+    <!-- Request Card 1 -->
+    <article class="request-card" id="c-req-1">
+      <div class="req-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+            <b style="font-size:17.5px;" data-en="Ahmed Ayman">أحمد أيمن</b>
+            <span class="c-badge" data-en="Physics 3rd Secondary">فيزياء 3 ثانوي</span>
+            <small style="color:var(--mint); font-weight:700;">● اشتراك مدفوع مفعّل</small>
+          </div>
+          <p style="color:var(--ink-2); font-size:14px; direction:ltr; text-align:start;">ahmed@itqan.edu · 01029384756 · National ID: 29804120104829</p>
+        </div>
+        <span style="font-size:13px; color:var(--ink-3);" data-en="Submitted: 2 hours ago">منذ ساعتين (اليوم 08:30 ص)</span>
+      </div>
+
+      <!-- Compare Devices Box -->
+      <div class="compare-devices">
+        <div class="dev-box">
+          <small data-en="Current Registered Device:">الجهاز القديم المسجل:</small>
+          <b data-en="Samsung Galaxy Phone (Android 13)">هاتف Samsung Galaxy (Android 13)</b>
+          <small style="direction:ltr;">IP: 156.204.18.92 · Last: Yesterday</small>
+        </div>
+
+        <div style="font-size:24px; color:var(--honey); font-weight:900;">➔</div>
+
+        <div class="dev-box">
+          <small data-en="Requested New Device:">الجهاز الجديد المطلوب اعتماده:</small>
+          <b style="color:var(--mint);" data-en="HP Pavilion Laptop (Windows 11 · Chrome 124)">لابتوب HP Pavilion (Windows 11 · Chrome 124)</b>
+          <small style="direction:ltr;">IP: 156.204.22.40 · Cairo, Egypt</small>
+        </div>
+      </div>
+
+      <!-- Student Reason -->
+      <div style="background:var(--paper); border:1.5px solid var(--sun); border-radius:10px; padding:12px 16px;">
+        <b style="color:var(--honey); font-size:14px; display:block; margin-bottom:4px;" data-en="Student's Reason:">رسالة الطالب للمدرس:</b>
+        <p style="font-size:14.5px; color:var(--ink);" data-en="My phone screen shattered during study. I bought this laptop to watch the rest of Chapter 3 lectures and enter the Thursday exam. Please approve!">
+          "يا مستر شاشة الهاتف انكسرت تمامًا واشتريت لابتوب جديد للمذاكرة والامتحان. محتاج افتح المحاضرات عشان الحق كويز الخميس. شكرًا لحضرتك!"
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <a class="btn btn-sm btn-ghost" href="https://wa.me/201029384756" target="_blank" data-en="Chat on WhatsApp">تواصل واتساب مع الطالب 💬</a>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-sm btn-light" type="button" data-en="Reject">رفض الطلب</button>
+          <button class="btn btn-sm" style="background:var(--mint);" onclick="approveReq('c-req-1')" data-en="Approve & Switch Device ✓">موافقة ونقل الترخيص فورًا ✓</button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Request Card 2 (Remote Sign-out) -->
+    <article class="request-card" id="c-req-2">
+      <div class="req-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+            <b style="font-size:17.5px;" data-en="Ziad Tarek">زياد طارق</b>
+            <span class="c-badge" data-en="Kirchhoff Workshop">ورشة كيرشوف</span>
+          </div>
+          <p style="color:var(--ink-2); font-size:14px; direction:ltr; text-align:start;">ziad@gmail.com · 01284920194</p>
+        </div>
+        <span class="c-badge" style="background:var(--sun-tint);" data-en="Sign-Out Request">إنهاء جلسة عالقة</span>
+      </div>
+
+      <div style="background:var(--cream); border:1.5px solid var(--ink); border-radius:12px; padding:14px;">
+        <b style="font-size:14.5px; display:block; margin-bottom:4px;" data-en="Issue: Session Active on Library Computer">المشكلة: الحساب مفتوح في جهاز مكتبة المدرسة</b>
+        <p style="color:var(--ink); font-size:14px;" data-en="Student forgot to log out at school. He cannot log in from his home laptop due to SESSION_ON_OTHER_DEVICE rule.">
+          الطالب نسي تسجيل الخروج من جهاز المدرسة ولا يستطيع الدخول من لابتوبه الشخصي في البيت بسبب قاعدة الجلسة الواحدة النشطة.
+        </p>
+      </div>
+
+      <div style="display:flex; justify-content:end; gap:10px; margin-top:6px;">
+        <button class="btn btn-sm btn-light" type="button" data-en="Dismiss">تجاهل</button>
+        <button class="btn btn-sm" style="background:var(--mint);" onclick="approveReq('c-req-2')" data-en="Terminate Other Session ✓">إنهاء الجلسة القديمة فورًا ✓</button>
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<script src="shared/itqan.js"></script>
+<script>
+  function approveReq(id) {
+    const card = document.getElementById(id);
+    card.classList.add('approved');
+    card.querySelector('button[style*="mint"]').textContent = 'تم التفعيل بنجاح ✓';
+    card.querySelector('button[style*="mint"]').disabled = true;
+  }
+</script>
+</body>
+</html>

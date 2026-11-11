@@ -3,32 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>شاشات إتقان التجريبية</title>
-<meta name="description" content="Itqan test screens: the visual direction from the owner's references.">
+<title>دليل شاشات منصة إتقan التعليمية</title>
+<meta name="description" content="Itqan full UI prototype: complete student, teacher, admin, and security screens.">
 <meta name="theme-color" content="#FFC22E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2713%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E%3Ccircle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E%3Cellipse cx=%2722%27 cy=%2722%27 rx=%2713%27 ry=%275.5%27 fill=%27none%27 stroke=%27%231A1712%27 stroke-width=%272.4%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="shared/itqan.css">
 <style>
   .wrap { max-width: var(--page); margin: 0 auto; padding: 0 var(--gutter); }
   .intro { padding: 28px 0 36px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 32px; align-items: end; }
-  .intro h1 { font-size: clamp(36px, 4.4vw, 60px); font-weight: 800; }
-  .intro p { color: var(--ink-2); margin-top: 12px; max-width: 58ch; }
+  .intro h1 { font-size: clamp(36px, 4.4vw, 56px); font-weight: 800; }
+  .intro p { color: var(--ink-2); margin-top: 12px; max-width: 62ch; font-size: 16.5px; }
+  
+  .cat-title { font-size: 26px; font-weight: 800; margin: 48px 0 18px; display: flex; align-items: center; gap: 12px; }
+  .cat-badge { background: var(--sun-tint); border: 1.5px solid var(--ink); padding: 4px 12px; border-radius: 8px; font-size: 14px; }
+
   .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
-  .shot { display: block; text-decoration: none; background: var(--paper); border-radius: var(--r-card); box-shadow: var(--shadow); overflow: hidden; transition: transform .25s var(--ease-out), box-shadow .25s; }
-  .shot:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+  .shot { display: block; text-decoration: none; background: var(--paper); border-radius: var(--r-card); box-shadow: var(--shadow); overflow: hidden; transition: transform .25s var(--ease-out), box-shadow .25s; border: 2px solid var(--ink); }
+  .shot:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
   .frame { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--cream); border-bottom: 2px solid var(--line); }
   .frame iframe { position: absolute; top: 0; inset-inline-start: 0; width: 1440px; height: 900px; border: 0; transform: scale(var(--s, .27)); transform-origin: top right; pointer-events: none; }
   [dir="ltr"] .frame iframe { transform-origin: top left; }
   .shot .meta { padding: 16px 18px 18px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-  .shot b { font-family: var(--f-display); font-size: 20px; display: block; }
-  .shot small { color: var(--ink-2); font-size: 14px; }
-  .shot .icon-btn { transition: transform .25s var(--ease-out); }
+  .shot b { font-family: var(--f-display); font-size: 19px; display: block; margin-bottom: 3px; }
+  .shot small { color: var(--ink-2); font-size: 13.5px; }
+  .shot .icon-btn { transition: transform .25s var(--ease-out); flex: none; }
   .shot:hover .icon-btn { transform: translateX(-4px); }
   [dir="ltr"] .shot:hover .icon-btn { transform: translateX(4px); }
 
   h2.sec { font-size: 28px; font-weight: 800; margin: 64px 0 20px; }
   .sys { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  .card { background: var(--paper); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 24px; }
+  .card { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 24px; }
   .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
   .sw { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
   .sw i { display: block; height: 58px; border-radius: 12px; border: 2px solid var(--ink); }
@@ -39,23 +43,16 @@
   .t-display { font-family: var(--f-display); font-weight: 800; font-size: 40px; line-height: 1.15; }
   .t-body { font-size: 17px; }
   .t-hand { font-family: var(--f-hand); font-size: 22px; }
-  .refs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
-  .refs a { display: block; border-radius: 14px; overflow: hidden; aspect-ratio: 1; background: var(--paper); box-shadow: var(--shadow); transition: transform .25s var(--ease-out); }
-  .refs a:hover { transform: translateY(-3px); }
-  .refs img { width: 100%; height: 100%; object-fit: cover; }
-  .rules { margin: 0; padding-inline-start: 20px; color: var(--ink-2); display: grid; gap: 8px; }
-  .rules b { color: var(--ink); }
-  footer { margin: 64px 0 40px; color: var(--ink-3); font-size: 14px; }
 
-  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } .refs { grid-template-columns: repeat(4, 1fr); } .intro, .sys { grid-template-columns: 1fr; } }
-  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } .swatches { grid-template-columns: repeat(2, 1fr); } .wrap { padding: 0 16px; } }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } .intro, .sys { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } .swatches { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
-<body data-title-en="Itqan test screens">
+<body data-title-en="Itqan Complete UI Prototype Suite">
 <header class="topbar">
   <a class="brand" href="index.html">
     <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true"><rect x="2" y="2" width="40" height="40" rx="13" fill="#1A1712"/><path d="M13 30 L22 13 L31 30" fill="none" stroke="#FFC22E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 25 l3.5 3.5 6.5 -7" fill="none" stroke="#FFFDF8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span><span class="brand-name" data-en="Itqan">إتقان</span><span class="brand-sub" data-en="Test screens">شاشات تجريبية</span></span>
+    <span><span class="brand-name" data-en="Itqan">إتقان</span><span class="brand-sub" data-en="Complete Prototype Suite">دليل الشاشات الكامل</span></span>
   </a>
   <div class="topbar-actions"><button class="lang" type="button">English</button></div>
 </header>
@@ -63,20 +60,134 @@
 <main class="wrap">
   <section class="intro">
     <div>
-      <h1 data-en="Test screens from your references">شاشات تجريبية من مراجعك</h1>
-      <p data-en="Five screens in plain HTML, CSS and JS. The layout follows the yellow shop UI; every illustration is a new animated SVG in the black-ink, yellow-sweater style, with the same student across all screens. Open one, try its states from the bar at the bottom, and switch to English to check LTR.">خمس شاشات بـ HTML وCSS وJS فقط. التخطيط من واجهة المتجر الصفراء، وكل رسمة SVG متحركة جديدة بأسلوب الخط الأسود والكنزة الصفراء، بنفس الطالب في كل الشاشات. افتح أي شاشة، وجرّب حالاتها من الشريط السفلي، وبدّل للإنجليزية لتراجع اتجاه LTR.</p>
+      <h1 data-en="Itqan Complete Interactive UI Suite">شاشات منصة إتقان التفاعلية الكاملة</h1>
+      <p data-en="A complete suite of production-fidelity sketches built with pure HTML, CSS, and JS. Every screen features dynamic bilingual RTL/LTR switching, interactive preview state bars, and hand-crafted animated SVGs in the yellow-sweater ink aesthetic.">
+        مجموعة شاملة لكافة صفحات المنصة (الطلاب، المدرسين، إدارة النظام، والأمان). تعتمد التصميم الأصيل المستوحى من مراجعك، بأسلوب الحبر الأسود والكنزة الصفراء، مع دعم ثنائي اللغة (عربي/إنجليزي) وتغيير الحالات التفاعلية.
+      </p>
     </div>
   </section>
 
+  <!-- Category 1: Student Portal -->
+  <h2 class="cat-title"><span class="cat-badge">بوابة الطالب (/learn)</span> <span data-en="Student Portal">شاشات تجربة التعلم والاختبار</span></h2>
   <div class="grid">
-    <a class="shot" href="hero.html"><div class="frame"><iframe src="hero.html" title="hero" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Hero section">الواجهة الرئيسية</b><small data-en="Climbing the checklist stairs">صعود سلم المهام</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
-    <a class="shot" href="login.html"><div class="frame"><iframe src="login.html" title="login" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Log in">تسجيل الدخول</b><small data-en="Waving from the desk · 4 states">تلويح من المكتب · ٤ حالات</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
-    <a class="shot" href="signup.html"><div class="frame"><iframe src="signup.html" title="signup" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Sign up with a code">إنشاء حساب بالكود</b><small data-en="Holding up the ticket · 3 states">رفع تذكرة الكود · ٣ حالات</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
-    <a class="shot" href="forgot-password.html"><div class="frame"><iframe src="forgot-password.html" title="forgot password" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Forgot password">نسيت كلمة السر</b><small data-en="Tangled thoughts → paper plane">أفكار متشابكة ← طائرة ورقية</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
-    <a class="shot" href="how-it-works.html"><div class="frame"><iframe src="how-it-works.html" title="how it works" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="How it works">كيف تبدأ</b><small data-en="Four animated steps">٤ خطوات متحركة</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="ahmd-student-dashboard.html">
+      <div class="frame"><iframe src="ahmd-student-dashboard.html" title="dashboard" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Student Dashboard">لوحة تحكم الطالب</b><small data-en="Desk study SVG · Course cards · Active exams">استئناف المحاضرات · نسبة الإنجاز</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-course-viewer.html">
+      <div class="frame"><iframe src="ahmd-course-viewer.html" title="viewer" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Course Player & Watermark">مشغل المحاضرات والعلامة المائية</b><small data-en="Faraday coil SVG · Moving watermark · Q&A">منع تصوير الشاشة · شجرة الدروس</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-exam-taking.html">
+      <div class="frame"><iframe src="ahmd-exam-taking.html" title="exam" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Live Exam Interface">قاعة الامتحان التفاعلية</b><small data-en="Timer · Question navigator · Circuit diagram">مؤقت زمني · حفظ تلقائي · منع الغش</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-student-results.html">
+      <div class="frame"><iframe src="ahmd-student-results.html" title="results" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Exam Results & Review">النتيجة والمراجعة النموذجية</b><small data-en="Score gauge · Question breakdown · Teacher note">تحليل الإجابات الصحيحة والخاطئة</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-student-devices.html">
+      <div class="frame"><iframe src="ahmd-student-devices.html" title="devices" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Device Management">أجهزتي وأمان الحساب</b><small data-en="Single device binding · Transfer request">الجهاز المعتمد · طلب نقل الترخيص</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
   </div>
 
-  <h2 class="sec" data-en="The system in one look">النظام في لمحة</h2>
+  <!-- Category 2: Teacher & Staff Portal -->
+  <h2 class="cat-title"><span class="cat-badge">إدارة المنصة للمعلم (/manage)</span> <span data-en="Teacher & Staff Portal">لوحة تحكم الأستاذ والمناهج</span></h2>
+  <div class="grid">
+    <a class="shot" href="ahmd-teacher-dashboard.html">
+      <div class="frame"><iframe src="ahmd-teacher-dashboard.html" title="teacher dash" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Teacher Overview">نظرة عامة للمعلم</b><small data-en="Teacher chalkboard SVG · Urgent queue · Stats">إحصائيات الطلاب · طلبات الأجهزة العاجلة</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-course-editor.html">
+      <div class="frame"><iframe src="ahmd-course-editor.html" title="editor" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Curriculum & R2 Uploader">محرر المنهج والرفع السحابي</b><small data-en="Drag-and-drop tree · Cloudflare R2 upload">تنظيم الفصول والدروس · رفع الفيديوهات</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-quiz-builder.html">
+      <div class="frame"><iframe src="ahmd-quiz-builder.html" title="quiz builder" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Quiz Builder & Bank">منشئ الامتحانات وبنك الأسئلة</b><small data-en="Anti-cheat toggles · MCQ & formulas editor">تحديد مدة الامتحان وشروط منع الغش</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-requests-management.html">
+      <div class="frame"><iframe src="ahmd-requests-management.html" title="requests" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Requests & Approvals">صندوق الطلبات والموافقات</b><small data-en="Compare old vs new device · 1-click approve">اعتماد أجهزة الطلاب وتفعيل الدخول</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Category 3: Platform Super Admin & Security -->
+  <h2 class="cat-title"><span class="cat-badge">الإدارة المركزية والأمان</span> <span data-en="Super Admin & Security Gateways">إدارة المستأجرين وبوابات الحظر</span></h2>
+  <div class="grid">
+    <a class="shot" href="ahmd-admin-tenants.html">
+      <div class="frame"><iframe src="ahmd-admin-tenants.html" title="tenants" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Super Admin: Tenants">إدارة المدرسين (Tenants)</b><small data-en="Multi-tenant table · Storage & student quotas">إنشاء أكاديميات جديدة وتحديد الحصص</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-blocked.html">
+      <div class="frame"><iframe src="ahmd-blocked.html" title="blocked" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="Security Blocked Screen">شاشة حظر ومحددات الأمان</b><small data-en="Animated padlock SVG · Device limit notice">إشعار حظر مشاركة الحساب أو الجلسة</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+
+    <a class="shot" href="ahmd-error-404.html">
+      <div class="frame"><iframe src="ahmd-error-404.html" title="404" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div>
+      <div class="meta">
+        <span><b data-en="404 & Error Screen">صفحة 404 والخطأ</b><small data-en="Animated flashlight SVG · 404 & 500 states">توجيه الطالب وإرشاده للوحة التحكم</small></span>
+        <span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Category 4: Public Site & Authentication -->
+  <h2 class="cat-title"><span class="cat-badge">الواجهة العامة والتسجيل</span> <span data-en="Public & Authentication">الهبوط والمصادقة</span></h2>
+  <div class="grid">
+    <a class="shot" href="hero.html"><div class="frame"><iframe src="hero.html" title="hero" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Hero Landing">الواجهة الرئيسية</b><small data-en="Climbing stairs SVG · Course strip">هبوط الكورس واستعراض الدروس</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="login.html"><div class="frame"><iframe src="login.html" title="login" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Log In">تسجيل الدخول</b><small data-en="4 Security preview states">فحص كلمة المرور والأجهزة</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="signup.html"><div class="frame"><iframe src="signup.html" title="signup" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Code Redemption">إنشاء حساب بالكود</b><small data-en="Scratch code · Form validation">تفعيل أكواد الملازم الورقية</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="ahmd-join.html"><div class="frame"><iframe src="ahmd-join.html" title="join" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Invitation Registration">التسجيل بدعوة المعلم</b><small data-en="Guardian consent checkbox (FR-A06)">إقرار ولي الأمر والموافقة</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="forgot-password.html"><div class="frame"><iframe src="forgot-password.html" title="forgot password" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Forgot Password">نسيت كلمة السر</b><small data-en="Paper plane SVG · Resend cooldown">إرسال رابط الاستعادة للبريد</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+    <a class="shot" href="ahmd-reset-password.html"><div class="frame"><iframe src="ahmd-reset-password.html" title="reset password" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><div class="meta"><span><b data-en="Set New Password">تعيين كلمة السر الجديدة</b><small data-en="Password match validation">تحديث أمان الحساب</small></span><span class="icon-btn" aria-hidden="true"><svg class="flip-rtl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></a>
+  </div>
+
+  <!-- Design System Tokens -->
+  <h2 class="sec" data-en="Design Tokens & Type Spec">النظام في لمحة</h2>
   <div class="sys">
     <div class="card">
       <div class="swatches">
@@ -91,40 +202,19 @@
       </div>
     </div>
     <div class="card">
-      <div class="type-row"><small>Baloo Bhaijaan 2 · 800 · headings</small><div class="t-display">الفيزياء خطوة بخطوة</div></div>
-      <div class="type-row"><small>Readex Pro · 400 · body, forms</small><div class="t-body">محاضرات مسجّلة وامتحانات تُصحَّح فورًا. Lectures and exams.</div></div>
-      <div class="type-row"><small>Playpen Sans Arabic · 600 · hand notes (sparingly)</small><div class="t-hand">ملاحظة بخط اليد ✓</div></div>
+      <div class="type-row"><small>Baloo Bhaijaan 2 · 800 · headings</small><div class="t-display">الفيزياء خطوة بخطوة للإتقان</div></div>
+      <div class="type-row"><small>Readex Pro · 400 · body, forms</small><div class="t-body">محاضرات مسجّلة وامتحانات تُصحَّح فورًا مع حماية متكاملة.</div></div>
+      <div class="type-row"><small>Playpen Sans Arabic · 600 · hand notes</small><div class="t-hand">ملاحظة أ. كريم بخط اليد ✓</div></div>
     </div>
   </div>
 
-  <h2 class="sec" data-en="Rules we took from the references">قواعد أخذناها من المراجع</h2>
-  <div class="card">
-    <ul class="rules">
-      <li data-en="Big yellow rounded panels carry the art; forms sit on paper cards beside them."><b>الألواح الصفراء المستديرة</b> تحمل الرسوم، والنماذج على بطاقات ورقية بجانبها.</li>
-      <li data-en="One character everywhere: curly black hair, yellow sweater, black ink lines, white skin fill."><b>شخصية واحدة</b> في كل مكان: شعر أسود مجعد، كنزة صفراء، خطوط حبر سوداء.</li>
-      <li data-en="Red and blue appear only as small accents: dots, checks, the flag."><b>الأحمر والأزرق</b> لمسات صغيرة فقط: نقاط، علامات صح، العلم.</li>
-      <li data-en="Dashed connector lines and thought bubbles link ideas, as in the ink references."><b>خطوط منقطة وفقاعات تفكير</b> تربط الأفكار كما في رسومات الحبر.</li>
-      <li data-en="Buttons: ink outline with a short ink drop shadow; they lift on hover and press on click."><b>الأزرار</b> بإطار أسود وظل قصير، ترتفع عند المرور وتنضغط عند الضغط.</li>
-    </ul>
-  </div>
-
-  <h2 class="sec" data-en="Your references">مراجعك</h2>
-  <div class="refs">
-    <a href="references/08-shop-ui-full.webp"><img src="references/08-shop-ui-full.webp" alt="Shop UI full page" loading="lazy"></a>
-    <a href="references/01-shop-ui-angle.jpg"><img src="references/01-shop-ui-angle.jpg" alt="Shop UI hero" loading="lazy"></a>
-    <a href="references/02-ink-overwhelmed.jpg"><img src="references/02-ink-overwhelmed.jpg" alt="Ink: overwhelmed student" loading="lazy"></a>
-    <a href="references/03-ink-clock.jpg"><img src="references/03-ink-clock.jpg" alt="Ink: carrying a clock" loading="lazy"></a>
-    <a href="references/04-ink-stairs.jpg"><img src="references/04-ink-stairs.jpg" alt="Ink: checklist stairs" loading="lazy"></a>
-    <a href="references/05-flat-tutor.jpg"><img src="references/05-flat-tutor.jpg" alt="Flat: online tutor" loading="lazy"></a>
-    <a href="references/06-cap-3d.jpg"><img src="references/06-cap-3d.jpg" alt="3D graduation cap" loading="lazy"></a>
-    <a href="references/07-cap-poster.jpg"><img src="references/07-cap-poster.jpg" alt="Poster: cap with stairs" loading="lazy"></a>
-  </div>
-
-  <footer data-en="Test screens only. The teacher name, course and code are made up for preview.">شاشات تجريبية فقط. اسم المدرس والكورس والكود أمثلة للمعاينة.</footer>
+  <footer style="margin:64px 0 40px; color:var(--ink-3); font-size:14px; text-align:center;" data-en="Itqan Interactive Design Prototypes · Developed for Mohand Hatem">
+    شاشات منصة إتقان التفاعلية الكاملة · تصميم وهندسة واجهات مخصصة
+  </footer>
 </main>
+
 <script src="shared/itqan.js"></script>
 <script>
-  // scale each live preview to its card width
   const fit = () => document.querySelectorAll('.frame').forEach((f) => f.style.setProperty('--s', f.clientWidth / 1440));
   addEventListener('resize', fit); fit();
 </script>

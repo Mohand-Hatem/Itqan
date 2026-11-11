@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بوابة الأمان والامتثال الأكاديمي · أكاديمية إتقان للفيزياء</title>
+<meta name="description" content="Itqan v2: Re-architected institutional security boundary, cryptographic vault gate vector, hardware diagnostics, and V1 signature palette.">
+<meta name="theme-color" content="#FFC22E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 44 44%27%3E%3Crect x=%272%27 y=%272%27 width=%2740%27 height=%2740%27 rx=%2712%27 fill=%27%23FFC22E%27 stroke=%27%231A1712%27 stroke-width=%273%27/%3E<circle cx=%2722%27 cy=%2722%27 r=%274%27 fill=%27%231A1712%27/%3E</svg>">
+<link rel="stylesheet" href="shared/itqan-v2.css">
+<style>
+  .blocked-wrapper {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px var(--gutter);
+  }
+  .blocked-dossier-card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: var(--r-panel);
+    max-width: 760px;
+    width: 100%;
+    padding: clamp(32px, 5vw, 48px);
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    gap: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .blocked-dossier-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 6px;
+    background: var(--coral);
+  }
+
+  .state-pane { display: none; }
+  [data-state="device-mismatch"] #pane-device { display: grid; gap: 16px; }
+  [data-state="concurrent-session"] #pane-session { display: grid; gap: 16px; }
+  [data-state="admin-hold"] #pane-hold { display: grid; gap: 16px; }
+
+  .spec-detail-box {
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: var(--r-ctl);
+    padding: 16px 20px;
+    text-align: start;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+</style>
+</head>
+<body data-state="device-mismatch" data-title-en="Institutional Security Notice · Itqan Academy">
+<a class="skip" href="#main" data-en="Skip to notice">تخطّ إلى الإشعار</a>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="hero.html">
+      <div class="brand-crest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1712" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div class="brand-text">
+        <b data-en="Itqan Physics Academy">أكاديمية إتقان للفيزياء</b>
+        <small data-en="Institutional Honor Code Boundary">بوابة الامتثال الأكاديمي والنزاهة</small>
+      </div>
+    </a>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button class="lang-btn" type="button">English</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="blocked-wrapper">
+  
+  <article class="blocked-dossier-card">
+    
+    <!-- Bespoke Security Boundary Vault Gate Vector SVG -->
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 340 180" width="100%" height="auto" style="max-height:170px;" aria-label="رسم بياني لبوابة الأمان الأكاديمي المقفلة">
+        <!-- Classical Portico Arch Columns (Ink Charcoal) -->
+        <rect x="30" y="30" width="280" height="135" rx="10" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+        <line x1="30" y1="46" x2="310" y2="46" stroke="#1A1712" stroke-width="3"/>
+
+        <!-- Vault Circular Outer Gear Rim -->
+        <circle cx="170" cy="100" r="54" fill="#FFF6E2" stroke="#1A1712" stroke-width="3"/>
+        <circle cx="170" cy="100" r="46" fill="none" stroke="#F2A60C" stroke-width="2" stroke-dasharray="6 4"/>
+
+        <!-- Heavy Padlock Body in Sun Yellow (#FFC22E) -->
+        <path d="M 152 88 L 152 70 C 152 58 188 58 188 70 L 188 88" fill="none" stroke="#1A1712" stroke-width="4.5" stroke-linecap="round"/>
+        <rect x="144" y="86" width="52" height="38" rx="6" fill="#FFC22E" stroke="#1A1712" stroke-width="2.5"/>
+        <circle cx="170" cy="102" r="5" fill="#1A1712"/>
+        <polygon points="167,102 173,102 171,114 169,114" fill="#1A1712"/>
+
+        <!-- Coral Red Security Warning Laser Beams -->
+        <line x1="50" y1="100" x2="110" y2="100" stroke="#E9502E" stroke-width="2" stroke-dasharray="4 3"/>
+        <line x1="230" y1="100" x2="290" y2="100" stroke="#E9502E" stroke-width="2" stroke-dasharray="4 3"/>
+
+        <!-- Status Tag Top -->
+        <rect x="110" y="18" width="120" height="22" rx="4" fill="#E9502E"/>
+        <text x="170" y="33" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="bold" fill="#FFFDF8">SECURITY BOUNDARY</text>
+      </svg>
+    </div>
+
+    <!-- State 1: Device Mismatch (Default) -->
+    <div class="state-pane" id="pane-device">
+      <div style="display:flex; justify-content:center;">
+        <span class="pill-badge pill-coral" data-en="Unregistered Workstation">جهاز غير مصرح به حالياً</span>
+      </div>
+      <h1 style="font-size:clamp(22px, 2.8vw, 28px); font-weight:800; color:var(--ink);" data-en="Candidate Bound to Another Registered Workstation">هذا الحساب الأكاديمي مقيد بجهاز دراسي آخر معتمد</h1>
+      <p style="font-size:15px; color:var(--ink-secondary); line-height:1.6;" data-en="In compliance with departmental single-workstation regulations (ADR-004), your academic credentials can only be actively used on your designated registered computer.">
+        حفاظاً على نزاهة امتحانات الثانوية العامة وتكافؤ الفرص، يُصرح للطالب بالوصول للمحاضرات وبنك الامتحانات من محطة عمل واحدة معتمدة حصراً. للدخول من هذا الجهاز الجديد، يرجى تقديم التماس رسمي لتحديث شهادة العتاد.
+      </p>
+
+      <div class="spec-detail-box">
+        <div>
+          <b style="font-size:14.5px; color:var(--ink); display:block;" data-en="Registered Workstation: HP Pavilion 15">محطة العمل المعتمدة لحسابك: HP Pavilion 15</b>
+          <small style="color:var(--ink-secondary); display:block; margin-top:2px; font-weight:600;">بصمة اللوحة الأم: ITQ-F91B-82A1 · آخر نشاط مسجل: أمس 08:30 م</small>
+        </div>
+        <span class="pill-badge pill-mint" data-en="Active Device">الجهاز الأصلي</span>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="student-devices.html" data-en="Submit Workstation Transfer Petition ←">تقديم التماس استبدال محطة العمل ←</a>
+        <a class="btn btn-secondary" href="login.html" data-en="Sign Out">تسجيل الخروج</a>
+      </div>
+    </div>
+
+    <!-- State 2: Concurrent Session -->
+    <div class="state-pane" id="pane-session">
+      <div style="display:flex; justify-content:center;">
+        <span class="pill-badge pill-coral">جلسة دخول متزامنة محظورة</span>
+      </div>
+      <h1 style="font-size:26px; font-weight:800; color:var(--ink);">تم رصد محاولة دخول متزامنة في نفس اللحظة</h1>
+      <p style="font-size:15px; color:var(--ink-secondary); line-height:1.6;">
+        هناك متصفح آخر مفتوح بحسابك الآن. تم إيقاف الوصول مؤقتاً لحماية أمان حسابك من المشاركة غير المصرح بها.
+      </p>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button class="btn btn-primary" onclick="alert('تم إنهاء كافة الجلسات الأخرى بنجاح')" data-en="Terminate Other Sessions">إنهاء الجلسات الأخرى وتأكيد ملكية الحساب 🔒</button>
+      </div>
+    </div>
+
+    <!-- State 3: Admin Hold -->
+    <div class="state-pane" id="pane-hold">
+      <div style="display:flex; justify-content:center;">
+        <span class="pill-badge pill-coral">إيقاف إداري مؤقت</span>
+      </div>
+      <h1 style="font-size:26px; font-weight:800; color:var(--ink);">الحساب قيد المراجعة الإدارية</h1>
+      <p style="font-size:15px; color:var(--ink-secondary); line-height:1.6;">
+        يرجى التواصل مع أمانة القسم الأكاديمي أو الدعم الفني المباشر لاستكمال إجراءات تدقيق البيانات الأكاديمية.
+      </p>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <a class="btn btn-primary" href="https://wa.me/201012345678" target="_blank" data-en="Contact Support WhatsApp">محادثة الدعم الأكاديمي واتساب 💬</a>
+      </div>
+    </div>
+
+  </article>
+
+</main>
+
+<!-- Floating runtime preview toolbar -->
+<div class="demo-toolbar" role="region" aria-label="شريط معاينة حالة الحظر">
+  <span class="demo-toolbar-label" data-en="Security Barrier:">نوع الحظر الأمني:</span>
+  <div class="demo-actions">
+    <button class="demo-btn" type="button" data-state="device-mismatch" aria-pressed="true" data-en="Device Mismatch">جهاز غير معتمد</button>
+    <button class="demo-btn" type="button" data-state="concurrent-session" aria-pressed="false" data-en="Concurrent Session">جلسة متزامنة</button>
+    <button class="demo-btn" type="button" data-state="admin-hold" aria-pressed="false" data-en="Administrative Hold">إيقاف إداري</button>
+  </div>
+</div>
+
+<script src="shared/itqan-v2.js"></script>
+</body>
+</html>
