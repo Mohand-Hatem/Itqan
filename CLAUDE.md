@@ -3,7 +3,7 @@
 Read `docs/00-index.md` first. The docs are the source of truth; if code and docs disagree, stop and ask.
 
 ## Workflow rules (everyone, every step)
-Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
+Work follows `tasks/todo.md`: **Phase → Step**. One step at a time. **Phase 3 is paused and all UI waits for the design (rule 6, ADR-010):** do the steps without ⏸, in order, starting at Phase 4.
 
 1. **Step gate.** Before starting a step, post this brief and stop:
    ```text
@@ -13,10 +13,11 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
    Why:            the benefit once it's done
    How it works:   the mechanism, in plain words
    Needs from you: credentials or decisions (or "nothing")
+   UI part:        "none", or what UI this step touches and that it waits for the design (rule 6)
    Done when:      how we check it worked
    ```
    Start only after the owner's explicit approval. One approval covers one step. After the step, report the result and tick it in `tasks/todo.md`.
-2. **Design gate (🎨).** At step 3.1, stop and say "Design gate reached": the owner teaches the project's design method, which is then written to `docs/11-design.md`. Every later 🎨 step follows that doc. If a screen needs something the doc doesn't cover, stop again. Never choose styling, colors or layout on your own.
+2. **Design gate (🎨).** At step 3.1, stop and say "Design gate reached": the owner teaches the project's design method, which is then written to `docs/11-design.md`. Every later 🎨 step follows that doc. If a screen needs something the doc doesn't cover, stop again. Never choose styling, colors or layout on your own. Step 3.1 runs only when the owner says the design is chosen (rule 6).
 3. **Credentials gate (🔑).** When a step needs a secret: stop, add the variable names to `.env.example` with empty values, explain in 2–3 lines where to get each value, and wait until the owner confirms they put the real values in `.env`. Never ask for secrets in chat, never print them, never commit them.
 4. **Testing gate (🧪, every step and phase).**
    - After **every single step**, run both unit and integration tests. A step is not completed until all tests pass with zero errors or regressions.
@@ -25,6 +26,11 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time.
    - **Testing & Local:** Always use PostgreSQL in Docker for all tests and local development.
    - **Neon `dev` branch:** Only after all tests and features are verified and passing cleanly in Docker Postgres, move to Neon on a branch named `dev`.
    - **`main` branch:** Only after everything is thoroughly verified and passing on the `dev` branch, promote and apply changes to `main`.
+6. **UI waits for the design (⏸, ADR-010, `docs/12-ui-later.md`).** The design is not chosen yet.
+   - **Deferral:** build business logic only (Track A). Every 🎨 or ⏸ step, page, component, layout, style, font, colour, icon set and browser-only feature waits until the owner says the design is chosen. Do not build UI in Track A, not even a placeholder. API output a screen will need (reason codes, message keys, response shapes) is logic and is done now.
+   - **Reminder, every step:** fill the "UI part" line of the step brief. Whenever UI comes up, in a brief, mid-step or in a report, tell the owner in one line: "This part is UI; it waits until the design is chosen", and add it to the waiting list in `docs/12-ui-later.md`.
+   - **Resume:** when the owner says the design is chosen, finish the current step, then start Track B with step 3.1 (rule 2), then Phase U. Track B must be done before step 10.6.
+   - Design exploration in `screens/` (test pages, no app code) when the owner asks is allowed; it is how the design gets chosen.
 
 ## Stack (do not swap without an ADR)
 - Monorepo: npm workspaces (no Nx or Turborepo). `apps/web` (Next.js App Router), `apps/api` (NestJS), `packages/*`.
@@ -60,6 +66,7 @@ When skills disagree, follow the precedence in `docs/10-dev-setup.md §4`.
 - Never add Redis, BullMQ, microservices or Kubernetes without an ADR.
 - Never run git commit, push, branch, merge, rebase or reset without the owner's explicit approval for that exact action.
 - Never mark a step or phase done without running and passing both unit and integration tests.
+- Never build UI (pages, components, styling) before the owner chooses the design and step 3.1 is done (rule 6).
 - Never apply database changes directly to Neon or `main`—always validate in Docker Postgres first, promote to Neon `dev` branch, and only then merge to `main`.
 
 ## Always
