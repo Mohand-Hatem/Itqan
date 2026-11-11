@@ -11,6 +11,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/.claude/**",
       "**/generated/**",
+      "screens/**",
     ],
   },
   js.configs.recommended,
