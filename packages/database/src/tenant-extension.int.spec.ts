@@ -51,6 +51,18 @@ describe("tenant extension against the database (integration)", () => {
     expect(await inA(() => db.membership.count())).toBe(rows.length);
   });
 
+  it("still scopes queries inside an interactive transaction", async () => {
+    const [rows, other] = await inA(() =>
+      db.$transaction(async (tx) => [
+        await tx.membership.findMany(),
+        await tx.membership.findUnique({ where: { id: rowB.id } }),
+      ]),
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.tenantId === a.id)).toBe(true);
+    expect(other).toBeNull();
+  });
+
   it("cannot read another tenant's row even by its id", async () => {
     expect(await inA(() => db.membership.findUnique({ where: { id: rowB.id } }))).toBeNull();
   });

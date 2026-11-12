@@ -46,9 +46,9 @@ Built in Phase U, in this order. "API from" is the Track A step the page uses.
 | Step | UI to build | API from |
 |---|---|---|
 | 3.1–3.7 | Design gate, tokens, fonts and RTL, components, layouts, middleware and branding, states pages | — |
-| 4.5 | Login, forgot-password and reset-password pages | 4.2, 4.4 |
+| 4.5 | Login, forgot-password and reset-password pages. Login posts to `/sign-in/student` and switches to the staff sign-in (with TOTP) on `USE_STAFF_SIGN_IN`. | 4.2, 4.4, 5.3 |
 | 4.9b | Frontend auth context, signed-in user in layouts | 4.9a |
-| 5.5 | Blocked screens with reason messages | 4.8, 5.3 |
+| 5.5 | Blocked screens with reason messages, including `DEVICE_NOT_REGISTERED` on any API call. The `DEVICE_LIMIT` screen's "Request device change" asks for the password again and posts to `/device-requests`; it must show `REQUEST_ALREADY_OPEN` and `DEVICE_REQUEST_NOT_NEEDED`. The `SESSION_ON_OTHER_DEVICE` screen's "Request sign-out of other device" posts to `/signout-requests`; on `DEVICE_LIMIT` it offers the device change, and it shows `SIGN_OUT_REQUEST_NOT_NEEDED`. | 4.8, 5.3, 5.4, 5.6, 5.7 |
 | 5.8b | `/manage/requests` approve and reject page | 5.8a |
 | 5.10b | Student devices page | 5.10a |
 | 6.2 | Course list and course form | 6.1 |

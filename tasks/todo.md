@@ -82,17 +82,17 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 5: Devices and sessions (1.5 weeks)
 
-- [ ] **5.1** Spike: can Better Auth run our check before creating a session? _Done when:_ the choice (hook or custom endpoint) is recorded as the next ADR.
-- [ ] **5.2** `devices` table, extra session fields, device cookie helpers (hash, constant-time compare). _Done when:_ unit tests pass.
-- [ ] **5.3** Login algorithm in one transaction with a row lock (FR-D01–D04, D07, D08). _Done when:_ tests pass for first-bind, `DEVICE_LIMIT`, `SESSION_ON_OTHER_DEVICE`, parallel logins, and same device on another tenant.
-- [ ] **5.4** Per-request device guard. _Done when:_ a copied session cookie without the device cookie fails.
+- [x] **5.1** Spike: can Better Auth run our check before creating a session? _Done when:_ the choice (hook or custom endpoint) is recorded as the next ADR.
+- [x] **5.2** `devices` table, extra session fields, device cookie helpers (hash, constant-time compare). _Done when:_ unit tests pass.
+- [x] **5.3** Login algorithm in one transaction with a row lock (FR-D01–D04, D07, D08). _Done when:_ tests pass for first-bind, `DEVICE_LIMIT`, `SESSION_ON_OTHER_DEVICE`, parallel logins, and same device on another tenant.
+- [x] **5.4** Per-request device guard. _Done when:_ a copied session cookie without the device cookie fails.
 - [ ] **5.5** 🎨⏸ Blocked screens with reason messages. _Done when:_ every reason shows the right message in both languages.
-- [ ] **5.6** `support_requests` table and device-change request with pending device cookie (FR-D03). _Done when:_ a request is created through the API with the reason code a blocked login returns.
-- [ ] **5.7** Sign-out-other-device request (FR-D05). _Done when:_ a request is created through the API with the reason code a blocked login returns.
-- [ ] **5.8a** Requests API: list, approve, reject (FR-D06). _Done when:_ an integration test with two separate sessions passes the full flow (blocked login → request → approve → login works).
+- [x] **5.6** `support_requests` table and device-change request with pending device cookie (FR-D03). _Done when:_ a request is created through the API with the reason code a blocked login returns.
+- [x] **5.7** Sign-out-other-device request (FR-D05). _Done when:_ a request is created through the API with the reason code a blocked login returns.
+- [x] **5.8a** Requests API: list, approve, reject (FR-D06). _Done when:_ an integration test with two separate sessions passes the full flow (blocked login → request → approve → login works).
 - [ ] **5.8b** 🎨⏸ `/manage/requests` page. _Done when:_ a Playwright test with two browsers passes the full flow.
-- [ ] **5.9** Staff actions: revoke device, force sign-out, `max_devices`, suspend membership, all audited. _Done when:_ tests show sessions end and audit entries exist.
-- [ ] **5.10a** API: a student lists their own devices. _Done when:_ an integration test returns only the caller's devices.
+- [x] **5.9** Staff actions: revoke device, force sign-out, `max_devices`, suspend membership, all audited. _Done when:_ tests show sessions end and audit entries exist.
+- [x] **5.10a** API: a student lists their own devices. _Done when:_ an integration test returns only the caller's devices.
 - [ ] **5.10b** 🎨⏸ Student devices page. _Done when:_ the student sees their own devices.
 
 **API checkpoint 5:** anti-sharing rules proven with two separate sessions in integration tests on the local Docker stack · owner review.

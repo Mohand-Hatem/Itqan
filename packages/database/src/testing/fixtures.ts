@@ -17,6 +17,17 @@ export const TENANT_FIXTURES: Record<string, MakeRow> = {
     return db.membership.create({ data: { tenantId, userId: user.id, role: "student" } });
   },
   AuditLog: (db, tenantId) => db.auditLog.create({ data: { tenantId, action: "test.fixture" } }),
+  SupportRequest: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-${randomUUID()}@example.com`, name: "Fixture Requester" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    return db.supportRequest.create({
+      data: { tenantId, membershipId: membership.id, type: "general" },
+    });
+  },
 };
 
 export type FixtureTenant = {

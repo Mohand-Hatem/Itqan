@@ -9,7 +9,7 @@
 | Device | Our `devices` module | `devices`, cookie `__Secure-lms_device` |
 | Access status | Our guards | `users.status`, `memberships.status`, `tenants.paused_roles` |
 
-**Better Auth config:** email+password, `requireEmailVerification: true`, `twoFactor` plugin, database sessions with no cookie cache (so revocation applies at once), `expiresIn` 30 days, `updateAge` 1 day. Check the current docs for exact option names.
+**Better Auth config:** email+password, `requireEmailVerification: true`, `twoFactor` plugin, database sessions with no cookie cache (so revocation applies at once), `expiresIn` 30 days, `updateAge` 1 day, Prisma adapter transactions on, `autoSignInAfterVerification: false` (students must sign in through the device check, ADR-011). Check the current docs for exact option names.
 
 ## 2. Device cookie
 
@@ -25,7 +25,7 @@ Domain=.<root-domain>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=400 days
 
 ## 3. Student login algorithm
 
-Runs inside the sign-in flow before the session is created (Better Auth hook or a custom sign-in endpoint; check which the current version supports).
+Runs in our own student sign-in endpoint, added to Better Auth as a plugin, with steps 4–8 in one transaction ([ADR-011](adr/011-student-sign-in-endpoint.md)). A Better Auth hook cannot hold the lock until the session is written. A session-create guard blocks every other way a student session could be created.
 
 ```text
 1. Password OK (Better Auth).
@@ -33,7 +33,7 @@ Runs inside the sign-in flow before the session is created (Better Auth hook or 
    - user.status = suspended            → block USER_SUSPENDED
    - no membership / membership suspended → block NO_ACCESS
    - membership.role in paused_roles    → block TENANT_PAUSED
-3. Staff or super admin → create session, done (no device rules).
+3. Staff or super admin → block USE_STAFF_SIGN_IN. They sign in at `/api/auth/sign-in/email` with TOTP and have no device rules; that route refuses student-only users with USE_STUDENT_SIGN_IN.
 4. BEGIN; SELECT … FROM users WHERE id = $1 FOR UPDATE;
 5. device = device from cookie, if it belongs to this user and is active.
 6. If no device:
@@ -93,7 +93,7 @@ Same shape: the student asks from the blocked screen → staff approve → the A
 
 ## 8. Every authenticated request
 
-Guards from [03-system-design.md §3](03-system-design.md). For students: the device cookie must match `session.device_id` and that device must be `active`. A copied session cookie without the device cookie fails.
+Guards from [03-system-design.md §3](03-system-design.md). For students: the device cookie must match `session.device_id` and that device must be `active`. A copied session cookie without the device cookie fails. A session opened by student sign-in works only on the tenant it was opened on, whatever role the user holds elsewhere: it was opened with a password only, so it must never reach staff routes that need TOTP (403 `NO_ACCESS`).
 
 ## 9. Exams and devices
 
@@ -108,4 +108,4 @@ Guards from [03-system-design.md §3](03-system-design.md). For students: the de
 | Password reset, verification email | 3 / 15 min per email |
 | Code redemption | 5 / 15 min per user and per IP |
 | Invitation check | 10 / min per IP |
-| Device and sign-out requests | 3 / hour per user |
+| Device and sign-out requests | 3 / hour per email, 10 / hour per IP |

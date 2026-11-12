@@ -11,7 +11,9 @@
     "send-test-email": "node scripts/send-test-email.mjs"
   },
   "dependencies": {
+    "@better-auth/core": "1.7.20",
     "@itqan/database": "^0.1.0",
+    "@itqan/shared": "^0.1.0",
     "better-auth": "^1.7.20",
     "resend": "^6.38.0"
   },

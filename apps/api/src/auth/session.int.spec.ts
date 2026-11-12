@@ -22,17 +22,11 @@ class AuthTestController {
 }
 
 // Imperative decorator registration so spec files outside tsconfig always compile reliably
-const protDesc = Object.getOwnPropertyDescriptor(
-  AuthTestController.prototype,
-  "getProtected",
-)!;
+const protDesc = Object.getOwnPropertyDescriptor(AuthTestController.prototype, "getProtected")!;
 Req()(AuthTestController.prototype, "getProtected", 0);
 Get("protected")(AuthTestController.prototype, "getProtected", protDesc);
 
-const pubDesc = Object.getOwnPropertyDescriptor(
-  AuthTestController.prototype,
-  "getPublic",
-)!;
+const pubDesc = Object.getOwnPropertyDescriptor(AuthTestController.prototype, "getPublic")!;
 Req()(AuthTestController.prototype, "getPublic", 0);
 Public()(AuthTestController.prototype, "getPublic", pubDesc);
 Get("public")(AuthTestController.prototype, "getPublic", pubDesc);
@@ -102,8 +96,10 @@ beforeAll(async () => {
     await auth.api.verifyEmail({ query: { token: verif.token } });
   }
 
-  const signIn = await auth.api.signInEmail({
+  // Students sign in through the device-checked endpoint (ADR-011).
+  const signIn = await auth.api.signInStudent({
     body: { email, password },
+    headers: new Headers({ host: tenantHost }),
     returnHeaders: true,
   });
 
@@ -164,13 +160,9 @@ describe("NestJS SessionGuard (integration)", () => {
   });
 
   it("rejects requests with invalid session cookie with 401 Unauthorized", async () => {
-    const res = await http.send(
-      tenantHost,
-      "GET",
-      "/api/auth-test/protected",
-      undefined,
-      { cookie: "better-auth.session_token=completely-invalid-token" },
-    );
+    const res = await http.send(tenantHost, "GET", "/api/auth-test/protected", undefined, {
+      cookie: "better-auth.session_token=completely-invalid-token",
+    });
 
     expect(res.status).toBe(401);
     const body = res.body as { statusCode: number; message: string };
@@ -179,13 +171,9 @@ describe("NestJS SessionGuard (integration)", () => {
   });
 
   it("allows requests with valid session cookie and injects user and session", async () => {
-    const res = await http.send(
-      tenantHost,
-      "GET",
-      "/api/auth-test/protected",
-      undefined,
-      { cookie: validSessionCookie },
-    );
+    const res = await http.send(tenantHost, "GET", "/api/auth-test/protected", undefined, {
+      cookie: validSessionCookie,
+    });
 
     expect(res.status).toBe(200);
     const body = res.body as {
@@ -200,13 +188,9 @@ describe("NestJS SessionGuard (integration)", () => {
   });
 
   it("populates user on public endpoint when valid session is supplied", async () => {
-    const res = await http.send(
-      tenantHost,
-      "GET",
-      "/api/auth-test/public",
-      undefined,
-      { cookie: validSessionCookie },
-    );
+    const res = await http.send(tenantHost, "GET", "/api/auth-test/public", undefined, {
+      cookie: validSessionCookie,
+    });
 
     expect(res.status).toBe(200);
     const body = res.body as {

@@ -1,8 +1,13 @@
 import { getRequestContext, type RequestContext } from "./context.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 
-// Every model with a tenantId column. tenant-extension.spec.ts fails if one is missing.
-export const TENANT_MODELS: ReadonlySet<string> = new Set(["Membership", "AuditLog"]);
+// Every model with a tenantId column, except the global ones listed in
+// tenant-extension.spec.ts (Session). That spec fails if one is missing.
+export const TENANT_MODELS: ReadonlySet<string> = new Set([
+  "Membership",
+  "AuditLog",
+  "SupportRequest",
+]);
 
 export class TenantScopeError extends Error {
   constructor(

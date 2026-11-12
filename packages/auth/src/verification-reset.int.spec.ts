@@ -1,11 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { systemPrisma } from "@itqan/database";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import {
-  auth,
-  clearTestMailbox,
-  getLastSentEmail,
-} from "./index.js";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { auth, clearTestMailbox, getLastSentEmail } from "./index.js";
 
 const createdUserIds: string[] = [];
 
@@ -63,7 +59,7 @@ describe("Email Verification and Password Reset (FR-A01, FR-A02)", () => {
     expect(
       unverifiedSignInError?.body?.code ||
         unverifiedSignInError?.code ||
-        unverifiedSignInError?.message
+        unverifiedSignInError?.message,
     ).toMatch(/EMAIL_NOT_VERIFIED|FORBIDDEN/i);
 
     // 3. Inspect sent verification email
@@ -211,5 +207,30 @@ describe("Email Verification and Password Reset (FR-A01, FR-A02)", () => {
       invalidResetError = err;
     }
     expect(invalidResetError).toBeDefined();
+  });
+  // Security audit, Phase 5: verification and reset links carry tokens and must never be logged.
+  it("never writes a verification or reset token to the console", async () => {
+    const spies = (["log", "info", "warn", "error", "debug"] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(() => {}),
+    );
+    try {
+      const email = `nolog-${randomUUID().slice(0, 8)}@example.com`;
+      const signUp = await auth.api.signUpEmail({
+        body: { email, password: "NoLogPassword123!", name: "No Log" },
+      });
+      createdUserIds.push(signUp.user.id);
+      const verifyToken = getLastSentEmail(email)?.token;
+      await auth.api.verifyEmail({ query: { token: verifyToken! } });
+      await auth.api.requestPasswordReset({ body: { email, redirectTo: "/reset-password" } });
+      const resetToken = getLastSentEmail(email)?.token;
+
+      expect(verifyToken).toBeDefined();
+      expect(resetToken).toBeDefined();
+      const printed = spies.flatMap((s) => s.mock.calls.flat().map(String)).join(" ");
+      expect(printed).not.toContain(verifyToken!);
+      expect(printed).not.toContain(resetToken!);
+    } finally {
+      for (const s of spies) s.mockRestore();
+    }
   });
 });

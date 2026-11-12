@@ -1,7 +1,7 @@
 import { Inject, Injectable, type NestMiddleware } from "@nestjs/common";
-import { runWithContext } from "@itqan/database";
 import type { NextFunction, Request, Response } from "express";
-import { getRootDomain, parseHost } from "./parse-host.js";
+import { getRootDomain, runWithContext } from "@itqan/database";
+import { parseHost } from "@itqan/shared";
 import { TenantResolver } from "./tenant-resolver.js";
 
 @Injectable()

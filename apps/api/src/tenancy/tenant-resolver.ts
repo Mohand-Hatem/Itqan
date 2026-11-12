@@ -1,26 +1,17 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { PrismaClient } from "@itqan/database";
+import { createTenantLookup, PrismaClient, type ResolvedTenant } from "@itqan/database";
 
-export type ResolvedTenant = { id: string; slug: string };
-
-const TTL_MS = 60_000;
+export type { ResolvedTenant };
 
 @Injectable()
 export class TenantResolver {
-  // Misses are cached too, so random subdomains cannot hammer the database.
-  private readonly cache = new Map<string, { tenant: ResolvedTenant | null; expiresAt: number }>();
+  private readonly lookup: ReturnType<typeof createTenantLookup>;
 
-  constructor(@Inject(PrismaClient) private readonly db: PrismaClient) {}
+  constructor(@Inject(PrismaClient) db: PrismaClient) {
+    this.lookup = createTenantLookup(db);
+  }
 
-  async findBySlug(slug: string): Promise<ResolvedTenant | null> {
-    const hit = this.cache.get(slug);
-    if (hit && hit.expiresAt > Date.now()) return hit.tenant;
-
-    const tenant = await this.db.tenant.findFirst({
-      where: { slug, status: "active", deletedAt: null },
-      select: { id: true, slug: true },
-    });
-    this.cache.set(slug, { tenant, expiresAt: Date.now() + TTL_MS });
-    return tenant;
+  findBySlug(slug: string): Promise<ResolvedTenant | null> {
+    return this.lookup.findBySlug(slug);
   }
 }

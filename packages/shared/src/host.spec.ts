@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseHost } from "./parse-host.js";
+import { parseHost } from "./host.js";
 
 describe("parseHost", () => {
   const root = "itqan.com";

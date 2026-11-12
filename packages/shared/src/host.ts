@@ -1,4 +1,4 @@
-import { TenantSlugSchema } from "@itqan/shared";
+import { TenantSlugSchema } from "./schemas/tenant.js";
 
 export type HostTarget = { kind: "tenant"; slug: string } | { kind: "admin" } | { kind: "unknown" };
 
@@ -15,13 +15,4 @@ export function parseHost(host: string | undefined, rootDomain: string): HostTar
   if (sub === ADMIN_SUBDOMAIN) return { kind: "admin" };
   if (sub.includes(".") || !TenantSlugSchema.safeParse(sub).success) return { kind: "unknown" };
   return { kind: "tenant", slug: sub };
-}
-
-export function getRootDomain(): string {
-  const root = process.env["PLATFORM_ROOT_DOMAIN"];
-  if (root) return root;
-  if (process.env["NODE_ENV"] === "production") {
-    throw new Error("PLATFORM_ROOT_DOMAIN must be set in production.");
-  }
-  return "localhost";
 }

@@ -1,15 +1,12 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { getRequestContext, type Membership, PrismaClient } from "@itqan/database";
-import { computePermissions, type MeResponse } from "@itqan/shared";
+import { computePermissions, type MeResponse, type MyDevicesResponse } from "@itqan/shared";
 
 @Injectable()
 export class MeService {
   constructor(@Inject(PrismaClient) private readonly db: PrismaClient) {}
 
-  async getMe(
-    userId: string,
-    currentMembership?: Membership | null,
-  ): Promise<MeResponse> {
+  async getMe(userId: string, currentMembership?: Membership | null): Promise<MeResponse> {
     const user = await this.db.user.findUnique({
       where: { id: userId },
       select: {
@@ -70,8 +67,7 @@ export class MeService {
       }
 
       const activeMem =
-        currentMembership ??
-        dbMemberships.find((m) => m.tenantId === reqContext.tenantId);
+        currentMembership ?? dbMemberships.find((m) => m.tenantId === reqContext.tenantId);
 
       if (activeMem) {
         membershipPayload = {
@@ -98,10 +94,7 @@ export class MeService {
         status: m.status,
       }));
 
-    const permissions = computePermissions(
-      user.isSuperAdmin,
-      membershipPayload?.role ?? null,
-    );
+    const permissions = computePermissions(user.isSuperAdmin, membershipPayload?.role ?? null);
 
     return {
       user: {
@@ -119,6 +112,32 @@ export class MeService {
       membership: membershipPayload,
       memberships: membershipsList,
       permissions,
+    };
+  }
+
+  /** The user's active and pending devices, newest first. Revoked ones are history for staff only. */
+  async listDevices(userId: string, currentDeviceId: string | null): Promise<MyDevicesResponse> {
+    // devices is a global table keyed by user; the user id comes from the session, never the client.
+    const rows = await this.db.device.findMany({
+      where: { userId, status: { in: ["active", "pending"] } },
+      select: {
+        id: true,
+        name: true,
+        userAgent: true,
+        status: true,
+        lastSeenAt: true,
+        createdAt: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+    return {
+      items: rows.map((d) => ({
+        ...d,
+        status: d.status as "active" | "pending",
+        lastSeenAt: d.lastSeenAt?.toISOString() ?? null,
+        createdAt: d.createdAt.toISOString(),
+        current: d.id === currentDeviceId,
+      })),
     };
   }
 }

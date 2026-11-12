@@ -37,7 +37,7 @@ erDiagram
 |---|---|---|
 | `tenants` | slug (unique), name, status (`active`/`deleted`), paused_roles `text[]`, settings `jsonb`, deleted_at | Settings validated by a Zod schema: branding, social links, contact, pages, locale, timezone, default_max_devices. |
 | `users` (Better Auth) | email (unique), name, email_verified, + `max_devices int default 1`, `status` (`active`/`suspended`), `is_super_admin bool` | Global identity. |
-| `sessions` (Better Auth) | token, user_id, expires_at, + `device_id`, `tenant_id` | Host-only cookie. |
+| `sessions` (Better Auth) | token, user_id, expires_at, + `device_id`, `tenant_id` | Host-only cookie. Global, not tenant-filtered: `tenant_id` records the subdomain the session was opened on, and the one-session rule reads a student's sessions on every tenant. `device_id` is null for staff and super admin sessions; `tenant_id` is null on the super admin host. |
 | `memberships` **T** | user_id, role (`teacher`/`assistant`/`student`), status (`active`/`suspended`), guardian_consent_at, phone | Unique (tenant_id, user_id). |
 
 ### Devices and support

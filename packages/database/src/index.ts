@@ -8,6 +8,7 @@ export {
   TenantScopeError,
   withTenantScope,
 } from "./tenant-extension.js";
+export { createTenantLookup, getRootDomain, type ResolvedTenant } from "./tenant-lookup.js";
 export { createTestClient } from "./test-client.js";
 export { createTwoTenants, type FixtureTenant, TENANT_FIXTURES } from "./testing/fixtures.js";
 export { PrismaClient } from "./generated/prisma/client.js";
@@ -16,8 +17,10 @@ export type * from "./generated/prisma/models.js";
 export type {
   AccountModel as Account,
   AuditLogModel as AuditLog,
+  DeviceModel as Device,
   MembershipModel as Membership,
   SessionModel as Session,
+  SupportRequestModel as SupportRequest,
   TenantModel as Tenant,
   TwoFactorModel as TwoFactor,
   UserModel as User,

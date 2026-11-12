@@ -113,12 +113,18 @@ describe("scopeArgs", () => {
   });
 });
 
+// Global tables that carry a tenantId but must never be tenant-filtered. Keep this list short.
+// Session: tenantId only records the subdomain the session was opened on; the one-session
+// rule must see a student's sessions on every tenant (docs/05-auth-devices.md §3).
+const GLOBAL_MODELS_WITH_TENANT_ID = new Set(["Session"]);
+
 describe("TENANT_MODELS", () => {
   it("lists every model with a tenantId column in schema.prisma", () => {
     const schema = readFileSync(new URL("../prisma/schema.prisma", import.meta.url), "utf8");
     const withTenantId = [...schema.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)]
       .filter(([, , body]) => /^\s+tenantId\s/m.test(body ?? ""))
-      .map(([, name]) => name);
+      .map(([, name]) => name)
+      .filter((name) => !GLOBAL_MODELS_WITH_TENANT_ID.has(name ?? ""));
     expect(withTenantId.length).toBeGreaterThan(0);
     expect([...TENANT_MODELS].sort()).toEqual(withTenantId.sort());
   });

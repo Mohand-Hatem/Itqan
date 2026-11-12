@@ -1,11 +1,16 @@
 export const AUTH_VERSION = "0.1.0";
+export { auth, type Auth, type AuthSession, type AuthUser, type SessionPayload } from "./auth.js";
 export {
-  auth,
-  type Auth,
-  type AuthSession,
-  type AuthUser,
-  type SessionPayload,
-} from "./auth.js";
+  DEVICE_COOKIE_MAX_AGE,
+  DEVICE_COOKIE_NAME,
+  createDeviceSecret,
+  deviceCookieOptions,
+  formatDeviceCookie,
+  hashDeviceSecret,
+  parseDeviceCookie,
+  readDeviceCookie,
+  verifyDeviceSecret,
+} from "./device-cookie.js";
 export {
   clearTestMailbox,
   getDefaultFromEmail,
@@ -31,3 +36,10 @@ export {
   staffMfaPlugin,
   type MfaStatus,
 } from "./staff-mfa.js";
+export { guardStudentSession, studentSignInPlugin } from "./student-sign-in.js";
+export {
+  checkStudentAccess,
+  verifyCredentials,
+  type PasswordContext,
+  type StudentAccess,
+} from "./student-access.js";

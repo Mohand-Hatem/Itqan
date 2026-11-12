@@ -171,8 +171,16 @@ describe("GET /api/me (FR-T03, Step 4.9a)", () => {
       },
     });
 
+    // Students sign in through the device-checked endpoint (ADR-011); every request then
+    // needs the device cookie too (step 5.4).
+    const signIn = await auth.api.signInStudent({
+      body: { email: student.email, password: "StrongPassword123!" },
+      headers: new Headers({ host: tenantHost }),
+      returnHeaders: true,
+    });
+
     const res = await http.send(tenantHost, "GET", "/api/me", undefined, {
-      cookie: student.cookie,
+      cookie: toCookieHeader(signIn.headers),
     });
 
     expect(res.status).toBe(200);
@@ -216,9 +224,7 @@ describe("GET /api/me (FR-T03, Step 4.9a)", () => {
     });
 
     expect(res.status).toBe(403);
-    expect((res.body as { reason?: string })?.reason).toBe(
-      AccessReasonCode.NO_ACCESS,
-    );
+    expect((res.body as { reason?: string })?.reason).toBe(AccessReasonCode.NO_ACCESS);
   });
 
   it("rejects suspended user with 403 USER_SUSPENDED", async () => {
@@ -241,8 +247,6 @@ describe("GET /api/me (FR-T03, Step 4.9a)", () => {
     });
 
     expect(res.status).toBe(403);
-    expect((res.body as { reason?: string })?.reason).toBe(
-      AccessReasonCode.USER_SUSPENDED,
-    );
+    expect((res.body as { reason?: string })?.reason).toBe(AccessReasonCode.USER_SUSPENDED);
   });
 });

@@ -5,7 +5,8 @@ import type { INestApplication, Type } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { configureApp } from "../app.setup.js";
 
-export type HttpResponse = { status: number; body: unknown };
+// setCookie is present only when the response sets cookies, so plain toEqual checks keep working.
+export type HttpResponse = { status: number; body: unknown; setCookie?: string[] };
 
 // Boots the real app setup (same as main.ts) on a random port for HTTP tests.
 export async function createHttpTestApp(module: Type<unknown>) {
@@ -38,7 +39,11 @@ export async function createHttpTestApp(module: Type<unknown>) {
           let data = "";
           res.on("data", (chunk) => (data += chunk));
           res.on("end", () =>
-            resolve({ status: res.statusCode ?? 0, body: data ? JSON.parse(data) : null }),
+            resolve({
+              status: res.statusCode ?? 0,
+              body: data ? JSON.parse(data) : null,
+              ...(res.headers["set-cookie"] ? { setCookie: res.headers["set-cookie"] } : {}),
+            }),
           );
         },
       );

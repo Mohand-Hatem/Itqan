@@ -3,17 +3,14 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { twoFactor } from "better-auth/plugins";
 import { systemPrisma } from "@itqan/database";
-import {
-  sendResetPasswordEmail,
-  sendVerificationEmail,
-} from "./email/client.js";
+import { sendResetPasswordEmail, sendVerificationEmail } from "./email/client.js";
 import { staffMfaPlugin } from "./staff-mfa.js";
+import { guardStudentSession, studentSignInPlugin } from "./student-sign-in.js";
 
 export const auth = betterAuth({
   appName: "Itqan",
   secret:
-    process.env["BETTER_AUTH_SECRET"] ||
-    "development-secret-for-build-and-test-only-min-32-chars",
+    process.env["BETTER_AUTH_SECRET"] || "development-secret-for-build-and-test-only-min-32-chars",
   baseURL: process.env["BETTER_AUTH_URL"] || "http://localhost:3000",
   trustedOrigins: [
     "http://localhost:3000",
@@ -24,15 +21,27 @@ export const auth = betterAuth({
   ],
   database: prismaAdapter(systemPrisma, {
     provider: "postgresql",
+    // Real transactions: the student login locks the user row until the session is written (ADR-011).
+    transaction: true,
   }),
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          await guardStudentSession(session);
+          return { data: session };
+        },
+      },
+    },
+  },
   advanced: {
     database: {
       generateId: false,
     },
   },
   emailVerification: {
+    // Never log the link: it carries the token (CLAUDE.md "never log tokens").
     sendVerificationEmail: async ({ user, url, token }) => {
-      console.log(`[Itqan Auth] Verification link for ${user.email}: ${url}`);
       await sendVerificationEmail({
         to: user.email,
         url,
@@ -41,7 +50,8 @@ export const auth = betterAuth({
       });
     },
     sendOnSignUp: true,
-    autoSignInAfterVerification: true,
+    // Off: students must sign in through /sign-in/student so the device rules run (ADR-011).
+    autoSignInAfterVerification: false,
     expiresIn: 3600,
   },
   emailAndPassword: {
@@ -50,7 +60,6 @@ export const auth = betterAuth({
     resetPasswordTokenExpiresIn: 3600,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url, token }) => {
-      console.log(`[Itqan Auth] Password reset link for ${user.email}: ${url}`);
       await sendResetPasswordEmail({
         to: user.email,
         url,
@@ -65,6 +74,19 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: false,
     },
+    // Set only by our student sign-in (ADR-011), never from client input.
+    additionalFields: {
+      deviceId: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      tenantId: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
   },
   rateLimit: {
     enabled: true,
@@ -72,6 +94,10 @@ export const auth = betterAuth({
     max: 100,
     customRules: {
       "/sign-in/email": {
+        window: 60,
+        max: 5,
+      },
+      "/sign-in/student": {
         window: 60,
         max: 5,
       },
@@ -120,6 +146,7 @@ export const auth = betterAuth({
       issuer: "Itqan",
     }),
     staffMfaPlugin(),
+    studentSignInPlugin(),
   ],
 });
 
