@@ -2,6 +2,8 @@
 
 Rules: [../CLAUDE.md § Workflow rules](../CLAUDE.md). Brief each step and wait for approval. 🎨 = UI step (follows `docs/11-design.md`). 🔑 = needs credentials in `.env`. Requirement IDs refer to [../docs/02-srs.md](../docs/02-srs.md).
 
+**⏭ = put off by the owner:** not built in Track A; built in Phase U right before its page.
+
 **⏸ = waits for the design** ([ADR-010](../docs/adr/010-backend-first-ui-later.md), [docs/12-ui-later.md](../docs/12-ui-later.md)). The design is not chosen yet, so work runs on two tracks:
 - **Track A, now:** every step without ⏸, in order, from Phase 4. A step that mixed an API and a page is split: **a** = API and tests (now), **b** = the page (⏸).
 - **Track B, after the owner chooses the design:** Phase 3, then Phase U (all ⏸ steps in order), then Phase 10 from 10.6.
@@ -110,7 +112,7 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 - [x] **6.7** Enrollments: add and terminate (teacher, super admin) (FR-E04, E05). _Done when:_ a terminated student gets 403 on course content.
 - [x] **6.8a** Students list and detail API (courses, devices, sessions, grades, payments). _Done when:_ API and isolation tests pass.
 - [ ] **6.8b** 🎨⏸ Students list and detail pages. _Done when:_ staff can find and manage a student.
-- [ ] **6.9a** Payments API; assistants view-only (FR-E06). _Done when:_ permission tests pass per role.
+- [ ] **6.9a** ⏭ Payments API; assistants view-only (FR-E06). Put off by the owner on 2026-11-13; built in Phase U right before 6.9b. _Done when:_ permission tests pass per role.
 - [ ] **6.9b** 🎨⏸ Payments page. _Done when:_ the teacher records a payment in the UI and an assistant can only view.
 - [x] **6.10a** Assistant management API (teacher only). _Done when:_ tests show the teacher adds and removes an assistant and others get 403.
 - [ ] **6.10b** 🎨⏸ Assistant management page. _Done when:_ the teacher adds and removes an assistant in the UI.
@@ -184,7 +186,7 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 Starts when the owner says the design is chosen. Order:
 1. Phase 3 (3.1–3.7).
-2. Every ⏸ step from Phases 4–9 in its original order (4.5, 4.9b, 5.5, 5.8b, 5.10b, 6.2, 6.4, 6.6b, 6.8b–6.12b, 7.3, 7.5, 7.7–7.9, 7.12, 8.2, 8.4, 8.9, 8.11, 9.3, 9.4, 9.6b–9.10b), plus any item added under "Found during Track A" in [docs/12-ui-later.md](../docs/12-ui-later.md).
+2. Every ⏸ step from Phases 4–9 in its original order (4.5, 4.9b, 5.5, 5.8b, 5.10b, 6.2, 6.4, 6.6b, 6.8b, 6.9a, 6.9b–6.12b, 7.3, 7.5, 7.7–7.9, 7.12, 8.2, 8.4, 8.9, 8.11, 9.3, 9.4, 9.6b–9.10b), plus any item added under "Found during Track A" in [docs/12-ui-later.md](../docs/12-ui-later.md).
 3. The UI checkpoints of Phases 4–9.
 4. Step 3.8 (accessibility and responsive audit) over every page.
 

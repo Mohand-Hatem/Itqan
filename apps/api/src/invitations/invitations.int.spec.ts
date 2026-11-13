@@ -35,6 +35,9 @@ const anon = (t: Tenant, method: string, path: string, body?: unknown) =>
 const reasonOf = (body: unknown) => (body as { reason?: string }).reason;
 const auditOf = (tenantId: string, targetId: string) =>
   systemPrisma.auditLog.findMany({ where: { tenantId, targetId } });
+// The raw token travels only by email (security audit, Phase 6), so tests read it from the mailbox.
+const sentToken = (res: { body: unknown }) =>
+  getLastSentEmail((res.body as { email: string }).email)!.token!;
 
 describe("Invitations API (Integration)", () => {
   describe("POST /api/invitations (Creation)", () => {
@@ -56,15 +59,15 @@ describe("Invitations API (Integration)", () => {
       });
 
       expect(res.status).toBe(201);
-      const body = res.body as { id: string; email: string; token: string; courseIds: string[] };
+      const body = res.body as { id: string; email: string; courseIds: string[] };
       expect(body.email).toBe(inviteEmail.toLowerCase());
       expect(body.courseIds).toEqual([course.id]);
-      expect(body.token).toBeDefined();
+      expect(body).not.toHaveProperty("token");
 
       // Check email was sent
       const sentEmail = getLastSentEmail(inviteEmail);
-      expect(sentEmail).toBeDefined();
-      expect(sentEmail?.html).toContain(body.token);
+      expect(sentEmail?.token).toBeDefined();
+      expect(sentEmail?.html).toContain(sentEmail!.token!);
       expect(sentEmail?.html).toContain("Tajweed Basics");
 
       // Check audit log
@@ -233,14 +236,15 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course.id],
       });
-      const originalToken = (created.body as { id: string; token: string }).token;
+      const originalToken = sentToken(created);
       const invId = (created.body as { id: string }).id;
 
       clearTestMailbox();
 
       const resendRes = await as(t, teacher.cookie, "POST", `/invitations/${invId}/resend`);
       expect(resendRes.status).toBe(200);
-      const newToken = (resendRes.body as { token: string }).token;
+      expect(resendRes.body).not.toHaveProperty("token");
+      const newToken = getLastSentEmail(inviteEmail)!.token!;
       expect(newToken).toBeDefined();
       expect(newToken).not.toBe(originalToken);
 
@@ -271,7 +275,8 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course.id],
       });
-      const { id: invId, token } = created.body as { id: string; token: string };
+      const { id: invId } = created.body as { id: string };
+      const token = sentToken(created);
 
       const revokeRes = await as(t, teacher.cookie, "POST", `/invitations/${invId}/revoke`);
       expect(revokeRes.status).toBe(200);
@@ -305,7 +310,7 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course.id],
       });
-      const { token } = created.body as { token: string };
+      const token = sentToken(created);
 
       for (let i = 0; i < 5; i++) {
         const checkRes = await anon(t, "GET", `/invitations/check?token=${token}`);
@@ -337,7 +342,8 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course.id],
       });
-      const { id: invId, token } = created.body as { id: string; token: string };
+      const { id: invId } = created.body as { id: string };
+      const token = sentToken(created);
 
       // Manually backdate expiresAt in DB
       await systemPrisma.invitation.update({
@@ -367,7 +373,8 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course1.id, course2.id],
       });
-      const { id: invId, token } = created.body as { id: string; token: string };
+      const { id: invId } = created.body as { id: string };
+      const token = sentToken(created);
 
       // Minor registration without guardian consent fails validation (400)
       const minorFail = await anon(t, "POST", "/register", {
@@ -458,7 +465,8 @@ describe("Invitations API (Integration)", () => {
         email: existingStudentUser.email,
         courseIds: [course.id],
       });
-      const { id: invId, token } = created.body as { id: string; token: string };
+      const { id: invId } = created.body as { id: string };
+      const token = sentToken(created);
 
       // 1. Wrong student tries to accept -> 403 EMAIL_MISMATCH
       const wrongRes = await as(t, wrongLogin.cookies, "POST", "/invitations/accept", { token });
@@ -518,7 +526,8 @@ describe("Invitations API (Integration)", () => {
         email: inviteEmail,
         courseIds: [course.id],
       });
-      const { id: invId, token } = created.body as { id: string; token: string };
+      const { id: invId } = created.body as { id: string };
+      const token = sentToken(created);
 
       // Launch 5 parallel registration attempts simultaneously
       const attempts = await Promise.all(

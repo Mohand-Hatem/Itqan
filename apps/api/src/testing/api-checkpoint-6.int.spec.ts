@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { getLastSentEmail } from "@itqan/auth";
 import { systemPrisma } from "@itqan/database";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../app.module.js";
@@ -91,7 +92,8 @@ describe("API Checkpoint 6: End-to-End People & Access Lifecycle", () => {
       { cookie: teacher.cookie },
     );
     expect(invRes.status).toBe(201);
-    const token = (invRes.body as { token: string }).token;
+    // The token travels only by email.
+    const token = getLastSentEmail(studentAEmail)!.token!;
 
     // Student A registers via invitation with guardian consent
     const regRes = await http.send(`${slug}.localhost`, "POST", "/api/register", {

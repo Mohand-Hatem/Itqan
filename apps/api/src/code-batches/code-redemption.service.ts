@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { type Auth, type AuthUser, sendVerificationEmail } from "@itqan/auth";
+import type { Auth, AuthUser } from "@itqan/auth";
 import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import { AccessReasonCode, type CodeRedeemInput, type CodeRegisterInput } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
@@ -22,7 +22,7 @@ export class CodeRedemptionService {
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
   ) {}
 
-  async registerWithCode(input: CodeRegisterInput, host: string) {
+  async registerWithCode(input: CodeRegisterInput) {
     const context = getRequestContext();
     const tenantId = context?.kind === "tenant" ? context.tenantId : undefined;
     if (!tenantId) {
@@ -204,12 +204,8 @@ export class CodeRedemptionService {
         body: { email: result.email },
       });
     } catch {
-      await sendVerificationEmail({
-        to: result.email,
-        url: `http://${host}/verify-email?token=dev-token`,
-        token: "dev-token",
-        name: input.name,
-      });
+      // The account is created; the student can ask for the verification email again.
+      // Never send a link with a made-up token (security audit, Phase 6).
     }
 
     return result;

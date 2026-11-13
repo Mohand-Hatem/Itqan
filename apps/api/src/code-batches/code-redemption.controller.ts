@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Headers,
   HttpCode,
   Inject,
   Post,
@@ -21,7 +20,7 @@ export class RegisterWithCodeController {
   @Post()
   @Public()
   @HttpCode(201)
-  register(@Body() raw: unknown, @Headers("host") host: string = "localhost") {
+  register(@Body() raw: unknown) {
     const parsed = CodeRegisterSchema.safeParse(raw);
     if (!parsed.success) {
       if (parsed.error.issues.some((i) => i.path.includes("guardianConsent"))) {
@@ -38,7 +37,7 @@ export class RegisterWithCodeController {
         errors: parsed.error.issues,
       });
     }
-    return this.service.registerWithCode(parsed.data, host);
+    return this.service.registerWithCode(parsed.data);
   }
 }
 

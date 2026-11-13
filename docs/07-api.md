@@ -1,6 +1,6 @@
 # REST API (NestJS)
 
-Base path `/api`. Tenant comes from the host. JSON. Errors: `{ "error": { "code": "DEVICE_LIMIT", "message": "…" } }`. Lists use `?cursor=&limit=`. The live contract is the Swagger UI at `/api/docs` (staging only); this file is the plan.
+Base path `/api`. Tenant comes from the host. JSON. Errors: `{ "statusCode": 403, "reason": "DEVICE_LIMIT", "message": "…" }`; the UI picks its text from `reason`. Two exceptions: Better Auth routes under `/api/auth/*` answer `{ "code": "…" }`, and an unknown host answers 404 `{ "error": { "code": "TENANT_NOT_FOUND" } }` from the tenant middleware. Lists use `?cursor=&limit=`. The live contract is the Swagger UI at `/api/docs` (staging only); this file is the plan; per-step details for Phase 6 are in `docs/designs/`.
 
 Roles: **SA** super admin, **T** teacher, **A** assistant, **S** student, **P** public.
 
@@ -40,9 +40,11 @@ Every non-public request from a student must also carry the device cookie of the
 | PATCH | `/students/:membershipId` | T, A | Body `{ status?: "active" \| "suspended", maxDevices?: 1–10 }` (step 5.9). Suspending ends the student's sessions on this tenant only. `maxDevices` is teacher and SA only (FR-D02; assistants get 403 `ROLE_FORBIDDEN`) and never revokes devices. 200 `{ membershipId, status, maxDevices }`; 404 for staff memberships and other tenants. Audited. |
 | POST | `/students/:membershipId/enrollments` | T, A | Add course |
 | DELETE | `/enrollments/:id` | T, SA | Terminate |
+| GET | `/courses/:id/access` | S | Whether the caller has an active enrollment in the course (step 6.7) |
 | POST | `/devices/:id/revoke` | T, A | Revoke a device of a student of this tenant: `revoked`, its sessions end (step 5.9). 200 `{ id, status: "revoked" }`, also when already revoked; 404 otherwise. Audited. |
 | POST | `/students/:membershipId/force-signout` | T, A | End all the student's sessions on every tenant; devices stay (step 5.9). By membership, not user id, so it only reaches this tenant's students. 200 `{ membershipId, sessionsEnded }`. Audited. |
-| GET/POST/DELETE | `/assistants` | T | Manage assistants |
+| GET/POST | `/assistants` | T | List / add an assistant: a new user with a temporary password, or an existing user by email (step 6.10a) |
+| DELETE | `/assistants/:id` | T | Remove an assistant. Their sessions on this tenant and their staff sessions (which carry no tenant) end. Audited. |
 
 ## Access
 | Method | Path | Who | Purpose |
@@ -53,16 +55,16 @@ Every non-public request from a student must also carry the device cookie of the
 | POST | `/invitations/accept` | S | Existing user accepts |
 | POST | `/register` | P | Register with invitation |
 | POST | `/register-with-code` | P | Register with code |
-| POST | `/code-batches` | T, A | Generate codes, returns CSV once |
+| POST | `/code-batches` | T | Generate codes, returns CSV once |
 | GET | `/code-batches` · `/:id/codes` | T, A | Status (redeemed / not) |
-| POST | `/code-batches/:id/revoke` | T, A | Revoke unredeemed |
+| POST | `/code-batches/:id/revoke` | T | Revoke unredeemed |
 | POST | `/codes/redeem` | S | Existing user redeems |
-| GET/POST | `/payments` | T (A view) | Records |
+| GET/POST | `/payments` | T (A view) | Records. Not built yet: step 6.9a is put off until Phase U. |
 
 ## Content
 | Method | Path | Who | Purpose |
 |---|---|---|---|
-| GET/POST | `/courses` | T, A (S: own) | |
+| GET/POST | `/courses` | T, A | Students get their courses in Phase 7 |
 | GET/PATCH/DELETE | `/courses/:id` | T, A (delete: T) | |
 | GET | `/courses/:id/tree` | T, A, S | Tree (students: published only) |
 | POST | `/content-items` | T, A | Create node |

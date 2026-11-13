@@ -19,6 +19,7 @@ import type {
 import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { joinLink } from "./join-link.js";
 
 @Injectable()
 export class InvitationsService {
@@ -101,7 +102,7 @@ export class InvitationsService {
       where: { id: tenantId },
       select: { name: true },
     });
-    const url = `http://${host}/join?token=${rawToken}`;
+    const url = joinLink(host, rawToken);
     await sendInvitationEmail({
       to: input.email,
       url,
@@ -114,7 +115,7 @@ export class InvitationsService {
       email: invitation.email,
       courseIds: invitation.courseIds,
       expiresAt: invitation.expiresAt,
-      token: rawToken,
+      // No token here: it travels only by email, never to the staff member (security audit, Phase 6).
     };
   }
 
@@ -231,7 +232,7 @@ export class InvitationsService {
       select: { title: true },
     });
 
-    const url = `http://${host}/join?token=${rawToken}`;
+    const url = joinLink(host, rawToken);
     await sendInvitationEmail({
       to: updated.email,
       url,
@@ -239,7 +240,7 @@ export class InvitationsService {
       courseTitles: courses.map((c) => c.title),
     });
 
-    return { id: updated.id, email: updated.email, expiresAt: updated.expiresAt, token: rawToken };
+    return { id: updated.id, email: updated.email, expiresAt: updated.expiresAt };
   }
 
   async revoke(id: string, actorUserId: string) {
