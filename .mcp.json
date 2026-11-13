@@ -27,6 +27,10 @@
     "nestjs-observe": {
       "type": "http",
       "url": "https://observe-api.nestjs.com/mcp"
+    },
+    "cloudflare": {
+      "type": "http",
+      "url": "https://mcp.cloudflare.com/mcp"
     }
   }
 }

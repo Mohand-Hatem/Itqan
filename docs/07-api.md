@@ -29,8 +29,8 @@ Every non-public request from a student must also carry the device cookie of the
 ## Settings
 | Method | Path | Who | Purpose |
 |---|---|---|---|
-| GET | `/public/settings` | P | Branding and public pages only |
-| GET/PATCH | `/settings` | T | Full tenant settings |
+| GET | `/public/settings` | P | `{ name, branding: { logoUrl, faviconUrl, primaryColor, secondaryColor }, hero: { title, subtitle, imageUrl }, pages, contact, social, locale, timezone }`. No device limit, no asset ids |
+| GET/PATCH | `/settings` | T | Full tenant settings (`TenantSettingsSchema` in `packages/shared`) plus `urls`. PATCH takes `name` and any part (`branding`, `hero`, `pages`, `contact`, `social`, `locale`, `timezone`, `defaultMaxDevices`); a part sent replaces that whole part. Page HTML is cleaned with `sanitize-html` on save. Images must be ready public images of the tenant (400 `ASSET_NOT_USABLE`). Audit `tenant.settings_update` |
 
 ## People
 | Method | Path | Who | Purpose |
@@ -66,13 +66,16 @@ Every non-public request from a student must also carry the device cookie of the
 |---|---|---|---|
 | GET/POST | `/courses` | T, A | Students get their courses in Phase 7 |
 | GET/PATCH/DELETE | `/courses/:id` | T, A (delete: T) | |
-| GET | `/courses/:id/tree` | T, A, S | Tree (students: published only) |
-| POST | `/content-items` | T, A | Create node |
-| PATCH | `/content-items/:id` | T, A | Rename, move, reorder, publish |
-| DELETE / POST `…/restore` | `/content-items/:id` | T, A | Soft delete / restore |
-| POST | `/uploads` · `/uploads/:id/confirm` | T, A | Presigned upload |
-| GET | `/content-items/:id/access` | S, T, A | Signed URL + watermark |
-| PUT | `/progress/:itemId` | S | Completed, video position |
+| GET | `/courses/:id/tree` | T, A, S | Tree. Staff (7.4): live tree, `?deleted=true` lists restorable items. Students (7.6): enrolled, course not a draft; published items under published parents only, `[{id, kind, title, mimeType, children}]` |
+| POST | `/content-items` | T, A | Create node `{courseId, parentId?, kind, title, assetId?}` |
+| PATCH | `/content-items/:id` | T, A | Rename, move, reorder, publish `{title?, parentId?, position?, published?, assetId?}`. 409 `TREE_CYCLE` / `TREE_TOO_DEEP` |
+| DELETE / POST `…/restore` | `/content-items/:id` | T, A | Soft delete of the branch / restore it (409 `PARENT_DELETED`). Details: [designs/phase-7.4](designs/phase-7.4-content-tree-api.md) |
+| POST | `/uploads` | T, A | Presigned upload ([06 §4](06-flows.md)). Body `{ fileName, mimeType, size, purpose: "content"\|"public", downloadPolicy? }` (default `view_only`). 201 `{ asset, uploadUrl, expiresAt }`: a pending asset and a 15-minute PUT URL signed for that exact `Content-Type` and `Content-Length`. 400 `UPLOAD_TYPE_NOT_ALLOWED` or `UPLOAD_TOO_LARGE`. |
+| POST | `/uploads/:id/confirm` | T, A | Check the stored file (`HEAD`) and mark the asset `ready`; calling it again returns the ready asset. 404 `ASSET_NOT_FOUND`; 409 `UPLOAD_NOT_FOUND` (not uploaded yet) or `UPLOAD_MISMATCH` (size or type differ: the asset is `failed` and the file deleted). |
+| PATCH | `/uploads/:id` | T, A | `{ downloadPolicy: "view_only" \| "downloadable" }`, with an audit entry. 404 `ASSET_NOT_FOUND` |
+| GET | `/content-items/:id/access` | S, T, A | Signed view/download URLs + video watermark ([designs/phase-7.6](designs/phase-7.6-content-access-api.md)). Students: 403 `ENROLLMENT_REQUIRED` / `ENROLLMENT_TERMINATED` / `COURSE_NOT_PUBLISHED`; 404 for hidden items. Staff may preview unpublished items |
+| PUT | `/progress/:itemId` | S | `{ completed?, videoPositionSec? }` (0–86400, videos only). Same checks as `…/access`; completing twice keeps the first time. 400 `NOT_A_VIDEO` / `NOT_TRACKABLE` (folders, chapters, lectures) |
+| GET | `/courses/:id/progress` | S | `{ items: [{ itemId, completed, completedAt, videoPositionSec, updatedAt }], resume: { itemId, videoPositionSec } \| null }`: own progress on visible items; `resume` = latest item not completed |
 | GET/POST | `/content-items/:id/comments` | S, T, A | Q&A |
 | PATCH/DELETE | `/comments/:id` | author, T, A | Edit / hide / delete |
 

@@ -47,18 +47,18 @@ On terminate: SSE `enrollment_terminated`, the student loses access at once, pro
 
 ## 4. Upload
 
-1. `POST /uploads {fileName, mimeType, size, purpose}` → checks role, MIME allow-list, size limit → creates `media_assets` (pending) → returns a presigned PUT (15 min).
+1. `POST /uploads {fileName, mimeType, size, purpose}` → checks role, MIME allow-list, size limit → creates `media_assets` (pending, key `tenants/{tenantId}/{assetId}`) → returns a presigned PUT (15 min). The URL signs `Content-Type` and `Content-Length`, so R2 refuses another type or size.
 2. Browser PUTs to R2.
-3. `POST /uploads/:assetId/confirm` → `HEAD` object, check size and type → `ready`.
+3. `POST /uploads/:assetId/confirm` → `HEAD` object, check size and type → `ready` and an audit entry (`media.upload`). A mismatch marks the asset `failed` and deletes the file. Confirming twice is safe.
 4. Staff attach the asset to a content item.
 
 A daily job deletes assets stuck in `pending` for more than 24 hours.
 
-Size limits: PDF/DOCX/PPTX 100 MB, images 10 MB, MP4 5 GB (single presigned PUT).
+Allowed types and size limits (`UPLOAD_LIMITS` in `packages/shared`): PDF/DOCX/PPTX 100 MB, JPEG/PNG/WebP 10 MB, MP4 5 GB (single presigned PUT). No SVG or GIF. `purpose: "public"` (logos, thumbnails) accepts images only and uses the public bucket; `"content"` uses the private bucket.
 
 ## 5. Viewing content
 
-`GET /content/:itemId/access` → guards + active enrollment + item published + course published → returns a signed URL (documents 5 min, video 4 h) plus the watermark text for videos. A view-only PDF is rendered in PDF.js with no download button. That is not true protection, which [09-security.md](09-security.md) explains.
+`GET /content-items/:id/access` → guards + active enrollment + course published or archived + item and every item above it published → returns signed URLs (documents 5 min, video 4 h) plus the watermark text for videos. View-only files get no download URL; DOCX/PPTX are download-only; videos never get a download URL. When a URL expires, the client asks again and every check runs again. Details: [designs/phase-7.6](designs/phase-7.6-content-access-api.md). A view-only PDF is rendered in PDF.js with no download button. That is not true protection, which [09-security.md](09-security.md) explains.
 
 ## 6. Exam attempt
 

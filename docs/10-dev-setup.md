@@ -21,6 +21,9 @@ Everything below is committed, so a fresh clone gets it. You only approve, sign 
 | `shadcn` | Browse and add shadcn/ui components | None |
 | `tanstack` | TanStack docs (Query, Table, …) via the official `@tanstack/cli mcp` | None |
 | `nestjs-observe` | Errors, traces and releases from NestJS Observe | NestJS Observe account (OAuth); useful only once the API reports to it |
+| `cloudflare` | Cloudflare API (Code Mode: `search` + `execute`): create R2 buckets, set CORS, DNS later. Step 7.1 | Your Cloudflare account (OAuth) |
+
+**Cloudflare rule:** use it on dev buckets and settings only, and confirm each change first. Never create API tokens or keys through it: their secrets would pass through the chat. Create those in the dashboard.
 
 **Neon rule:** never point the Neon MCP at production or at a branch with real student data. Schema changes go through Prisma migrations, not MCP SQL.
 
@@ -83,3 +86,30 @@ Order (CLAUDE.md): **Docker → Neon `dev` → Neon `main`**. Postgres 18 everyw
 - The production (`main`) URL is **not** kept in `.env` until step 10.12.
 
 Getting the Neon dev URLs: Neon console → project **Itqan** → branch `dev` → Connect, once with connection pooling on and once off. Or with the CLI: `npx neon@latest login`, then `npx neon@latest connection-string dev --project-id raspy-hill-22852603` (add `--pooled` for the pooled one). Paste into `.env` only.
+
+## 7. Cloudflare R2 (step 7.1)
+
+Files and videos live in R2 (docs/03 §4). Each environment has its own two buckets; for development: `itqan-dev-private` (course files, videos) and `itqan-dev-public` (logos, thumbnails).
+
+1. Create both buckets (dashboard → R2, or through the `cloudflare` MCP after you approve it).
+2. Public bucket → Settings → Public access: turn on the `r2.dev` URL. Put it in `R2_PUBLIC_URL`.
+3. Dashboard → R2 → Manage API tokens → Create token: **Object Read & Write**, limited to the two buckets. Put the values in `.env` yourself (names in `.env.example`); never in chat, and never create the token through the MCP.
+4. Each bucket → Settings → CORS policy → paste:
+
+```json
+[
+  {
+    "AllowedOrigins": ["http://localhost:3000", "http://*.localhost:3000"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag", "Content-Length"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+   R2 allows one `*` per origin but not in the port, so each port is listed. Staging and production origins (`https://*.<root>`) are added on their own buckets when those environments exist.
+5. Run `npm run r2:check`. It uploads with a presigned URL (curl), reads it back, sends a CORS preflight from each local origin, checks the public URL, and deletes its test objects. It prints statuses only, never URLs or keys.
+
+Presigned PUTs last 15 minutes and sign `Content-Type`, so an upload must send the exact type the API allowed. The R2 integration test (`storage.int.spec.ts`) skips itself when the keys are not in `.env`.
+

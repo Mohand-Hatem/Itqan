@@ -13,6 +13,10 @@ import { MeModule } from "./me/me.module.js";
 import { StudentsModule } from "./students/students.module.js";
 import { SupportModule } from "./support/support.module.js";
 import { TenancyModule } from "./tenancy/tenancy.module.js";
+import { UploadsModule } from "./uploads/uploads.module.js";
+import { ContentItemsModule } from "./content-items/content-items.module.js";
+import { ProgressModule } from "./progress/progress.module.js";
+import { SettingsModule } from "./settings/settings.module.js";
 
 @Module({
   imports: [
@@ -29,6 +33,10 @@ import { TenancyModule } from "./tenancy/tenancy.module.js";
     EnrollmentsModule,
     AssistantsModule,
     AdminTenantsModule,
+    UploadsModule,
+    ContentItemsModule,
+    ProgressModule,
+    SettingsModule,
   ],
   controllers: [HealthController],
   providers: [],

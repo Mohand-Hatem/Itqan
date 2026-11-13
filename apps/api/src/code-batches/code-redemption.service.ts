@@ -13,6 +13,7 @@ import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { hashAccessCode, normalizeAccessCode } from "./crypto.js";
+import { defaultMaxDevices } from "../settings/default-max-devices.js";
 
 @Injectable()
 export class CodeRedemptionService {
@@ -132,7 +133,7 @@ export class CodeRedemptionService {
           name: input.name,
           emailVerified: false,
           status: "active",
-          maxDevices: 1,
+          maxDevices: await defaultMaxDevices(tx, code.tenantId),
         },
       });
 

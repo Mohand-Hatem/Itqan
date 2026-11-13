@@ -57,6 +57,7 @@ Failures return 401/403 with a machine-readable `reason` (`DEVICE_NOT_REGISTERED
 | Logos, thumbnails, hero images | R2 bucket `public`, key `tenants/{tenantId}/…` | Public URL via Cloudflare |
 | Metadata | `media_assets` table | — |
 
+- **Buckets per environment:** `itqan-dev-private` / `itqan-dev-public` for development; staging and production get their own pair. Setup: [10-dev-setup.md §7](10-dev-setup.md).
 - **Upload:** client asks the API → API checks role, type and size limits → returns a presigned PUT (15 min) → client uploads → client calls `confirm` → API checks the object with `HEAD` and marks the asset `ready`.
 - **Download/view:** presigned GET. Documents: 5 min. Videos: 4 hours (range requests continue during playback); the player asks for a new URL on 403.
 - **Videos:** MP4 (H.264/AAC), 720p recommended. A moving CSS watermark shows the student's name and email.

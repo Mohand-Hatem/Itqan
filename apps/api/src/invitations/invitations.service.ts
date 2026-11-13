@@ -20,6 +20,7 @@ import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { joinLink } from "./join-link.js";
+import { defaultMaxDevices } from "../settings/default-max-devices.js";
 
 @Injectable()
 export class InvitationsService {
@@ -397,7 +398,7 @@ export class InvitationsService {
           name: input.name,
           emailVerified: true,
           status: "active",
-          maxDevices: 1,
+          maxDevices: await defaultMaxDevices(tx, inv.tenantId),
         },
       });
 

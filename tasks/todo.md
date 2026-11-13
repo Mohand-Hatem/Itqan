@@ -126,17 +126,17 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 7: Content and media (2.5 weeks)
 
-- [ ] **7.1** 🔑 R2 buckets (private, public), API keys and CORS. _Done when:_ a presigned PUT works with curl and a CORS preflight from the web origin passes (the browser upload is checked in 7.3).
-- [ ] **7.2** Upload API: presign, confirm, MIME and size allow-list, `media_assets` (FR-C03). _Done when:_ tests pass and disallowed types are rejected.
+- [x] **7.1** 🔑 R2 buckets (private, public), API keys and CORS. _Done when:_ a presigned PUT works with curl and a CORS preflight from the web origin passes (the browser upload is checked in 7.3).
+- [x] **7.2** Upload API: presign, confirm, MIME and size allow-list, `media_assets` (FR-C03). _Done when:_ tests pass and disallowed types are rejected.
 - [ ] **7.3** 🎨⏸ Upload component with progress. _Done when:_ a 500 MB MP4 uploads to R2 from the local Docker stack.
-- [ ] **7.4** Content tree API: create, rename, move, reorder, publish, soft delete, restore, depth ≤ 5 (FR-C01, C02). _Done when:_ tests pass for cycles and depth.
+- [x] **7.4** Content tree API: create, rename, move, reorder, publish, soft delete, restore, depth ≤ 5 (FR-C01, C02). _Done when:_ tests pass for cycles and depth.
 - [ ] **7.5** 🎨⏸ Tree editor with drag and drop. _Done when:_ the teacher builds a course tree in both languages.
-- [ ] **7.6** Content access API: signed URLs after enrollment and publish checks, URL refresh (FR-C06). _Done when:_ a non-enrolled student gets 403 and view-only files get no download URL.
+- [x] **7.6** Content access API: signed URLs after enrollment and publish checks, URL refresh (FR-C06). _Done when:_ a non-enrolled student gets 403 and view-only files get no download URL.
 - [ ] **7.7** 🎨⏸ Student course page: tree and viewer layout. _Done when:_ a student navigates a course.
 - [ ] **7.8** 🎨⏸ PDF viewer and download policy (FR-C04). _Done when:_ view-only PDFs show no download button.
 - [ ] **7.9** 🎨⏸ Video player with URL refresh and moving watermark (FR-C05). _Done when:_ a long video plays past URL expiry and shows the watermark.
-- [ ] **7.10** Progress tracking and resume (FR-C07). _Done when:_ an API test saves a position and returns it as the resume point.
-- [ ] **7.11** Tenant settings API with Zod schema and HTML sanitizing (FR-T06). _Done when:_ script tags are stripped in a test.
+- [x] **7.10** Progress tracking and resume (FR-C07). _Done when:_ an API test saves a position and returns it as the resume point.
+- [x] **7.11** Tenant settings API with Zod schema and HTML sanitizing (FR-T06). _Done when:_ script tags are stripped in a test.
 - [ ] **7.12** 🎨⏸ Settings page and public pages (landing, about, how-it-works). _Done when:_ changing branding updates the public site.
 
 **API checkpoint 7:** through the API, a teacher builds a full course and a student gets its content on the local Docker stack · owner review.

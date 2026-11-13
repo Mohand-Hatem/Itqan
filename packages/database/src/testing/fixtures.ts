@@ -119,6 +119,57 @@ export const TENANT_FIXTURES: Record<string, MakeRow> = {
       },
     });
   },
+  MediaAsset: async (db, tenantId) => {
+    const uploader = await db.user.create({
+      data: { email: `fixture-uploader-${randomUUID()}@example.com`, name: "Fixture Uploader" },
+    });
+    const id = randomUUID();
+    return db.mediaAsset.create({
+      data: {
+        id,
+        tenantId,
+        purpose: "content",
+        storageKey: `tenants/${tenantId}/${id}`,
+        originalName: "fixture.pdf",
+        mimeType: "application/pdf",
+        fileSize: 1024n,
+        uploadedBy: uploader.id,
+      },
+    });
+  },
+  ContentItem: async (db, tenantId) => {
+    const course = await db.course.create({ data: { tenantId, title: "Fixture Tree Course" } });
+    return db.contentItem.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        kind: "folder",
+        title: "Fixture Folder",
+        sortOrder: 0,
+        depth: 1,
+      },
+    });
+  },
+  LessonProgress: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-learner-${randomUUID()}@example.com`, name: "Fixture Learner" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    const course = await db.course.create({ data: { tenantId, title: "Fixture Progress Course" } });
+    const item = await db.contentItem.create({
+      data: { tenantId, courseId: course.id, kind: "folder", title: "x", sortOrder: 0, depth: 1 },
+    });
+    return db.lessonProgress.create({
+      data: {
+        tenantId,
+        membershipId: membership.id,
+        contentItemId: item.id,
+        videoPositionSec: 42,
+      },
+    });
+  },
 };
 
 export type FixtureTenant = {

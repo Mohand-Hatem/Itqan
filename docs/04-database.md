@@ -35,7 +35,7 @@ erDiagram
 ### Platform and identity
 | Table | Key columns | Notes |
 |---|---|---|
-| `tenants` | slug (unique), name, status (`active`/`deleted`), paused_roles `text[]`, settings `jsonb`, deleted_at | Settings validated by a Zod schema: branding, social links, contact, pages, locale, timezone, default_max_devices. |
+| `tenants` | slug (unique), name, status (`active`/`deleted`), paused_roles `text[]`, settings `jsonb`, deleted_at | Settings validated by a Zod schema (`TenantSettingsSchema`, step 7.11): branding (logo/favicon asset ids, colors), hero, pages (sanitized HTML), contact, social links (https), locale (`ar` default), timezone (`Africa/Cairo` default), defaultMaxDevices (1–5, used for new student accounts). `{}` reads as all defaults. |
 | `users` (Better Auth) | email (unique), name, email_verified, + `max_devices int default 1`, `status` (`active`/`suspended`), `is_super_admin bool` | Global identity. |
 | `sessions` (Better Auth) | token, user_id, expires_at, + `device_id`, `tenant_id` | Host-only cookie. Global, not tenant-filtered: `tenant_id` records the subdomain the session was opened on, and the one-session rule reads a student's sessions on every tenant. `device_id` is null for staff and super admin sessions; `tenant_id` is null on the super admin host. |
 | `memberships` **T** | user_id, role (`teacher`/`assistant`/`student`), status (`active`/`suspended`), guardian_consent_at, phone | Unique (tenant_id, user_id). |
@@ -59,9 +59,9 @@ erDiagram
 | Table | Key columns | Notes |
 |---|---|---|
 | `courses` **T** | title, description, thumbnail_asset_id, status (`draft`/`published`/`archived`), deleted_at | |
-| `content_items` **T** | course_id, parent_id, kind (`folder`/`chapter`/`lecture`/`file`/`video`/`quiz`), title, sort_order, depth, asset_id, quiz_id, published_at, deleted_at | Adjacency list; depth ≤ 5. |
-| `media_assets` **T** | provider (`r2`), storage_key, original_name, mime_type, file_size (bigint), duration_sec, status (`pending`/`ready`/`failed`), download_policy (`view_only`/`downloadable`), uploaded_by | Provider column allows Bunny later. |
-| `lesson_progress` **T** | membership_id, content_item_id, completed_at, video_position_sec | Unique (membership_id, content_item_id). |
+| `content_items` **T** | course_id, parent_id, kind (`folder`/`chapter`/`lecture`/`file`/`video`; `quiz` in Phase 8), title, sort_order, depth, asset_id, quiz_id (Phase 8), published_at, deleted_at | Adjacency list; depth 1–5. Rules: [designs/phase-7.4](designs/phase-7.4-content-tree-api.md). |
+| `media_assets` **T** | provider (`r2`), purpose (`content`/`public`), storage_key, original_name, mime_type, file_size (bigint), duration_sec, status (`pending`/`ready`/`failed`), download_policy (`view_only`/`downloadable`), uploaded_by | Provider column allows Bunny later. `purpose` picks the bucket: `content` = private, `public` = public (images only). Deleting a user who uploaded files is refused. |
+| `lesson_progress` **T** | membership_id, content_item_id, completed_at, video_position_sec, updated_at | Unique (membership_id, content_item_id). File and video items only. The resume point is the latest `updated_at` that is not completed. Kept when an enrollment ends. |
 | `comments` **T** | content_item_id, author_membership_id, parent_id, body, hidden_at, deleted_at | Lesson Q&A. |
 
 ### Exams

@@ -69,6 +69,36 @@ enum SupportRequestStatus {
   closed
 }
 
+enum MediaProvider {
+  r2
+}
+
+enum MediaStatus {
+  pending
+  ready
+  failed
+}
+
+enum DownloadPolicy {
+  view_only
+  downloadable
+}
+
+// Which R2 bucket holds the file: content = private, public = public URL (docs/03 §4).
+enum MediaPurpose {
+  content
+  public
+}
+
+// folder/chapter/lecture hold other items; file/video point to a media asset (docs/04, step 7.4).
+enum ContentKind {
+  folder
+  chapter
+  lecture
+  file
+  video
+}
+
 model Tenant {
   id          String       @id @default(uuid(7)) @db.Uuid
   slug        String       @unique
@@ -89,6 +119,9 @@ model Tenant {
   enrollments     Enrollment[]
   codeBatches     AccessCodeBatch[]
   accessCodes     AccessCode[]
+  mediaAssets     MediaAsset[]
+  contentItems    ContentItem[]
+  lessonProgress  LessonProgress[]
 
   @@map("tenants")
 }
@@ -112,14 +145,15 @@ model User {
   memberships            Membership[]
   auditLogs              AuditLog[]
   devices                Device[]
-  decidedSupportRequests SupportRequest[] @relation("SupportRequestDecidedBy")
-  createdInvitations     Invitation[]     @relation("InvitationCreatedBy")
-  redeemedInvitations    Invitation[]     @relation("InvitationRedeemedBy")
-  grantedEnrollments     Enrollment[]     @relation("EnrollmentGrantedBy")
-  terminatedEnrollments  Enrollment[]     @relation("EnrollmentTerminatedBy")
+  decidedSupportRequests SupportRequest[]  @relation("SupportRequestDecidedBy")
+  createdInvitations     Invitation[]      @relation("InvitationCreatedBy")
+  redeemedInvitations    Invitation[]      @relation("InvitationRedeemedBy")
+  grantedEnrollments     Enrollment[]      @relation("EnrollmentGrantedBy")
+  terminatedEnrollments  Enrollment[]      @relation("EnrollmentTerminatedBy")
   createdCodeBatches     AccessCodeBatch[] @relation("BatchCreatedBy")
   revokedCodeBatches     AccessCodeBatch[] @relation("BatchRevokedBy")
   redeemedAccessCodes    AccessCode[]      @relation("CodeRedeemedBy")
+  uploadedMediaAssets    MediaAsset[]      @relation("MediaUploadedBy")
 
   @@map("users")
 }
@@ -258,6 +292,7 @@ model Membership {
 
   supportRequests SupportRequest[]
   enrollments     Enrollment[]
+  lessonProgress  LessonProgress[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -297,10 +332,11 @@ model Course {
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  enrollments Enrollment[]
-  codeBatches AccessCodeBatch[]
-  accessCodes AccessCode[]
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  codeBatches  AccessCodeBatch[]
+  accessCodes  AccessCode[]
+  contentItems ContentItem[]
 
   @@index([tenantId, status, id(sort: Desc)])
   @@index([tenantId, deletedAt])
@@ -370,12 +406,12 @@ model AccessCodeBatch {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  course        Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdByUser User      @relation("BatchCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-  revokedByUser User?     @relation("BatchRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+  tenant        Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdByUser User   @relation("BatchCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  revokedByUser User?  @relation("BatchRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
 
-  codes         AccessCode[]
+  codes AccessCode[]
 
   @@index([tenantId, courseId, createdAt(sort: Desc)])
   @@index([tenantId, revokedAt])
@@ -405,4 +441,80 @@ model AccessCode {
   @@index([tenantId, batchId, redeemedAt, revokedAt])
   @@index([codeHash])
   @@map("access_codes")
+}
+
+// A file in R2 (docs/04-database.md, FR-C03). Bytes live in R2, never here.
+model MediaAsset {
+  id             String         @id @default(uuid(7)) @db.Uuid
+  tenantId       String         @map("tenant_id") @db.Uuid
+  provider       MediaProvider  @default(r2)
+  purpose        MediaPurpose
+  storageKey     String         @unique @map("storage_key")
+  originalName   String         @map("original_name")
+  mimeType       String         @map("mime_type")
+  fileSize       BigInt         @map("file_size")
+  durationSec    Int?           @map("duration_sec")
+  status         MediaStatus    @default(pending)
+  downloadPolicy DownloadPolicy @default(view_only) @map("download_policy")
+  uploadedBy     String         @map("uploaded_by") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  // Restrict: removing a user must not drop the record of files that still sit in R2.
+  uploadedByUser User          @relation("MediaUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  contentItems   ContentItem[]
+
+  @@index([tenantId, status, createdAt])
+  @@map("media_assets")
+}
+
+// A node of a course's content tree (docs/04-database.md, FR-C01/C02). Adjacency list, depth 1..5.
+model ContentItem {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  tenantId    String      @map("tenant_id") @db.Uuid
+  courseId    String      @map("course_id") @db.Uuid
+  parentId    String?     @map("parent_id") @db.Uuid
+  kind        ContentKind
+  title       String
+  sortOrder   Int         @map("sort_order")
+  depth       Int
+  assetId     String?     @map("asset_id") @db.Uuid
+  publishedAt DateTime?   @map("published_at") @db.Timestamptz
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  parent   ContentItem?     @relation("ContentTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children ContentItem[]    @relation("ContentTree")
+  // Restrict: a file still used by the tree cannot be removed.
+  asset    MediaAsset?      @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  progress LessonProgress[]
+
+  @@index([tenantId, courseId])
+  @@index([courseId, parentId, sortOrder])
+  @@index([assetId])
+  @@map("content_items")
+}
+
+// A student's progress on one content item (docs/04-database.md, FR-C07, step 7.10).
+model LessonProgress {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  membershipId     String    @map("membership_id") @db.Uuid
+  contentItemId    String    @map("content_item_id") @db.Uuid
+  completedAt      DateTime? @map("completed_at") @db.Timestamptz
+  videoPositionSec Int?      @map("video_position_sec")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  membership  Membership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, contentItemId])
+  @@index([tenantId, membershipId, updatedAt(sort: Desc)])
+  @@map("lesson_progress")
 }
