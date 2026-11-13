@@ -7,6 +7,11 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "Membership",
   "AuditLog",
   "SupportRequest",
+  "Course",
+  "Invitation",
+  "Enrollment",
+  "AccessCodeBatch",
+  "AccessCode",
 ]);
 
 export class TenantScopeError extends Error {

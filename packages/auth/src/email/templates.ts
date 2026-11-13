@@ -155,3 +155,105 @@ export function getResetPasswordEmail(params: EmailTemplateParams) {
     `.trim(),
   };
 }
+
+export interface InvitationEmailParams {
+  url: string;
+  tenantName: string;
+  courseTitles?: string[];
+  locale?: EmailLocale;
+}
+
+export function getInvitationEmail(params: InvitationEmailParams) {
+  const isArabic = params.locale !== "en";
+  const coursesTextAr =
+    params.courseTitles && params.courseTitles.length > 0
+      ? `للدورات التالية:\n- ${params.courseTitles.join("\n- ")}\n\n`
+      : "";
+  const coursesHtmlAr =
+    params.courseTitles && params.courseTitles.length > 0
+      ? `<p>للدورات التدريبية التالية:</p><ul>${params.courseTitles.map((t) => `<li><strong>${t}</strong></li>`).join("")}</ul>`
+      : "";
+
+  const coursesTextEn =
+    params.courseTitles && params.courseTitles.length > 0
+      ? `for the following courses:\n- ${params.courseTitles.join("\n- ")}\n\n`
+      : "";
+  const coursesHtmlEn =
+    params.courseTitles && params.courseTitles.length > 0
+      ? `<p>for the following courses:</p><ul>${params.courseTitles.map((t) => `<li><strong>${t}</strong></li>`).join("")}</ul>`
+      : "";
+
+  if (isArabic) {
+    return {
+      subject: `دعوة للانضمام إلى ${params.tenantName} - منصة إتقان`,
+      text: `مرحباً،\n\nلقد تمت دعوتك للانضمام إلى أكاديمية ${params.tenantName} على منصة إتقان ${coursesTextAr}يرجى استخدام الرابط التالي لإتمام انضمامك:\n${params.url}\n\nهذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة.\nإذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            ul { padding-right: 20px; color: #374151; font-size: 15px; line-height: 1.6; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>دعوة للانضمام إلى ${params.tenantName}</h1>
+            <p>تمت دعوتك للانضمام كطالب إلى <strong>${params.tenantName}</strong> على منصة إتقان.</p>
+            ${coursesHtmlAr}
+            <p><a href="${params.url}" class="btn">قبول الدعوة والتسجيل</a></p>
+            <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك مباشرة:</p>
+            <p class="raw-link">${params.url}</p>
+            <div class="footer">
+              <p>هذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهلها بأمان.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  return {
+    subject: `Invitation to join ${params.tenantName} - Itqan Platform`,
+    text: `Hello,\n\nYou have been invited to join ${params.tenantName} on Itqan Platform ${coursesTextEn}Please use the following link to complete your registration:\n${params.url}\n\nThis single-use link expires in 72 hours.\nIf you did not expect this invitation, you can safely ignore this email.`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+          .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+          p { font-size: 15px; line-height: 1.6; color: #374151; }
+          ul { padding-left: 20px; color: #374151; font-size: 15px; line-height: 1.6; }
+          .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+          .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+          .raw-link { word-break: break-all; color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Invitation to join ${params.tenantName}</h1>
+          <p>You have been invited to join <strong>${params.tenantName}</strong> on the Itqan Platform.</p>
+          ${coursesHtmlEn}
+          <p><a href="${params.url}" class="btn">Accept Invitation & Register</a></p>
+          <p>Or copy and paste this URL into your browser:</p>
+          <p class="raw-link">${params.url}</p>
+          <div class="footer">
+            <p>This single-use link expires in 72 hours. If you did not expect this invitation, you can safely ignore this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}

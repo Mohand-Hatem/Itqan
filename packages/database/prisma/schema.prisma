@@ -39,6 +39,23 @@ enum DeviceStatus {
   revoked
 }
 
+enum CourseStatus {
+  draft
+  published
+  archived
+}
+
+enum EnrollmentStatus {
+  active
+  terminated
+}
+
+enum EnrollmentSource {
+  invitation
+  code
+  manual
+}
+
 enum SupportRequestType {
   device_change
   sign_out_other
@@ -67,6 +84,11 @@ model Tenant {
   auditLogs       AuditLog[]
   sessions        Session[]
   supportRequests SupportRequest[]
+  courses         Course[]
+  invitations     Invitation[]
+  enrollments     Enrollment[]
+  codeBatches     AccessCodeBatch[]
+  accessCodes     AccessCode[]
 
   @@map("tenants")
 }
@@ -91,6 +113,13 @@ model User {
   auditLogs              AuditLog[]
   devices                Device[]
   decidedSupportRequests SupportRequest[] @relation("SupportRequestDecidedBy")
+  createdInvitations     Invitation[]     @relation("InvitationCreatedBy")
+  redeemedInvitations    Invitation[]     @relation("InvitationRedeemedBy")
+  grantedEnrollments     Enrollment[]     @relation("EnrollmentGrantedBy")
+  terminatedEnrollments  Enrollment[]     @relation("EnrollmentTerminatedBy")
+  createdCodeBatches     AccessCodeBatch[] @relation("BatchCreatedBy")
+  revokedCodeBatches     AccessCodeBatch[] @relation("BatchRevokedBy")
+  redeemedAccessCodes    AccessCode[]      @relation("CodeRedeemedBy")
 
   @@map("users")
 }
@@ -228,6 +257,7 @@ model Membership {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   supportRequests SupportRequest[]
+  enrollments     Enrollment[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -254,4 +284,125 @@ model AuditLog {
 
   @@index([tenantId, createdAt(sort: Desc)])
   @@map("audit_logs")
+}
+
+model Course {
+  id               String       @id @default(uuid(7)) @db.Uuid
+  tenantId         String       @map("tenant_id") @db.Uuid
+  title            String
+  description      String?
+  thumbnailAssetId String?      @map("thumbnail_asset_id") @db.Uuid
+  status           CourseStatus @default(draft)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+  codeBatches AccessCodeBatch[]
+  accessCodes AccessCode[]
+
+  @@index([tenantId, status, id(sort: Desc)])
+  @@index([tenantId, deletedAt])
+  @@map("courses")
+}
+
+model Invitation {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  email      String
+  tokenHash  String    @unique @map("token_hash")
+  courseIds  String[]  @map("course_ids") @db.Uuid
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  redeemedAt DateTime? @map("redeemed_at") @db.Timestamptz
+  redeemedBy String?   @map("redeemed_by") @db.Uuid
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz
+  createdBy  String    @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant         Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdByUser  User   @relation("InvitationCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  redeemedByUser User?  @relation("InvitationRedeemedBy", fields: [redeemedBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, email])
+  @@index([tenantId, expiresAt])
+  @@index([tenantId, redeemedAt])
+  @@map("invitations")
+}
+
+model Enrollment {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  tenantId     String           @map("tenant_id") @db.Uuid
+  membershipId String           @map("membership_id") @db.Uuid
+  courseId     String           @map("course_id") @db.Uuid
+  status       EnrollmentStatus @default(active)
+  source       EnrollmentSource
+  grantedBy    String           @map("granted_by") @db.Uuid
+  terminatedBy String?          @map("terminated_by") @db.Uuid
+  terminatedAt DateTime?        @map("terminated_at") @db.Timestamptz
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant           Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  membership       Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  course           Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  grantedByUser    User       @relation("EnrollmentGrantedBy", fields: [grantedBy], references: [id], onDelete: Cascade)
+  terminatedByUser User?      @relation("EnrollmentTerminatedBy", fields: [terminatedBy], references: [id], onDelete: SetNull)
+
+  @@unique([membershipId, courseId])
+  @@index([tenantId, status])
+  @@index([courseId, status])
+  @@map("enrollments")
+}
+
+// Batch of access codes generated for a course (docs/04-database.md, FR-E02).
+model AccessCodeBatch {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  courseId      String    @map("course_id") @db.Uuid
+  name          String?
+  codeCount     Int       @map("code_count")
+  redeemedCount Int       @default(0) @map("redeemed_count")
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz
+  createdById   String    @map("created_by") @db.Uuid
+  revokedById   String?   @map("revoked_by") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course        Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdByUser User      @relation("BatchCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  revokedByUser User?     @relation("BatchRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+
+  codes         AccessCode[]
+
+  @@index([tenantId, courseId, createdAt(sort: Desc)])
+  @@index([tenantId, revokedAt])
+  @@map("access_code_batches")
+}
+
+// Single-use course access code (HMAC-hashed, docs/04-database.md, FR-E02).
+model AccessCode {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  batchId      String    @map("batch_id") @db.Uuid
+  courseId     String    @map("course_id") @db.Uuid
+  serialNumber Int       @map("serial_number")
+  codeHash     String    @unique @map("code_hash")
+  codePrefix   String    @map("code_prefix")
+  redeemedAt   DateTime? @map("redeemed_at") @db.Timestamptz
+  redeemedBy   String?   @map("redeemed_by") @db.Uuid
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batch          AccessCodeBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  course         Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  redeemedByUser User?           @relation("CodeRedeemedBy", fields: [redeemedBy], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, batchId, serialNumber])
+  @@index([tenantId, batchId, redeemedAt, revokedAt])
+  @@index([codeHash])
+  @@map("access_codes")
 }

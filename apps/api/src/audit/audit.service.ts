@@ -11,10 +11,16 @@ export type AuditEntry = {
   meta?: Record<string, unknown>;
   // Passed in until login exists; step 4.7 takes it from the session.
   actorUserId?: string;
+  tenantId?: string | null;
 };
 
 // Anything with the audit delegate: the scoped client or a transaction client from it.
-type AuditWriter = Pick<ScopedPrismaClient, "auditLog">;
+export type AuditWriter = {
+  auditLog: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create: (args: { data: any }) => Promise<any>;
+  };
+};
 
 @Injectable()
 export class AuditService {
@@ -26,8 +32,13 @@ export class AuditService {
     const context = getRequestContext();
     return tx.auditLog.create({
       data: {
-        // Tenant comes from the request context; the super admin site records platform actions.
-        tenantId: context?.kind === "tenant" ? context.tenantId : null,
+        // Tenant comes from entry (if provided) or request context; super admin site records platform actions.
+        tenantId:
+          entry.tenantId !== undefined
+            ? entry.tenantId
+            : context?.kind === "tenant"
+              ? context.tenantId
+              : null,
         actorUserId: entry.actorUserId ?? null,
         action: entry.action,
         targetType: entry.targetType ?? null,

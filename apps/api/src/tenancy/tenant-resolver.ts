@@ -14,4 +14,12 @@ export class TenantResolver {
   findBySlug(slug: string): Promise<ResolvedTenant | null> {
     return this.lookup.findBySlug(slug);
   }
+
+  set(slug: string, tenant: ResolvedTenant): void {
+    this.lookup.set(slug, tenant);
+  }
+
+  invalidate(slug: string): void {
+    this.lookup.invalidate(slug);
+  }
 }

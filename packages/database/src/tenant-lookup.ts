@@ -30,5 +30,11 @@ export function createTenantLookup(db: Pick<PrismaClient, "tenant">) {
       cache.set(slug, { tenant, expiresAt: Date.now() + TTL_MS });
       return tenant;
     },
+    set(slug: string, tenant: ResolvedTenant): void {
+      cache.set(slug, { tenant, expiresAt: Date.now() + TTL_MS });
+    },
+    invalidate(slug: string): void {
+      cache.delete(slug);
+    },
   };
 }

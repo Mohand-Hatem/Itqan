@@ -100,23 +100,23 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 6: Access and people (2 weeks)
 
-- [ ] **6.1** Courses API (create, edit, publish, archive, soft delete; teacher-only delete). _Done when:_ API and isolation tests pass.
+- [x] **6.1** Courses API (create, edit, publish, archive, soft delete; teacher-only delete). _Done when:_ API and isolation tests pass.
 - [ ] **6.2** 🎨⏸ Course list and course form. _Done when:_ staff manage courses in the UI.
-- [ ] **6.3** Invitations API: create, resend, revoke, check, register, accept, with atomic redemption (FR-E01, E03), including guardian consent fields (FR-A06). _Done when:_ tests pass for expired, reused, revoked, wrong email and parallel redeem.
+- [x] **6.3** Invitations API: create, resend, revoke, check, register, accept, with atomic redemption (FR-E01, E03), including guardian consent fields (FR-A06). _Done when:_ tests pass for expired, reused, revoked, wrong email and parallel redeem.
 - [ ] **6.4** 🎨⏸ `/join` page with guardian consent (FR-A06). _Done when:_ a new student registers from an email link.
-- [ ] **6.5** Access code batches: generate, CSV shown once, revoke (FR-E02). _Done when:_ tests pass and stored codes are hashed.
-- [ ] **6.6a** Register-with-code and redeem-in-account API. _Done when:_ a parallel double-redeem test gives one success.
+- [x] **6.5** Access code batches: generate, CSV shown once, revoke (FR-E02). _Done when:_ tests pass and stored codes are hashed.
+- [x] **6.6a** Register-with-code and redeem-in-account API. _Done when:_ a parallel double-redeem test gives one success.
 - [ ] **6.6b** 🎨⏸ Register-with-code and redeem pages. _Done when:_ a student registers with a code in the browser.
-- [ ] **6.7** Enrollments: add and terminate (teacher, super admin) (FR-E04, E05). _Done when:_ a terminated student gets 403 on course content.
-- [ ] **6.8a** Students list and detail API (courses, devices, sessions, grades, payments). _Done when:_ API and isolation tests pass.
+- [x] **6.7** Enrollments: add and terminate (teacher, super admin) (FR-E04, E05). _Done when:_ a terminated student gets 403 on course content.
+- [x] **6.8a** Students list and detail API (courses, devices, sessions, grades, payments). _Done when:_ API and isolation tests pass.
 - [ ] **6.8b** 🎨⏸ Students list and detail pages. _Done when:_ staff can find and manage a student.
 - [ ] **6.9a** Payments API; assistants view-only (FR-E06). _Done when:_ permission tests pass per role.
 - [ ] **6.9b** 🎨⏸ Payments page. _Done when:_ the teacher records a payment in the UI and an assistant can only view.
-- [ ] **6.10a** Assistant management API (teacher only). _Done when:_ tests show the teacher adds and removes an assistant and others get 403.
+- [x] **6.10a** Assistant management API (teacher only). _Done when:_ tests show the teacher adds and removes an assistant and others get 403.
 - [ ] **6.10b** 🎨⏸ Assistant management page. _Done when:_ the teacher adds and removes an assistant in the UI.
-- [ ] **6.11a** Super admin API: tenant list with usage, create tenant (FR-T02, T05). _Done when:_ a new tenant's host resolves in an integration test.
+- [x] **6.11a** Super admin API: tenant list with usage, create tenant (FR-T02, T05). _Done when:_ a new tenant's host resolves in an integration test.
 - [ ] **6.11b** 🎨⏸ Super admin tenant pages. _Done when:_ a new tenant subdomain works from the UI.
-- [ ] **6.12a** Super admin API: pause roles, suspend users, soft delete (FR-T03, T04). _Done when:_ pausing students ends their sessions and the teacher still works.
+- [x] **6.12a** Super admin API: pause roles, suspend users, soft delete (FR-T03, T04). _Done when:_ pausing students ends their sessions and the teacher still works.
 - [ ] **6.12b** 🎨⏸ Super admin pause, suspend and delete pages. _Done when:_ each action works from the UI and asks for confirmation.
 
 **API checkpoint 6:** a student can join by invitation or code, log in on one device, and be removed, all through the API · owner review.

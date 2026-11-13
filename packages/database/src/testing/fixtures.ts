@@ -28,6 +28,97 @@ export const TENANT_FIXTURES: Record<string, MakeRow> = {
       data: { tenantId, membershipId: membership.id, type: "general" },
     });
   },
+  Course: (db, tenantId) =>
+    db.course.create({
+      data: {
+        tenantId,
+        title: "Fixture Course",
+        description: "Fixture Description",
+      },
+    }),
+  Invitation: async (db, tenantId) => {
+    const creator = await db.user.create({
+      data: { email: `fixture-creator-${randomUUID()}@example.com`, name: "Fixture Creator" },
+    });
+    return db.invitation.create({
+      data: {
+        tenantId,
+        email: `invited-${randomUUID()}@example.com`,
+        tokenHash: randomUUID(),
+        courseIds: [],
+        expiresAt: new Date(Date.now() + 72 * 3600 * 1000),
+        createdBy: creator.id,
+      },
+    });
+  },
+  Enrollment: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-enrolled-${randomUUID()}@example.com`, name: "Fixture Enrolled" },
+    });
+    const granter = await db.user.create({
+      data: { email: `fixture-granter-${randomUUID()}@example.com`, name: "Fixture Granter" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    const course = await db.course.create({
+      data: { tenantId, title: "Fixture Enrollment Course" },
+    });
+    return db.enrollment.create({
+      data: {
+        tenantId,
+        membershipId: membership.id,
+        courseId: course.id,
+        status: "active",
+        source: "invitation",
+        grantedBy: granter.id,
+      },
+    });
+  },
+  AccessCodeBatch: async (db, tenantId) => {
+    const creator = await db.user.create({
+      data: { email: `fixture-batch-creator-${randomUUID()}@example.com`, name: "Batch Creator" },
+    });
+    const course = await db.course.create({
+      data: { tenantId, title: "Fixture Batch Course" },
+    });
+    return db.accessCodeBatch.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        name: "Fixture Batch",
+        codeCount: 10,
+        createdById: creator.id,
+      },
+    });
+  },
+  AccessCode: async (db, tenantId) => {
+    const creator = await db.user.create({
+      data: { email: `fixture-code-creator-${randomUUID()}@example.com`, name: "Code Creator" },
+    });
+    const course = await db.course.create({
+      data: { tenantId, title: "Fixture Code Course" },
+    });
+    const batch = await db.accessCodeBatch.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        name: "Parent Batch",
+        codeCount: 1,
+        createdById: creator.id,
+      },
+    });
+    return db.accessCode.create({
+      data: {
+        tenantId,
+        batchId: batch.id,
+        courseId: course.id,
+        serialNumber: 1,
+        codeHash: randomUUID(),
+        codePrefix: "TEST",
+      },
+    });
+  },
 };
 
 export type FixtureTenant = {

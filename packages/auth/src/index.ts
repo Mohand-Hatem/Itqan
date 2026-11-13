@@ -17,6 +17,7 @@ export {
   getLastSentEmail,
   getResendClient,
   sendEmail,
+  sendInvitationEmail,
   sendResetPasswordEmail,
   sendTestEmail,
   sendVerificationEmail,
@@ -26,8 +27,10 @@ export {
 export {
   type EmailLocale,
   type EmailTemplateParams,
+  getInvitationEmail,
   getResetPasswordEmail,
   getVerificationEmail,
+  type InvitationEmailParams,
 } from "./email/templates.js";
 export {
   MFA_ENROLMENT_REQUIRED_REASON,

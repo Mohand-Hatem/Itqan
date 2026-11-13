@@ -3,6 +3,7 @@ import process from "node:process";
 import { Resend } from "resend";
 import {
   type EmailLocale,
+  getInvitationEmail,
   getResetPasswordEmail,
   getVerificationEmail,
 } from "./templates.js";
@@ -14,7 +15,7 @@ export interface SentEmailRecord {
   text?: string;
   url?: string;
   token?: string;
-  type: "verification" | "reset" | "other";
+  type: "verification" | "reset" | "invitation" | "other";
   sentAt: Date;
 }
 
@@ -61,10 +62,7 @@ export async function sendEmail(options: {
   text?: string;
 }): Promise<{ id?: string; error?: string }> {
   // In automated test environments without explicit live dispatch flag, use the in-memory test mailbox
-  if (
-    process.env["NODE_ENV"] === "test" &&
-    process.env["RESEND_ENABLE_IN_TEST"] !== "true"
-  ) {
+  if (process.env["NODE_ENV"] === "test" && process.env["RESEND_ENABLE_IN_TEST"] !== "true") {
     const mockId = `mock-email-${randomUUID()}`;
     return { id: mockId };
   }
@@ -135,6 +133,33 @@ export async function sendResetPasswordEmail(options: {
       url: options.url,
       token,
       type: "reset",
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text });
+}
+
+export async function sendInvitationEmail(options: {
+  to: string;
+  url: string;
+  tenantName: string;
+  courseTitles?: string[];
+  locale?: EmailLocale;
+  token?: string;
+}): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getInvitationEmail(options);
+  const token = options.token ?? extractTokenFromUrl(options.url);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.url,
+      token,
+      type: "invitation",
       sentAt: new Date(),
     });
   }

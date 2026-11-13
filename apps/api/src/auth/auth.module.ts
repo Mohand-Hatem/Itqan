@@ -4,6 +4,7 @@ import { auth } from "@itqan/auth";
 import { AccessGuard } from "./access.guard.js";
 import { DeviceGuard } from "./device.guard.js";
 import { AUTH_INSTANCE, SessionGuard } from "./session.guard.js";
+export { AUTH_INSTANCE } from "./session.guard.js";
 
 @Global()
 @Module({
