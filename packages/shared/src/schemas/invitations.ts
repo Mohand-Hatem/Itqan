@@ -39,9 +39,14 @@ export const InvitationRegisterSchema = z
   });
 export type InvitationRegisterInput = z.infer<typeof InvitationRegisterSchema>;
 
-export const InvitationAcceptSchema = z.object({
-  token: z.string().min(10, "Invalid invitation token"),
-  isMinor: z.boolean().optional(),
-  guardianConsent: z.boolean().optional(),
-});
+export const InvitationAcceptSchema = z
+  .object({
+    token: z.string().min(10, "Invalid invitation token"),
+    isMinor: z.boolean().optional(),
+    guardianConsent: z.boolean().optional(),
+  })
+  .refine((data) => !data.isMinor || data.guardianConsent, {
+    message: "Guardian consent is required for students under 18.",
+    path: ["guardianConsent"],
+  });
 export type InvitationAcceptInput = z.infer<typeof InvitationAcceptSchema>;

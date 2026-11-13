@@ -31,6 +31,7 @@ export class AssistantsService {
     if (!context || context.kind !== "tenant") {
       throw new BadRequestException({
         statusCode: 400,
+        reason: "NO_TENANT_CONTEXT",
         code: "NO_TENANT_CONTEXT",
         message: "No tenant context found in request",
       });
@@ -60,6 +61,7 @@ export class AssistantsService {
         if (existingMembership) {
           throw new ConflictException({
             statusCode: 409,
+            reason: "MEMBERSHIP_ALREADY_EXISTS",
             code: "MEMBERSHIP_ALREADY_EXISTS",
             message: "User already has a membership on this tenant",
           });
@@ -143,25 +145,37 @@ export class AssistantsService {
     const tenantId = this.getTenantId();
     const limit = query.limit ?? 50;
 
-    const records = await this.db.membership.findMany({
-      where: {
-        tenantId,
-        role: "assistant",
-      },
-      take: limit + 1,
-      cursor: query.cursor ? { id: query.cursor } : undefined,
-      skip: query.cursor ? 1 : 0,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    const records = await this.db.membership
+      .findMany({
+        where: {
+          tenantId,
+          role: "assistant",
+        },
+        take: limit + 1,
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            code: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const hasNextPage = records.length > limit;
     const items = hasNextPage ? records.slice(0, limit) : records;
@@ -196,6 +210,7 @@ export class AssistantsService {
       if (!membership) {
         throw new NotFoundException({
           statusCode: 404,
+          reason: "ASSISTANT_NOT_FOUND",
           code: "ASSISTANT_NOT_FOUND",
           message: "Assistant membership not found on this tenant",
         });

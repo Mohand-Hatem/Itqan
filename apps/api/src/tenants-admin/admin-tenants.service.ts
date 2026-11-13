@@ -43,6 +43,7 @@ export class AdminTenantsService {
     if (existingTenant) {
       throw new ConflictException({
         statusCode: 409,
+        reason: "SLUG_ALREADY_EXISTS",
         code: "SLUG_ALREADY_EXISTS",
         message: `Tenant with slug '${slug}' already exists.`,
       });
@@ -149,24 +150,36 @@ export class AdminTenantsService {
   async list(query: AdminTenantListQuery): Promise<AdminTenantListResponse> {
     const limit = query.limit ?? 20;
 
-    const tenants = await this.db.tenant.findMany({
-      where: { deletedAt: null },
-      take: limit + 1,
-      cursor: query.cursor ? { id: query.cursor } : undefined,
-      skip: query.cursor ? 1 : 0,
-      orderBy: { createdAt: "desc" },
-      include: {
-        memberships: {
-          where: { role: "teacher" },
-          take: 1,
-          include: {
-            user: {
-              select: { id: true, name: true, email: true },
+    const tenants = await this.db.tenant
+      .findMany({
+        where: { deletedAt: null },
+        take: limit + 1,
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          memberships: {
+            where: { role: "teacher" },
+            take: 1,
+            include: {
+              user: {
+                select: { id: true, name: true, email: true },
+              },
             },
           },
         },
-      },
-    });
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            code: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const hasNextPage = tenants.length > limit;
     const items = hasNextPage ? tenants.slice(0, limit) : tenants;
@@ -241,6 +254,7 @@ export class AdminTenantsService {
     if (!tenant) {
       throw new NotFoundException({
         statusCode: 404,
+        reason: "TENANT_NOT_FOUND",
         code: "TENANT_NOT_FOUND",
         message: "Tenant not found",
       });
@@ -295,6 +309,7 @@ export class AdminTenantsService {
     if (!currentTenant) {
       throw new NotFoundException({
         statusCode: 404,
+        reason: "TENANT_NOT_FOUND",
         code: "TENANT_NOT_FOUND",
         message: "Tenant not found",
       });
@@ -308,6 +323,7 @@ export class AdminTenantsService {
       if (existing) {
         throw new ConflictException({
           statusCode: 409,
+          reason: "SLUG_ALREADY_EXISTS",
           code: "SLUG_ALREADY_EXISTS",
           message: `Tenant with slug '${newSlug}' already exists.`,
         });
@@ -427,6 +443,7 @@ export class AdminTenantsService {
     if (!currentTenant) {
       throw new NotFoundException({
         statusCode: 404,
+        reason: "TENANT_NOT_FOUND",
         code: "TENANT_NOT_FOUND",
         message: "Tenant not found",
       });
@@ -442,18 +459,22 @@ export class AdminTenantsService {
         },
       });
 
-      const members = await tx.membership.findMany({
+      const staffMembers = await tx.membership.findMany({
         where: {
           tenantId: id,
+          role: { in: ["teacher", "assistant"] },
           user: { isSuperAdmin: false },
         },
         select: { userId: true },
       });
-      const memberUserIds = members.map((m) => m.userId);
+      const staffUserIds = staffMembers.map((m) => m.userId);
 
       const delRes = await tx.session.deleteMany({
         where: {
-          OR: [{ tenantId: id }, { userId: { in: memberUserIds } }],
+          OR: [
+            { tenantId: id },
+            ...(staffUserIds.length > 0 ? [{ userId: { in: staffUserIds } }] : []),
+          ],
         },
       });
 
@@ -497,6 +518,7 @@ export class AdminTenantsService {
       throw new BadRequestException({
         statusCode: 400,
         reason: "CANNOT_SUSPEND_SELF",
+        code: "CANNOT_SUSPEND_SELF",
         message: "Super admin cannot suspend their own account.",
       });
     }
@@ -508,6 +530,7 @@ export class AdminTenantsService {
     if (!user) {
       throw new NotFoundException({
         statusCode: 404,
+        reason: "USER_NOT_FOUND",
         code: "USER_NOT_FOUND",
         message: "User not found",
       });

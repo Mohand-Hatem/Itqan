@@ -41,27 +41,38 @@ export class StudentsService {
       ];
     }
 
-    const rows = await systemPrisma.membership.findMany({
-      where,
-      take: query.limit + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            maxDevices: true,
+    const rows = await systemPrisma.membership
+      .findMany({
+        where,
+        take: query.limit + 1,
+        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              maxDevices: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+            },
           },
         },
-        _count: {
-          select: {
-            enrollments: true,
-          },
-        },
-      },
-    });
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const page = rows.slice(0, query.limit);
     const items = page.map((m) => ({

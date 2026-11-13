@@ -135,18 +135,30 @@ export class CodeBatchesService {
       statusFilter = { revokedAt: { not: null } };
     }
 
-    const rows = await this.db.accessCodeBatch.findMany({
-      where: {
-        ...(query.courseId ? { courseId: query.courseId } : {}),
-        ...statusFilter,
-        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
-      },
-      orderBy: { id: "desc" },
-      take: query.limit + 1,
-      include: {
-        course: { select: { title: true } },
-      },
-    });
+    const rows = await this.db.accessCodeBatch
+      .findMany({
+        where: {
+          ...(query.courseId ? { courseId: query.courseId } : {}),
+          ...statusFilter,
+        },
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: query.limit + 1,
+        include: {
+          course: { select: { title: true } },
+        },
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const page = rows.slice(0, query.limit);
     return {
@@ -186,18 +198,30 @@ export class CodeBatchesService {
       statusFilter = { revokedAt: { not: null } };
     }
 
-    const rows = await this.db.accessCode.findMany({
-      where: {
-        batchId,
-        ...statusFilter,
-        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
-      },
-      orderBy: { serialNumber: "asc" },
-      take: query.limit + 1,
-      include: {
-        redeemedByUser: { select: { id: true, email: true, name: true } },
-      },
-    });
+    const rows = await this.db.accessCode
+      .findMany({
+        where: {
+          batchId,
+          ...statusFilter,
+        },
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ serialNumber: "asc" }, { id: "asc" }],
+        take: query.limit + 1,
+        include: {
+          redeemedByUser: { select: { id: true, email: true, name: true } },
+        },
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const page = rows.slice(0, query.limit);
     return {

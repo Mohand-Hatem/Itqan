@@ -1,35 +1,45 @@
-# Gates: Phase 6.12a Super Admin Lifecycle & Access Control API (FR-T03, FR-T04)
+# Gates: Comprehensive Phase 6 Review & Verification
 
-OWNS: packages/shared/src/schemas/tenants-admin.ts packages/shared/src/index.ts apps/api/src/tenants-admin/** tasks/todo.md docs/designs/phase-6.12a-admin-lifecycle-api.md
+OWNS: apps/api/src/courses/** apps/api/src/invitations/** apps/api/src/code-batches/** apps/api/src/enrollments/** apps/api/src/students/** apps/api/src/assistants/** apps/api/src/tenants-admin/** docs/designs/** GATES.md
 
-Scope: Implement Super Admin lifecycle controls: role pausing (`PATCH /api/admin/tenants/:id`), tenant soft deletion (`DELETE /api/admin/tenants/:id`), global user suspension (`PATCH /api/admin/users/:id`), atomic session eviction, host cache invalidation, and self-suspension safety guard.
+Scope: Audit and verify all Phase 6 implemented backend steps (6.1, 6.3, 6.5, 6.6a, 6.7, 6.8a, 6.10a, 6.11a, 6.12a), confirm skipped steps (6.9a, UI steps) are cleanly decoupled, and prove End-to-End API Checkpoint 6.
 
-- [x] G1: Shared Zod contracts defined and package compiles cleanly
-  CHECK: npm run build -w @itqan/shared
-  EXPECT: passed
-  VERIFIED: `@itqan/shared@0.1.0 build` exited 0 with `AdminTenantUpdateSchema`, `AdminTenantSoftDeleteResponseSchema`, `AdminUserUpdateSchema`, `AdminUserUpdateResponseSchema`.
+- [x] G1: Step 6.1 Courses API audit & test suite pass (FR-C01, FR-C02)
+  CHECK: npx vitest run apps/api/src/courses/courses.int.spec.ts
+  EXPECT: passed (8/8 passed)
 
-- [x] G2: Tenant role pausing and selective session eviction integration tests pass (Done condition: pausing students ends their sessions while teacher still works)
-  CHECK: npx vitest run apps/api/src/tenants-admin/admin-tenants-lifecycle.int.spec.ts -t "Role Pausing"
-  EXPECT: passed
-  VERIFIED: Passed (3 tests). Pausing student role evicts student session and returns 401 on next request and 403 TENANT_PAUSED on login; teacher session remains 200 OK.
+- [x] G2: Step 6.3 Invitations API audit & test suite pass (FR-E01, FR-E03, FR-A06)
+  CHECK: npx vitest run apps/api/src/invitations/invitations.int.spec.ts
+  EXPECT: passed (14/14 passed)
 
-- [x] G3: Tenant soft deletion and host resolution disabling integration tests pass (Done condition: soft-deleting terminates all tenant sessions and disables subdomain resolution to 404)
-  CHECK: npx vitest run apps/api/src/tenants-admin/admin-tenants-lifecycle.int.spec.ts -t "Soft Deletion"
-  EXPECT: passed
-  VERIFIED: Passed (1 test). All sessions deleted, cache invalidated, subsequent subdomain requests receive 404 TENANT_NOT_FOUND.
+- [x] G3: Step 6.5 & 6.6a Access Codes API audit & test suite pass (FR-E02)
+  CHECK: npx vitest run apps/api/src/code-batches/code-batches.int.spec.ts apps/api/src/code-batches/code-redemption.int.spec.ts apps/api/src/code-batches/crypto.spec.ts
+  EXPECT: passed (31/31 passed)
 
-- [x] G4: Global user suspension and self-suspension guard integration tests pass (suspending user evicts all sessions globally, subsequent calls return 403, self-suspension returns 400)
-  CHECK: npx vitest run apps/api/src/tenants-admin/admin-tenants-lifecycle.int.spec.ts -t "User Suspension"
-  EXPECT: passed
-  VERIFIED: Passed (2 tests). Suspending user evicts sessions across all tenants; self-suspension blocked with 400 CANNOT_SUSPEND_SELF.
+- [x] G4: Step 6.7 Enrollments API audit & test suite pass (FR-E04, FR-E05)
+  CHECK: npx vitest run apps/api/src/enrollments/enrollments.int.spec.ts
+  EXPECT: passed (16/16 passed)
 
-- [x] G5: Role barriers and authorization tests pass (non-super-admins receive 403, anonymous receives 401)
-  CHECK: npx vitest run apps/api/src/tenants-admin/admin-tenants-lifecycle.int.spec.ts -t "Role Barriers"
-  EXPECT: passed
-  VERIFIED: Passed (2 tests). Teachers, assistants, and students receive 403; unauthenticated callers receive 401.
+- [x] G5: Step 6.8a Students API audit & test suite pass (FR-D01)
+  CHECK: npx vitest run apps/api/src/students/students.int.spec.ts
+  EXPECT: passed (11/11 passed)
 
-- [x] G6: Full monorepo typecheck, lint, and full test suite pass with zero regressions (test count > 393)
+- [x] G6: Step 6.10a Assistant Management API audit & test suite pass (FR-D06)
+  CHECK: npx vitest run apps/api/src/assistants/assistants.int.spec.ts
+  EXPECT: passed (14/14 passed)
+
+- [x] G7: Step 6.11a & 6.12a Super Admin Tenants & Lifecycle API audit & test suite pass (FR-T02, FR-T03, FR-T04, FR-T05)
+  CHECK: npx vitest run apps/api/src/tenants-admin/admin-tenants.int.spec.ts apps/api/src/tenants-admin/admin-tenants-lifecycle.int.spec.ts
+  EXPECT: passed (20/20 passed)
+
+- [x] G8: API Checkpoint 6 E2E integration test pass (FR-C01, FR-E01, FR-E02, FR-E03, FR-E04, FR-E05, FR-A06, FR-A07, FR-D01)
+  CHECK: npx vitest run apps/api/src/testing/api-checkpoint-6.int.spec.ts
+  EXPECT: passed (1/1 passed)
+
+- [x] G9: Multi-lens Goldfish Review swarm audit completed (Design, Codebase Details, Architecture, Implementation Readiness)
+  CHECK: npx vitest run apps/api/src/courses/ apps/api/src/invitations/ apps/api/src/code-batches/ apps/api/src/enrollments/ apps/api/src/students/ apps/api/src/assistants/ apps/api/src/tenants-admin/
+  EXPECT: passed (131/131 passed)
+
+- [x] G10: Full monorepo typecheck, lint, and full test suite pass 100% green with zero regressions
   CHECK: npm run typecheck && npm run lint && npm test
-  EXPECT: passed
-  VERIFIED: Typecheck clean across all packages. ESLint clean (0 errors, 0 warnings). 53/53 test files passed, 401/401 tests green.
+  EXPECT: passed (54/54 test files, 402/402 tests passed, 0 lint errors/warnings)

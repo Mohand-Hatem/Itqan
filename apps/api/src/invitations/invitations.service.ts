@@ -131,24 +131,36 @@ export class InvitationsService {
       statusFilter = { redeemedAt: null, revokedAt: null, expiresAt: { lte: now } };
     }
 
-    const rows = await this.db.invitation.findMany({
-      where: {
-        ...statusFilter,
-        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
-      },
-      orderBy: { id: "desc" },
-      take: query.limit + 1,
-      select: {
-        id: true,
-        email: true,
-        courseIds: true,
-        expiresAt: true,
-        redeemedAt: true,
-        redeemedBy: true,
-        revokedAt: true,
-        createdAt: true,
-      },
-    });
+    const rows = await this.db.invitation
+      .findMany({
+        where: {
+          ...statusFilter,
+        },
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: query.limit + 1,
+        select: {
+          id: true,
+          email: true,
+          courseIds: true,
+          expiresAt: true,
+          redeemedAt: true,
+          redeemedBy: true,
+          revokedAt: true,
+          createdAt: true,
+        },
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const page = rows.slice(0, query.limit);
     return {
@@ -494,6 +506,13 @@ export class InvitationsService {
             statusCode: 403,
             reason: "MEMBERSHIP_SUSPENDED",
             message: "Your membership on this academy is suspended.",
+          });
+        }
+        if (membership.role !== "student") {
+          throw new ForbiddenException({
+            statusCode: 403,
+            reason: "ROLE_FORBIDDEN",
+            message: "Staff members cannot accept student course invitations.",
           });
         }
       } else {

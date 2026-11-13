@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { getRequestContext, type ScopedPrismaClient } from "@itqan/database";
 import type { CourseCreateInput, CoursePatchInput, CourseQueryInput } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
@@ -14,11 +14,18 @@ export class CoursesService {
   async create(input: CourseCreateInput, actorUserId: string) {
     const context = getRequestContext();
     const tenantId = context?.kind === "tenant" ? context.tenantId : undefined;
+    if (!tenantId) {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: "TENANT_REQUIRED",
+        message: "No tenant context found in request",
+      });
+    }
 
     return this.db.$transaction(async (tx) => {
       const course = await tx.course.create({
         data: {
-          tenantId: tenantId!,
+          tenantId,
           title: input.title,
           description: input.description ?? null,
           thumbnailAssetId: input.thumbnailAssetId ?? null,
@@ -42,15 +49,27 @@ export class CoursesService {
   }
 
   async list(query: CourseQueryInput) {
-    const rows = await this.db.course.findMany({
-      where: {
-        deletedAt: null,
-        ...(query.status ? { status: query.status } : {}),
-        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
-      },
-      orderBy: { id: "desc" },
-      take: query.limit + 1,
-    });
+    const rows = await this.db.course
+      .findMany({
+        where: {
+          deletedAt: null,
+          ...(query.status ? { status: query.status } : {}),
+        },
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        skip: query.cursor ? 1 : 0,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: query.limit + 1,
+      })
+      .catch((err) => {
+        if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+          throw new BadRequestException({
+            statusCode: 400,
+            reason: "INVALID_CURSOR",
+            message: "Cursor record not found.",
+          });
+        }
+        throw err;
+      });
 
     const page = rows.slice(0, query.limit);
     return {
@@ -111,6 +130,12 @@ export class CoursesService {
             changes: {
               ...(input.title !== undefined && input.title !== existing.title
                 ? { title: { from: existing.title, to: input.title } }
+                : {}),
+              ...(input.description !== undefined && input.description !== existing.description
+                ? { description: { from: existing.description, to: input.description } }
+                : {}),
+              ...(input.thumbnailAssetId !== undefined && input.thumbnailAssetId !== existing.thumbnailAssetId
+                ? { thumbnailAssetId: { from: existing.thumbnailAssetId, to: input.thumbnailAssetId } }
                 : {}),
               ...(input.status !== undefined && input.status !== existing.status
                 ? { status: { from: existing.status, to: input.status } }
