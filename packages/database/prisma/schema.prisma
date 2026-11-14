@@ -97,6 +97,42 @@ enum ContentKind {
   lecture
   file
   video
+  quiz
+}
+
+enum QuizSelection {
+  manual
+  random
+}
+
+enum QuizNavigation {
+  free
+  linear
+}
+
+enum GradeRelease {
+  on_submit
+  all_submitted
+  on_close
+  manual
+}
+
+enum ReviewMode {
+  grade
+  grade_answers
+  full
+}
+
+enum QuestionType {
+  single
+  multiple
+  true_false
+}
+
+enum QuestionDifficulty {
+  easy
+  medium
+  hard
 }
 
 model Tenant {
@@ -122,6 +158,14 @@ model Tenant {
   mediaAssets     MediaAsset[]
   contentItems    ContentItem[]
   lessonProgress  LessonProgress[]
+  questionBanks   QuestionBank[]
+  questions       Question[]
+  questionOptions QuestionOption[]
+  quizzes         Quiz[]
+  quizTargets     QuizTarget[]
+  quizQuestions   QuizQuestion[]
+  attempts        Attempt[]
+  attemptAnswers  AttemptAnswer[]
 
   @@map("tenants")
 }
@@ -197,6 +241,7 @@ model Device {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions Session[]
+  attempts Attempt[]
 
   supportRequests SupportRequest[]
 
@@ -293,6 +338,7 @@ model Membership {
   supportRequests SupportRequest[]
   enrollments     Enrollment[]
   lessonProgress  LessonProgress[]
+  attempts        Attempt[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -336,7 +382,9 @@ model Course {
   enrollments  Enrollment[]
   codeBatches  AccessCodeBatch[]
   accessCodes  AccessCode[]
-  contentItems ContentItem[]
+  contentItems  ContentItem[]
+  questionBanks QuestionBank[]
+  quizzes       Quiz[]
 
   @@index([tenantId, status, id(sort: Desc)])
   @@index([tenantId, deletedAt])
@@ -464,6 +512,7 @@ model MediaAsset {
   // Restrict: removing a user must not drop the record of files that still sit in R2.
   uploadedByUser User          @relation("MediaUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
   contentItems   ContentItem[]
+  questions      Question[]
 
   @@index([tenantId, status, createdAt])
   @@map("media_assets")
@@ -480,6 +529,7 @@ model ContentItem {
   sortOrder   Int         @map("sort_order")
   depth       Int
   assetId     String?     @map("asset_id") @db.Uuid
+  quizId      String?     @map("quiz_id") @db.Uuid
   publishedAt DateTime?   @map("published_at") @db.Timestamptz
   deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
@@ -491,11 +541,14 @@ model ContentItem {
   children ContentItem[]    @relation("ContentTree")
   // Restrict: a file still used by the tree cannot be removed.
   asset    MediaAsset?      @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  quiz     Quiz?            @relation(fields: [quizId], references: [id], onDelete: SetNull)
   progress LessonProgress[]
+  quizTargets QuizTarget[]
 
   @@index([tenantId, courseId])
   @@index([courseId, parentId, sortOrder])
   @@index([assetId])
+  @@index([quizId])
   @@map("content_items")
 }
 
@@ -517,4 +570,196 @@ model LessonProgress {
   @@unique([membershipId, contentItemId])
   @@index([tenantId, membershipId, updatedAt(sort: Desc)])
   @@map("lesson_progress")
+}
+
+// Assessment item containers (docs/04-database.md, FR-X01, step 8.1).
+model QuestionBank {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  courseId  String?   @map("course_id") @db.Uuid
+  title     String
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course    Course?    @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  questions Question[]
+
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, courseId])
+  @@map("question_banks")
+}
+
+// An assessment question (docs/04-database.md, FR-X01, step 8.1).
+model Question {
+  id           String             @id @default(uuid(7)) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  bankId       String             @map("bank_id") @db.Uuid
+  type         QuestionType
+  text         String
+  imageAssetId String?            @map("image_asset_id") @db.Uuid
+  marks        Float              @default(1)
+  difficulty   QuestionDifficulty @default(medium)
+  explanation  String?
+  tags         String[]           @default([])
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bank       QuestionBank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  imageAsset MediaAsset?      @relation(fields: [imageAssetId], references: [id], onDelete: Restrict)
+  options    QuestionOption[]
+  quizQuestions QuizQuestion[]
+  attemptAnswers AttemptAnswer[]
+
+  @@index([tenantId, bankId, deletedAt])
+  @@index([tenantId, deletedAt])
+  @@map("questions")
+}
+
+// An option for a question (docs/04-database.md, FR-X01, step 8.1).
+model QuestionOption {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  text       String
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  sortOrder  Int      @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, questionId, sortOrder])
+  @@map("question_options")
+}
+
+// Quiz entity (docs/04-database.md, FR-X02, FR-X03, step 8.3).
+model Quiz {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  tenantId         String         @map("tenant_id") @db.Uuid
+  courseId         String         @map("course_id") @db.Uuid
+  title            String
+  description      String?
+  durationMin      Int            @map("duration_min")
+  passMark         Float          @map("pass_mark")
+  maxAttempts      Int            @default(1) @map("max_attempts")
+  selection        QuizSelection  @default(manual)
+  randomCount      Int?           @map("random_count")
+  randomBankIds    String[]       @default([]) @map("random_bank_ids") @db.Uuid
+  shuffleQuestions Boolean        @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean        @default(false) @map("shuffle_options")
+  navigation       QuizNavigation @default(free)
+  graceSec         Int            @default(10) @map("grace_sec")
+  gradeRelease     GradeRelease   @default(on_submit) @map("grade_release")
+  reviewMode       ReviewMode     @default(full) @map("review_mode")
+  opensAt          DateTime       @map("opens_at") @db.Timestamptz
+  closesAt         DateTime?      @map("closes_at") @db.Timestamptz
+  gradesReleasedAt DateTime?      @map("grades_released_at") @db.Timestamptz
+  reviewReleaseAt  DateTime?      @map("review_release_at") @db.Timestamptz
+  publishedAt      DateTime?      @map("published_at") @db.Timestamptz
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  contentItems  ContentItem[]
+  targets       QuizTarget[]
+  quizQuestions QuizQuestion[]
+  attempts      Attempt[]
+
+  @@index([tenantId, courseId, deletedAt])
+  @@index([tenantId, deletedAt])
+  @@map("quizzes")
+}
+
+// Curriculum targets/prerequisites for a quiz (FR-X02, step 8.3).
+model QuizTarget {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  quizId        String      @map("quiz_id") @db.Uuid
+  contentItemId String      @map("content_item_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quiz        Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, contentItemId])
+  @@index([tenantId, quizId])
+  @@map("quiz_targets")
+}
+
+// Ordered join table for manual question selection in a quiz (FR-X02, step 8.3).
+model QuizQuestion {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  quizId     String   @map("quiz_id") @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  sortOrder  Int      @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, questionId])
+  @@index([tenantId, quizId, sortOrder])
+  @@map("quiz_questions")
+}
+
+// A student quiz sitting (docs/04-database.md, FR-X05, FR-X10, step 8.5).
+model Attempt {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  quizId       String    @map("quiz_id") @db.Uuid
+  membershipId String    @map("membership_id") @db.Uuid
+  deviceId     String    @map("device_id") @db.Uuid
+  attemptNo    Int       @map("attempt_no")
+  startedAt    DateTime  @default(now()) @map("started_at") @db.Timestamptz
+  deadlineAt   DateTime  @map("deadline_at") @db.Timestamptz
+  submittedAt  DateTime? @map("submitted_at") @db.Timestamptz
+  extraTimeSec Int       @default(0) @map("extra_time_sec")
+  maxScore     Float     @map("max_score")
+  score        Float?    @map("score")
+  passed       Boolean?  @map("passed")
+  snapshot     Json      @map("snapshot") @db.JsonB
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quiz       Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  membership Membership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  device     Device          @relation(fields: [deviceId], references: [id], onDelete: Restrict)
+  answers    AttemptAnswer[]
+
+  @@unique([quizId, membershipId, attemptNo])
+  @@index([tenantId, quizId, membershipId])
+  @@index([tenantId, membershipId, startedAt])
+  @@index([tenantId, submittedAt, deadlineAt])
+  @@map("attempts")
+}
+
+// Student response to an attempt question (docs/04-database.md, FR-X04, step 8.5 schema / 8.6 logic).
+model AttemptAnswer {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  attemptId         String    @map("attempt_id") @db.Uuid
+  questionId        String    @map("question_id") @db.Uuid
+  selectedOptionIds String[]  @default([]) @map("selected_option_ids") @db.Uuid
+  isCorrect         Boolean?  @map("is_correct")
+  marksAwarded      Float?    @map("marks_awarded")
+  savedAt           DateTime  @default(now()) @map("saved_at") @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([tenantId, attemptId])
+  @@map("attempt_answers")
 }

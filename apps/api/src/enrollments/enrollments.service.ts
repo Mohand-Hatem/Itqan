@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { AuthUser } from "@itqan/auth";
-import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
+import { getRequestContext, type Membership, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import { AuditService } from "../audit/audit.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 
@@ -186,7 +186,7 @@ export class EnrollmentsService {
     return updated;
   }
 
-  async checkAccess(courseId: string, authUser: AuthUser) {
+  async checkAccess(courseId: string, authUser: AuthUser, preloadedMembership?: Membership) {
     const context = getRequestContext();
     const tenantId = context?.kind === "tenant" ? context.tenantId : undefined;
     if (!tenantId) {
@@ -208,14 +208,16 @@ export class EnrollmentsService {
       });
     }
 
-    const membership = await systemPrisma.membership.findUnique({
-      where: {
-        tenantId_userId: {
-          tenantId,
-          userId: authUser.id,
+    const membership =
+      preloadedMembership ??
+      (await systemPrisma.membership.findUnique({
+        where: {
+          tenantId_userId: {
+            tenantId,
+            userId: authUser.id,
+          },
         },
-      },
-    });
+      }));
     if (!membership || membership.status === "suspended") {
       throw new ForbiddenException({
         statusCode: 403,

@@ -17,6 +17,9 @@ import { UploadsModule } from "./uploads/uploads.module.js";
 import { ContentItemsModule } from "./content-items/content-items.module.js";
 import { ProgressModule } from "./progress/progress.module.js";
 import { SettingsModule } from "./settings/settings.module.js";
+import { QuestionBanksModule } from "./question-banks/question-banks.module.js";
+import { QuestionsModule } from "./questions/questions.module.js";
+import { QuizzesModule } from "./quizzes/quizzes.module.js";
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { SettingsModule } from "./settings/settings.module.js";
     ContentItemsModule,
     ProgressModule,
     SettingsModule,
+    QuestionBanksModule,
+    QuestionsModule,
+    QuizzesModule,
   ],
   controllers: [HealthController],
   providers: [],

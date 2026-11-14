@@ -170,6 +170,215 @@ export const TENANT_FIXTURES: Record<string, MakeRow> = {
       },
     });
   },
+  QuestionBank: (db, tenantId) =>
+    db.questionBank.create({
+      data: {
+        tenantId,
+        title: "Fixture Question Bank",
+      },
+    }),
+  Question: async (db, tenantId) => {
+    const bank = await db.questionBank.create({
+      data: { tenantId, title: "Fixture Bank for Question" },
+    });
+    return db.question.create({
+      data: {
+        tenantId,
+        bankId: bank.id,
+        type: "single",
+        text: "What is 2 + 2?",
+        marks: 1,
+        difficulty: "easy",
+      },
+    });
+  },
+  QuestionOption: async (db, tenantId) => {
+    const bank = await db.questionBank.create({
+      data: { tenantId, title: "Fixture Bank for Option" },
+    });
+    const question = await db.question.create({
+      data: {
+        tenantId,
+        bankId: bank.id,
+        type: "single",
+        text: "What is 2 + 2?",
+        marks: 1,
+        difficulty: "easy",
+      },
+    });
+    return db.questionOption.create({
+      data: {
+        tenantId,
+        questionId: question.id,
+        text: "4",
+        isCorrect: true,
+        sortOrder: 0,
+      },
+    });
+  },
+  Quiz: async (db, tenantId) => {
+    const course = await db.course.create({ data: { tenantId, title: "Fixture Quiz Course" } });
+    return db.quiz.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        title: "Fixture Quiz",
+        durationMin: 30,
+        passMark: 50,
+        opensAt: new Date(),
+      },
+    });
+  },
+  QuizTarget: async (db, tenantId) => {
+    const course = await db.course.create({ data: { tenantId, title: "Fixture Target Course" } });
+    const item = await db.contentItem.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        kind: "folder",
+        title: "Fixture Target Folder",
+        sortOrder: 0,
+        depth: 1,
+      },
+    });
+    const quiz = await db.quiz.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        title: "Fixture Quiz for Target",
+        durationMin: 30,
+        passMark: 50,
+        opensAt: new Date(),
+      },
+    });
+    return db.quizTarget.create({
+      data: {
+        tenantId,
+        quizId: quiz.id,
+        contentItemId: item.id,
+      },
+    });
+  },
+  QuizQuestion: async (db, tenantId) => {
+    const course = await db.course.create({ data: { tenantId, title: "Fixture QQ Course" } });
+    const bank = await db.questionBank.create({
+      data: { tenantId, title: "Fixture QQ Bank" },
+    });
+    const question = await db.question.create({
+      data: {
+        tenantId,
+        bankId: bank.id,
+        type: "single",
+        text: "Fixture Question for QQ",
+        marks: 1,
+        difficulty: "easy",
+      },
+    });
+    const quiz = await db.quiz.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        title: "Fixture Quiz for QQ",
+        durationMin: 30,
+        passMark: 50,
+        opensAt: new Date(),
+      },
+    });
+    return db.quizQuestion.create({
+      data: {
+        tenantId,
+        quizId: quiz.id,
+        questionId: question.id,
+        sortOrder: 0,
+      },
+    });
+  },
+  Attempt: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-attempt-${randomUUID()}@example.com`, name: "Attempt Student" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    const device = await db.device.create({
+      data: { userId: user.id, status: "active", secretHash: randomUUID() },
+    });
+    const course = await db.course.create({ data: { tenantId, title: "Attempt Course" } });
+    const quiz = await db.quiz.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        title: "Fixture Quiz for Attempt",
+        durationMin: 30,
+        passMark: 50,
+        opensAt: new Date(),
+      },
+    });
+    return db.attempt.create({
+      data: {
+        tenantId,
+        quizId: quiz.id,
+        membershipId: membership.id,
+        deviceId: device.id,
+        attemptNo: 1,
+        deadlineAt: new Date(Date.now() + 1800_000),
+        maxScore: 10,
+        snapshot: { questions: [] },
+      },
+    });
+  },
+  AttemptAnswer: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-ans-${randomUUID()}@example.com`, name: "Answer Student" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    const device = await db.device.create({
+      data: { userId: user.id, status: "active", secretHash: randomUUID() },
+    });
+    const course = await db.course.create({ data: { tenantId, title: "Answer Course" } });
+    const quiz = await db.quiz.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        title: "Fixture Quiz for Answer",
+        durationMin: 30,
+        passMark: 50,
+        opensAt: new Date(),
+      },
+    });
+    const attempt = await db.attempt.create({
+      data: {
+        tenantId,
+        quizId: quiz.id,
+        membershipId: membership.id,
+        deviceId: device.id,
+        attemptNo: 1,
+        deadlineAt: new Date(Date.now() + 1800_000),
+        maxScore: 10,
+        snapshot: { questions: [] },
+      },
+    });
+    const bank = await db.questionBank.create({ data: { tenantId, title: "Answer Bank" } });
+    const question = await db.question.create({
+      data: {
+        tenantId,
+        bankId: bank.id,
+        type: "single",
+        text: "Fixture Question for Answer",
+        marks: 1,
+      },
+    });
+    return db.attemptAnswer.create({
+      data: {
+        tenantId,
+        attemptId: attempt.id,
+        questionId: question.id,
+        selectedOptionIds: [],
+      },
+    });
+  },
 };
 
 export type FixtureTenant = {

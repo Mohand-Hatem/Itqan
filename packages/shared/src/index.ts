@@ -1,5 +1,6 @@
 export * from "./schemas/access.js";
 export * from "./schemas/assistants.js";
+export * from "./schemas/attempts.js";
 export * from "./schemas/auth.js";
 export * from "./schemas/courses.js";
 export * from "./schemas/code-batches.js";
@@ -10,6 +11,8 @@ export * from "./schemas/health.js";
 export * from "./schemas/invitations.js";
 export * from "./schemas/me.js";
 export * from "./schemas/progress.js";
+export * from "./schemas/questions.js";
+export * from "./schemas/quizzes.js";
 export * from "./schemas/settings.js";
 export * from "./schemas/students.js";
 export * from "./schemas/tenant.js";

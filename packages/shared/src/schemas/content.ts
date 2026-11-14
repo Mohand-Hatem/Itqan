@@ -3,16 +3,16 @@ import { z } from "zod";
 /** Deepest level of a course tree; items at the top are level 1 (FR-C01). */
 export const MAX_TREE_DEPTH = 5;
 
-export const ContentKindSchema = z.enum(["folder", "chapter", "lecture", "file", "video"]);
+export const ContentKindSchema = z.enum(["folder", "chapter", "lecture", "file", "video", "quiz"]);
 export type ContentKind = z.infer<typeof ContentKindSchema>;
 
-/** Kinds that hold other items. file and video are leaves that point to a media asset. */
+/** Kinds that hold other items. file, video and quiz are leaves. */
 export const CONTAINER_KINDS: ReadonlySet<ContentKind> = new Set(["folder", "chapter", "lecture"]);
 export const isContainerKind = (kind: ContentKind) => CONTAINER_KINDS.has(kind);
 
 export const ContentReasonCode = {
   CONTENT_ITEM_NOT_FOUND: "CONTENT_ITEM_NOT_FOUND",
-  /** The parent is missing, deleted, in another course, or a file/video. */
+  /** The parent is missing, deleted, in another course, or a file/video/quiz. */
   INVALID_PARENT: "INVALID_PARENT",
   TREE_CYCLE: "TREE_CYCLE",
   TREE_TOO_DEEP: "TREE_TOO_DEEP",
@@ -21,6 +21,7 @@ export const ContentReasonCode = {
   PARENT_DELETED: "PARENT_DELETED",
   /** A student asked for a course that is still a draft. */
   COURSE_NOT_PUBLISHED: "COURSE_NOT_PUBLISHED",
+  QUIZ_NOT_FOUND: "QUIZ_NOT_FOUND",
 } as const;
 export type ContentReasonCode = (typeof ContentReasonCode)[keyof typeof ContentReasonCode];
 
@@ -33,11 +34,24 @@ export const ContentItemCreateSchema = z
     kind: ContentKindSchema,
     title: Title,
     assetId: z.string().uuid().optional(),
+    quizId: z.string().uuid().optional(),
   })
-  .refine((v) => isContainerKind(v.kind) === (v.assetId === undefined), {
-    message: "file and video items need an assetId; folders, chapters and lectures take none",
-    path: ["assetId"],
-  });
+  .refine(
+    (v) => {
+      if (v.kind === "quiz") {
+        return v.quizId !== undefined && v.assetId === undefined;
+      }
+      if (isContainerKind(v.kind)) {
+        return v.assetId === undefined && v.quizId === undefined;
+      }
+      return v.assetId !== undefined && v.quizId === undefined;
+    },
+    {
+      message:
+        "file and video items need an assetId; quiz items need a quizId; folders, chapters and lectures take neither",
+      path: ["assetId"],
+    },
+  );
 export type ContentItemCreateInput = z.infer<typeof ContentItemCreateSchema>;
 
 export const ContentItemPatchSchema = z
@@ -49,6 +63,7 @@ export const ContentItemPatchSchema = z
     position: z.number().int().min(0).optional(),
     published: z.boolean().optional(),
     assetId: z.string().uuid().optional(),
+    quizId: z.string().uuid().optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0, "Nothing to change");
@@ -67,6 +82,7 @@ export type ContentItemResponse = {
   sortOrder: number;
   depth: number;
   assetId: string | null;
+  quizId: string | null;
   publishedAt: string | null;
   deletedAt: string | null;
 };
@@ -79,6 +95,8 @@ export type StudentTreeNode = {
   title: string;
   /** Set for file and video items, so the page can pick an icon and a viewer. */
   mimeType: string | null;
+  /** Set for quiz items. */
+  quizId?: string | null;
   children: StudentTreeNode[];
 };
 

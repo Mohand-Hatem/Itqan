@@ -67,7 +67,7 @@ erDiagram
 ### Exams
 | Table | Key columns | Notes |
 |---|---|---|
-| `question_banks` **T** | course_id (null = global), title | |
+| `question_banks` **T** | course_id (null = global), title, deleted_at | Cascading soft-delete to questions. |
 | `questions` **T** | bank_id, type (`single`/`multiple`/`true_false`), text, image_asset_id, marks, difficulty, explanation, tags `text[]`, deleted_at | Edits never touch attempts (snapshots). |
 | `question_options` **T** | question_id, text, is_correct, sort_order | |
 | `quizzes` **T** | course_id, title, opens_at, closes_at, duration_min, max_attempts, pass_mark, selection (`manual`/`random`), random_count, random_bank_ids `uuid[]`, shuffle_questions, shuffle_options, navigation (`free`/`linear`), grace_sec, grade_release (`on_submit`/`all_submitted`/`on_close`/`manual`), review_mode (`grade`/`grade_answers`/`full`), review_release_at, grades_released_at, published_at | |
@@ -84,6 +84,6 @@ erDiagram
 | `audit_logs` **T** | actor_user_id, action, target_type, target_id, meta `jsonb`, ip, user_agent | Append-only: a Postgres trigger rejects every UPDATE; rows are deleted only by the tenant purge cascade. Written through `AuditService` (tenant, ip, user agent from the request; secret-looking `meta` keys redacted). Super admin entries use `tenant_id` null. |
 
 ## Rules
-- Soft delete (`deleted_at`) for courses, content items, questions and tenants. Everything else is hard-deleted or status-changed.
+- Soft delete (`deleted_at`) for courses, content items, question banks, questions and tenants. Everything else is hard-deleted or status-changed.
 - Answers are never selected into student-facing queries; student DTOs are built from attempt snapshots with `is_correct` stripped until review release.
 - Migrations: `prisma migrate dev` locally, `prisma migrate deploy` in CI against the direct (unpooled) Neon URL. App uses the pooled URL.

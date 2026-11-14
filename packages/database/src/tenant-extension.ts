@@ -15,6 +15,14 @@ export const TENANT_MODELS: ReadonlySet<string> = new Set([
   "MediaAsset",
   "ContentItem",
   "LessonProgress",
+  "QuestionBank",
+  "Question",
+  "QuestionOption",
+  "Quiz",
+  "QuizTarget",
+  "QuizQuestion",
+  "Attempt",
+  "AttemptAnswer",
 ]);
 
 export class TenantScopeError extends Error {

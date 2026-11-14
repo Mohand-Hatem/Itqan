@@ -20,7 +20,7 @@ import { AuditService } from "../audit/audit.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { placeAt, planMove, subtreeIds } from "./tree.js";
 
-type Tx = Pick<ScopedPrismaClient, "$queryRaw" | "contentItem" | "mediaAsset">;
+type Tx = Pick<ScopedPrismaClient, "$queryRaw" | "contentItem" | "mediaAsset" | "quiz">;
 type Row = Pick<
   ContentItem,
   "id" | "parentId" | "depth" | "kind" | "sortOrder" | "deletedAt" | "publishedAt"
@@ -35,6 +35,7 @@ const toResponse = (c: ContentItem): ContentItemResponse => ({
   sortOrder: c.sortOrder,
   depth: c.depth,
   assetId: c.assetId,
+  quizId: c.quizId,
   publishedAt: c.publishedAt?.toISOString() ?? null,
   deletedAt: c.deletedAt?.toISOString() ?? null,
 });
@@ -73,6 +74,7 @@ export class ContentItemsService {
         throw fail(409, ContentReasonCode.TREE_TOO_DEEP, "Courses go at most 5 levels deep.");
       }
       if (input.assetId) await this.checkAsset(tx, input.assetId, input.kind);
+      if (input.quizId) await this.checkQuiz(tx, input.quizId, input.courseId);
 
       const item = await tx.contentItem.create({
         data: {
@@ -84,6 +86,7 @@ export class ContentItemsService {
           depth,
           sortOrder: siblingsOf(rows, parentId).length,
           assetId: input.assetId ?? null,
+          quizId: input.quizId ?? null,
         },
       });
       await this.audit.record(
@@ -121,6 +124,14 @@ export class ContentItemsService {
         await this.checkAsset(tx, input.assetId, item.kind);
         data.assetId = input.assetId;
         audits.push({ action: "content.update", meta: { assetId: input.assetId } });
+      }
+      if (input.quizId !== undefined) {
+        if (item.kind !== "quiz") {
+          throw fail(400, ContentReasonCode.ASSET_NOT_USABLE, "Only quiz items hold a quiz.");
+        }
+        await this.checkQuiz(tx, input.quizId, courseId);
+        (data as Record<string, unknown>).quizId = input.quizId;
+        audits.push({ action: "content.update", meta: { quizId: input.quizId } });
       }
       if (input.published !== undefined) {
         data.publishedAt = input.published ? (item.publishedAt ?? new Date()) : null;
@@ -353,6 +364,16 @@ export class ContentItemsService {
         ContentReasonCode.ASSET_NOT_USABLE,
         "Use an uploaded file of the right type for this item.",
       );
+    }
+  }
+
+  private async checkQuiz(tx: Tx, quizId: string, courseId: string) {
+    const quiz = await tx.quiz.findFirst({
+      where: { id: quizId, courseId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!quiz) {
+      throw fail(400, ContentReasonCode.QUIZ_NOT_FOUND, "Quiz not found in this course.");
     }
   }
 

@@ -1,9 +1,17 @@
+import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
 import { type ScopedPrismaClient, withTenantScope } from "./tenant-extension.js";
 
 export function createPrismaClient(connectionString: string): PrismaClient {
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  const max = parseInt(process.env["DB_POOL_MAX"] || "30", 10);
+  const pool = new Pool({
+    connectionString,
+    max,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+  });
+  return new PrismaClient({ adapter: new PrismaPg(pool) });
 }
 
 // One client per process. Next.js dev reloads modules on every save, so the

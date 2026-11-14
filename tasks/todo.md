@@ -144,19 +144,19 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 8: Exams (2.5 weeks)
 
-- [ ] **8.1** Question banks and questions API (FR-X01). _Done when:_ CRUD and isolation tests pass.
+- [x] **8.1** Question banks and questions API (FR-X01). _Done when:_ CRUD and isolation tests pass.
 - [ ] **8.2** 🎨⏸ Question editor. _Done when:_ all three question types can be created.
-- [ ] **8.3** Quiz API: settings, targets, manual and random selection (FR-X02, X03). _Done when:_ validation tests pass.
+- [x] **8.3** Quiz API: settings, targets, manual and random selection (FR-X02, X03). _Done when:_ validation tests pass.
 - [ ] **8.4** 🎨⏸ Quiz builder. _Done when:_ the teacher creates a scheduled quiz.
-- [ ] **8.5** Attempt start: selection, shuffle, snapshot, deadline, device tie (FR-X05, X10). _Done when:_ tests pass for the window, max attempts and other-device rejection.
-- [ ] **8.6** Autosave and linear navigation rules (FR-X04). _Done when:_ late and out-of-order answers are rejected.
-- [ ] **8.7** Submit, auto-submit after deadline, server grading (FR-X06). _Done when:_ grading tests pass for all types.
-- [ ] **8.8** Answer-leak test suite. _Done when:_ no student response contains correct answers before release.
+- [x] **8.5** Attempt start: selection, shuffle, snapshot, deadline, device tie (FR-X05, X10). _Done when:_ tests pass for the window, max attempts and other-device rejection.
+- [x] **8.6** Autosave and linear navigation rules (FR-X04). _Done when:_ late and out-of-order answers are rejected.
+- [x] **8.7** Submit, auto-submit after deadline, server grading (FR-X06). _Done when:_ grading tests pass for all types.
+- [x] **8.8** Answer-leak test suite. _Done when:_ no student response contains correct answers before release.
 - [ ] **8.9** 🎨⏸ Exam-taking page with server-timed countdown and autosave status. _Done when:_ a full attempt works in both languages.
-- [ ] **8.10** Grade release and review modes (FR-X07, X08). _Done when:_ a test covers each mode, including the all-submitted fallback.
+- [x] **8.10** Grade release and review modes (FR-X07, X08). _Done when:_ a test covers each mode, including the all-submitted fallback.
 - [ ] **8.11** 🎨⏸ Results pages for students and staff. _Done when:_ each sees the right level of detail.
-- [ ] **8.12** Rescue actions: extend time, move attempt to a new device (FR-X09). _Done when:_ both are audited and tested.
-- [ ] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on the local Docker stack against Neon `dev`.
+- [x] **8.12** Rescue actions: extend time, move attempt to a new device (FR-X09). _Done when:_ both are audited and tested.
+- [x] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on the local Docker stack against Neon `dev`.
 
 **API checkpoint 8:** a full exam runs end to end through the API on the local Docker stack · owner review.
 **UI checkpoint 8 (Phase U):** a real exam runs end to end in the browser.
