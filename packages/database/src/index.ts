@@ -11,7 +11,7 @@ export {
 export { createTenantLookup, getRootDomain, type ResolvedTenant } from "./tenant-lookup.js";
 export { createTestClient } from "./test-client.js";
 export { createTwoTenants, type FixtureTenant, TENANT_FIXTURES } from "./testing/fixtures.js";
-export { PrismaClient } from "./generated/prisma/client.js";
+export { PrismaClient, Prisma } from "./generated/prisma/client.js";
 export * from "./generated/prisma/enums.js";
 export type * from "./generated/prisma/models.js";
 export type {

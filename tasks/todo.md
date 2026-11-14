@@ -163,20 +163,20 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 
 ## Phase 9: Notifications and engagement (1.5 weeks)
 
-- [ ] **9.1** Notifications table and service: row written in the transaction, email and push sent after commit (FR-N01). _Done when:_ tests pass.
-- [ ] **9.2** SSE endpoint with in-memory map, 5 streams per user, control events (FR-N02). _Done when:_ a test client receives `device_revoked` at once when its device is revoked.
+- [x] **9.1** Notifications table and service: row written in the transaction, email and push sent after commit (FR-N01). _Done when:_ tests pass.
+- [x] **9.2** SSE endpoint with in-memory map, 5 streams per user, control events (FR-N02). _Done when:_ a test client receives `device_revoked` at once when its device is revoked.
 - [ ] **9.3** 🎨⏸ Bell and notifications page. _Done when:_ a grade release appears in an open tab within 2 s.
 - [ ] **9.4** 🔑⏸ Firebase project, FCM web push, service worker, tokens per device (FR-N03). Waits because push needs a service worker in the browser. _Done when:_ push arrives with the site closed and stops after the device is revoked.
-- [ ] **9.5** Email notifications for important types in both languages. _Done when:_ each type sends the right email.
-- [ ] **9.6a** Announcements API, tenant-wide or per course (FR-N04). _Done when:_ only enrolled students get course announcements.
+- [x] **9.5** Email notifications for important types in both languages. _Done when:_ each type sends the right email.
+- [x] **9.6a** Announcements API, tenant-wide or per course (FR-N04). _Done when:_ only enrolled students get course announcements.
 - [ ] **9.6b** 🎨⏸ Announcements pages. _Done when:_ staff post and students read announcements in the UI.
-- [ ] **9.7a** Lesson Q&A API with staff hide and delete (FR-C08). _Done when:_ hidden posts are invisible to students.
+- [x] **9.7a** Lesson Q&A API with staff hide and delete (FR-C08). _Done when:_ hidden posts are invisible to students.
 - [ ] **9.7b** 🎨⏸ Lesson Q&A under the lesson. _Done when:_ a student asks and staff answer in the UI.
-- [ ] **9.8a** General support requests API (FR-N05). _Done when:_ a student opens one and staff answer it through the API.
+- [x] **9.8a** General support requests API (FR-N05). _Done when:_ a student opens one and staff answer it through the API.
 - [ ] **9.8b** 🎨⏸ Support requests pages. _Done when:_ the same flow works in the UI.
-- [ ] **9.9a** Analytics overview API with plain SQL (FR-L02). _Done when:_ numbers match seeded data in a test.
+- [x] **9.9a** Analytics overview API with plain SQL (FR-L02). _Done when:_ numbers match seeded data in a test.
 - [ ] **9.9b** 🎨⏸ Analytics overview page. _Done when:_ the page shows the seeded numbers.
-- [ ] **9.10a** Audit log API with filters. _Done when:_ a test filters by actor, action and date.
+- [x] **9.10a** Audit log API with filters. _Done when:_ a test filters by actor, action and date.
 - [ ] **9.10b** 🎨⏸ Audit log page with filters. _Done when:_ the teacher filters by actor, action and date.
 
 **API checkpoint 9:** notifications work through SSE, the API and email · owner review.

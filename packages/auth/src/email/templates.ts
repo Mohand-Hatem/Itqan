@@ -257,3 +257,428 @@ export function getInvitationEmail(params: InvitationEmailParams) {
     `.trim(),
   };
 }
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+export interface GradeReleasedEmailParams {
+  studentName?: string;
+  quizTitle: string;
+  courseTitle?: string;
+  score?: number | null;
+  maxScore?: number | null;
+  percentage?: number | null;
+  passed?: boolean | null;
+  reviewUrl?: string;
+  tenantName: string;
+  locale?: EmailLocale;
+}
+
+export function getGradeReleasedEmail(params: GradeReleasedEmailParams) {
+  const isArabic = params.locale !== "en";
+  const name = params.studentName ? escapeHtml(params.studentName) : isArabic ? "عزيزي الطالب" : "Dear Student";
+  const safeQuiz = escapeHtml(params.quizTitle);
+  const safeTenant = escapeHtml(params.tenantName);
+  const safeCourse = params.courseTitle ? escapeHtml(params.courseTitle) : undefined;
+  const courseTextAr = safeCourse ? ` في دورة "${safeCourse}"` : "";
+  const courseTextEn = safeCourse ? ` for the course "${safeCourse}"` : "";
+
+  let scoreDetailsAr = "";
+  let scoreDetailsEn = "";
+  if (params.score !== null && params.score !== undefined && params.maxScore !== null && params.maxScore !== undefined) {
+    const statusAr = params.passed === true ? "ناجح" : params.passed === false ? "غير مجتاز" : "";
+    const statusEn = params.passed === true ? "Passed" : params.passed === false ? "Did not pass" : "";
+    scoreDetailsAr = `درجتك: ${params.score} من ${params.maxScore}${params.percentage !== null && params.percentage !== undefined ? ` (${params.percentage}%)` : ""}${statusAr ? ` - ${statusAr}` : ""}\n`;
+    scoreDetailsEn = `Your score: ${params.score}/${params.maxScore}${params.percentage !== null && params.percentage !== undefined ? ` (${params.percentage}%)` : ""}${statusEn ? ` - ${statusEn}` : ""}\n`;
+  }
+
+  const reviewBtnAr = params.reviewUrl
+    ? `<p><a href="${params.reviewUrl}" class="btn">عرض نتيجة الاختبار</a></p><p class="raw-link">${params.reviewUrl}</p>`
+    : "";
+  const reviewBtnEn = params.reviewUrl
+    ? `<p><a href="${params.reviewUrl}" class="btn">View Exam Results</a></p><p class="raw-link">${params.reviewUrl}</p>`
+    : "";
+
+  if (isArabic) {
+    return {
+      subject: `تم رصد درجة اختبار ${safeQuiz} - ${safeTenant}`,
+      text: `مرحباً ${name}،\n\nنود إعلامك بأنه تم رصد نتيجة اختبار "${safeQuiz}"${courseTextAr}.\n${scoreDetailsAr}${params.reviewUrl ? `يمكنك الاطلاع على تفاصيل النتيجة من خلال الرابط التالي:\n${params.reviewUrl}\n` : ""}\nمع أطيب تمنياتنا لك بالتوفيق والنجاح،\n${safeTenant}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            .score-box { background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin: 16px 0; font-size: 16px; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>تم رصد درجة الاختبار</h1>
+            <p>مرحباً ${name}،</p>
+            <p>نود إعلامك بأنه تم نشر درجات اختبار <strong>${safeQuiz}</strong>${courseTextAr}.</p>
+            ${scoreDetailsAr ? `<div class="score-box"><strong>${scoreDetailsAr.trim()}</strong></div>` : ""}
+            ${reviewBtnAr}
+            <div class="footer">
+              <p>منصة إتقان - ${safeTenant}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  return {
+    subject: `Grade Released: ${safeQuiz} - ${safeTenant}`,
+    text: `Hello ${name},\n\nYour grade for the exam "${safeQuiz}"${courseTextEn} has been released.\n${scoreDetailsEn}${params.reviewUrl ? `You can review your result by visiting:\n${params.reviewUrl}\n` : ""}\nBest regards,\n${safeTenant}`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+          .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+          p { font-size: 15px; line-height: 1.6; color: #374151; }
+          .score-box { background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin: 16px 0; font-size: 16px; }
+          .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+          .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+          .raw-link { word-break: break-all; color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Grade Released</h1>
+          <p>Hello ${name},</p>
+          <p>Your grade for the exam <strong>${safeQuiz}</strong>${courseTextEn} is now available.</p>
+          ${scoreDetailsEn ? `<div class="score-box"><strong>${scoreDetailsEn.trim()}</strong></div>` : ""}
+          ${reviewBtnEn}
+          <div class="footer">
+            <p>Itqan Platform - ${safeTenant}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}
+
+export interface ExamOpeningEmailParams {
+  studentName?: string;
+  quizTitle: string;
+  courseTitle?: string;
+  opensAt?: Date | string;
+  closesAt?: Date | string;
+  durationMin?: number;
+  examUrl?: string;
+  tenantName: string;
+  locale?: EmailLocale;
+}
+
+export function getExamOpeningEmail(params: ExamOpeningEmailParams) {
+  const isArabic = params.locale !== "en";
+  const name = params.studentName ? escapeHtml(params.studentName) : isArabic ? "عزيزي الطالب" : "Dear Student";
+  const safeQuiz = escapeHtml(params.quizTitle);
+  const safeTenant = escapeHtml(params.tenantName);
+  const safeCourse = params.courseTitle ? escapeHtml(params.courseTitle) : undefined;
+  const courseTextAr = safeCourse ? ` في دورة "${safeCourse}"` : "";
+  const courseTextEn = safeCourse ? ` for the course "${safeCourse}"` : "";
+
+  const durationAr = params.durationMin ? `مدة الاختبار: ${params.durationMin} دقيقة.` : "";
+  const durationEn = params.durationMin ? `Exam duration: ${params.durationMin} minutes.` : "";
+
+  const examBtnAr = params.examUrl
+    ? `<p><a href="${params.examUrl}" class="btn">بدء الاختبار الآن</a></p><p class="raw-link">${params.examUrl}</p>`
+    : "";
+  const examBtnEn = params.examUrl
+    ? `<p><a href="${params.examUrl}" class="btn">Start Exam Now</a></p><p class="raw-link">${params.examUrl}</p>`
+    : "";
+
+  if (isArabic) {
+    return {
+      subject: `بدء اختبار ${safeQuiz} - ${safeTenant}`,
+      text: `مرحباً ${name}،\n\nنود تذكيرك بأن اختبار "${safeQuiz}"${courseTextAr} أصبح متاحاً الآن.\n${durationAr ? `${durationAr}\n` : ""}${params.examUrl ? `يمكنك بدء الاختبار عبر الرابط التالي:\n${params.examUrl}\n` : ""}\nمع تمنياتنا لك بالتوفيق،\n${safeTenant}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            .info-box { background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 6px; margin: 16px 0; color: #1e40af; font-size: 15px; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>موعد بدء الاختبار</h1>
+            <p>مرحباً ${name}،</p>
+            <p>أصبح اختبار <strong>${safeQuiz}</strong>${courseTextAr} متاحاً الآن لأدائه.</p>
+            ${durationAr ? `<div class="info-box">${durationAr}</div>` : ""}
+            ${examBtnAr}
+            <div class="footer">
+              <p>منصة إتقان - ${safeTenant}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  return {
+    subject: `Exam Now Open: ${safeQuiz} - ${safeTenant}`,
+    text: `Hello ${name},\n\nThe exam "${safeQuiz}"${courseTextEn} is now open.\n${durationEn ? `${durationEn}\n` : ""}${params.examUrl ? `You can take the exam by visiting:\n${params.examUrl}\n` : ""}\nBest regards,\n${safeTenant}`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+          .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+          p { font-size: 15px; line-height: 1.6; color: #374151; }
+          .info-box { background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 6px; margin: 16px 0; color: #1e40af; font-size: 15px; }
+          .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+          .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+          .raw-link { word-break: break-all; color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Exam Now Open</h1>
+          <p>Hello ${name},</p>
+          <p>The exam <strong>${safeQuiz}</strong>${courseTextEn} is now open and available to take.</p>
+          ${durationEn ? `<div class="info-box">${durationEn}</div>` : ""}
+          ${examBtnEn}
+          <div class="footer">
+            <p>Itqan Platform - ${safeTenant}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}
+
+export interface CourseAccessEmailParams {
+  studentName?: string;
+  courseTitle: string;
+  courseUrl?: string;
+  tenantName: string;
+  locale?: EmailLocale;
+}
+
+export function getCourseAccessEmail(params: CourseAccessEmailParams) {
+  const isArabic = params.locale !== "en";
+  const name = params.studentName ? escapeHtml(params.studentName) : isArabic ? "عزيزي الطالب" : "Dear Student";
+  const safeCourse = escapeHtml(params.courseTitle);
+  const safeTenant = escapeHtml(params.tenantName);
+
+  const courseBtnAr = params.courseUrl
+    ? `<p><a href="${params.courseUrl}" class="btn">الانتقال إلى الدورة</a></p><p class="raw-link">${params.courseUrl}</p>`
+    : "";
+  const courseBtnEn = params.courseUrl
+    ? `<p><a href="${params.courseUrl}" class="btn">Go to Course</a></p><p class="raw-link">${params.courseUrl}</p>`
+    : "";
+
+  if (isArabic) {
+    return {
+      subject: `تم تفعيل اشتراكك في دورة ${safeCourse} - ${safeTenant}`,
+      text: `مرحباً ${name}،\n\nيسعدنا إعلامك بأنه تم تفعيل وصولك إلى دورة "${safeCourse}" في ${safeTenant}.\n${params.courseUrl ? `يمكنك بدء متابعة الدروس عبر الرابط التالي:\n${params.courseUrl}\n` : ""}\nنتمنى لك دراسة ممتعة ومفيدة،\n${safeTenant}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>تم تفعيل اشتراك الدورة</h1>
+            <p>مرحباً ${name}،</p>
+            <p>تم تفعيل صلاحية وصولك بنجاح إلى دورة <strong>${safeCourse}</strong> لدى ${safeTenant}.</p>
+            ${courseBtnAr}
+            <div class="footer">
+              <p>منصة إتقان - ${safeTenant}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  return {
+    subject: `Course Access Granted: ${safeCourse} - ${safeTenant}`,
+    text: `Hello ${name},\n\nYou have been granted access to the course "${safeCourse}" on ${safeTenant}.\n${params.courseUrl ? `You can start learning by visiting:\n${params.courseUrl}\n` : ""}\nBest regards,\n${safeTenant}`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+          .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+          p { font-size: 15px; line-height: 1.6; color: #374151; }
+          .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+          .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+          .raw-link { word-break: break-all; color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Course Access Granted</h1>
+          <p>Hello ${name},</p>
+          <p>You have been enrolled in <strong>${safeCourse}</strong> on ${safeTenant}.</p>
+          ${courseBtnEn}
+          <div class="footer">
+            <p>Itqan Platform - ${safeTenant}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}
+
+export interface DeviceRequestDecidedEmailParams {
+  studentName?: string;
+  status: "approved" | "rejected";
+  requestType: "device_change" | "sign_out_other";
+  tenantName: string;
+  loginUrl?: string;
+  locale?: EmailLocale;
+}
+
+export function getDeviceRequestDecidedEmail(params: DeviceRequestDecidedEmailParams) {
+  const isArabic = params.locale !== "en";
+  const name = params.studentName ? escapeHtml(params.studentName) : isArabic ? "عزيزي الطالب" : "Dear Student";
+  const safeTenant = escapeHtml(params.tenantName);
+  const isApproved = params.status === "approved";
+
+  const reqNameAr = params.requestType === "device_change" ? "تغيير الجهاز" : "تسجيل الخروج من الأجهزة الأخرى";
+  const reqNameEn = params.requestType === "device_change" ? "device change" : "sign out other devices";
+
+  const loginBtnAr = params.loginUrl && isApproved
+    ? `<p><a href="${params.loginUrl}" class="btn">تسجيل الدخول الآن</a></p><p class="raw-link">${params.loginUrl}</p>`
+    : "";
+  const loginBtnEn = params.loginUrl && isApproved
+    ? `<p><a href="${params.loginUrl}" class="btn">Sign In Now</a></p><p class="raw-link">${params.loginUrl}</p>`
+    : "";
+
+  if (isArabic) {
+    const subject = isApproved
+      ? `تمت الموافقة على طلب ${reqNameAr} - ${safeTenant}`
+      : `تم رفض طلب ${reqNameAr} - ${safeTenant}`;
+
+    const bodyText = isApproved
+      ? `يسرنا إبلاغك بأنه تمت الموافقة على طلب (${reqNameAr}) بنجاح. يمكنك الآن تسجيل الدخول والمتابعة.`
+      : `نود إعلامك بأنه تعذر قبول طلب (${reqNameAr}). إذا كان لديك أي استفسار، يرجى التواصل مع الدعم الفني أو معلمك.`;
+
+    return {
+      subject,
+      text: `مرحباً ${name}،\n\n${bodyText}\n${params.loginUrl && isApproved ? `رابط تسجيل الدخول:\n${params.loginUrl}\n` : ""}\nمع تحيات،\n${safeTenant}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>${isApproved ? "تمت الموافقة على الطلب" : "قرار بشأن الطلب"}</h1>
+            <p>مرحباً ${name}،</p>
+            <p>${bodyText}</p>
+            ${loginBtnAr}
+            <div class="footer">
+              <p>منصة إتقان - ${safeTenant}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  const subject = isApproved
+    ? `Device Request Approved: ${reqNameEn} - ${safeTenant}`
+    : `Device Request Rejected: ${reqNameEn} - ${safeTenant}`;
+
+  const bodyText = isApproved
+    ? `We are pleased to inform you that your request for ${reqNameEn} has been approved. You may now sign in and continue.`
+    : `We regret to inform you that your request for ${reqNameEn} could not be approved. Please contact support or your instructor for details.`;
+
+  return {
+    subject,
+    text: `Hello ${name},\n\n${bodyText}\n${params.loginUrl && isApproved ? `Sign in URL:\n${params.loginUrl}\n` : ""}\nBest regards,\n${safeTenant}`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+          .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+          p { font-size: 15px; line-height: 1.6; color: #374151; }
+          .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+          .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+          .raw-link { word-break: break-all; color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>${isApproved ? "Request Approved" : "Request Decision"}</h1>
+          <p>Hello ${name},</p>
+          <p>${bodyText}</p>
+          ${loginBtnEn}
+          <div class="footer">
+            <p>Itqan Platform - ${safeTenant}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}
+

@@ -97,11 +97,11 @@ describe("AuditService (integration)", () => {
     const first = await inTenant(a, () => audit.record({ action: "list.first" }));
     const second = await inTenant(a, () => audit.record({ action: "list.second" }));
 
-    const entries = await inTenant(a, () => audit.list());
+    const { items: entries } = await inTenant(a, () => audit.list());
     expect(entries.every((e) => e.tenantId === a.id)).toBe(true);
     expect(entries.map((e) => e.id).slice(0, 2)).toEqual([second.id, first.id]);
 
-    const page2 = await inTenant(a, () => audit.list({ limit: 1, cursor: second.id }));
+    const { items: page2 } = await inTenant(a, () => audit.list({ limit: 1, cursor: second.id }));
     expect(page2.map((e) => e.id)).toEqual([first.id]);
   });
 

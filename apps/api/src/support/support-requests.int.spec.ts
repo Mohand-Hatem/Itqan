@@ -279,7 +279,8 @@ describe("POST /api/support-requests/:id/approve and /reject", () => {
 
     const { user } = await fx.member(t.id);
     const student = await studentLogin(t, user.email);
-    const res = await list(t, student.cookies);
+    const r2 = await deviceRequest(t);
+    const res = await decide(t, student.cookies, r2.requestId, "approve");
     expect(res.status).toBe(403);
     expect(reasonOf(res.body)).toBe(AccessReasonCode.ROLE_FORBIDDEN);
   });

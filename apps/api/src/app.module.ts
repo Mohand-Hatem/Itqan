@@ -20,6 +20,10 @@ import { SettingsModule } from "./settings/settings.module.js";
 import { QuestionBanksModule } from "./question-banks/question-banks.module.js";
 import { QuestionsModule } from "./questions/questions.module.js";
 import { QuizzesModule } from "./quizzes/quizzes.module.js";
+import { NotificationsModule } from "./notifications/notifications.module.js";
+import { AnnouncementsModule } from "./announcements/announcements.module.js";
+import { CommentsModule } from "./comments/comments.module.js";
+import { AnalyticsModule } from "./analytics/analytics.module.js";
 
 @Module({
   imports: [
@@ -43,6 +47,10 @@ import { QuizzesModule } from "./quizzes/quizzes.module.js";
     QuestionBanksModule,
     QuestionsModule,
     QuizzesModule,
+    NotificationsModule,
+    AnnouncementsModule,
+    CommentsModule,
+    AnalyticsModule,
   ],
   controllers: [HealthController],
   providers: [],

@@ -379,6 +379,61 @@ export const TENANT_FIXTURES: Record<string, MakeRow> = {
       },
     });
   },
+  Notification: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-notif-${randomUUID()}@example.com`, name: "Notification User" },
+    });
+    return db.notification.create({
+      data: {
+        tenantId,
+        userId: user.id,
+        type: "system.test",
+        title: "Test Notification",
+        body: "This is a test notification body.",
+        data: { test: true },
+      },
+    });
+  },
+  Announcement: async (db, tenantId) => {
+    const user = await db.user.create({
+      data: { email: `fixture-announcement-${randomUUID()}@example.com`, name: "Announcement Author" },
+    });
+    return db.announcement.create({
+      data: {
+        tenantId,
+        title: "Fixture Announcement",
+        body: "Fixture announcement body content.",
+        createdBy: user.id,
+      },
+    });
+  },
+  Comment: async (db, tenantId) => {
+    const course = await db.course.create({ data: { tenantId, title: "Fixture Comment Course" } });
+    const item = await db.contentItem.create({
+      data: {
+        tenantId,
+        courseId: course.id,
+        kind: "lecture",
+        title: "Fixture Lecture",
+        sortOrder: 0,
+        depth: 0,
+      },
+    });
+    const user = await db.user.create({
+      data: { email: `fixture-comment-${randomUUID()}@example.com`, name: "Comment Author" },
+    });
+    const membership = await db.membership.create({
+      data: { tenantId, userId: user.id, role: "student" },
+    });
+    return db.comment.create({
+      data: {
+        tenantId,
+        contentItemId: item.id,
+        authorMembershipId: membership.id,
+        body: "Fixture Comment Body",
+      },
+    });
+  },
 };
 
 export type FixtureTenant = {

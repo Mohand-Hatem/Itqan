@@ -2,7 +2,15 @@ import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { Resend } from "resend";
 import {
+  type CourseAccessEmailParams,
+  type DeviceRequestDecidedEmailParams,
   type EmailLocale,
+  type ExamOpeningEmailParams,
+  type GradeReleasedEmailParams,
+  getCourseAccessEmail,
+  getDeviceRequestDecidedEmail,
+  getExamOpeningEmail,
+  getGradeReleasedEmail,
   getInvitationEmail,
   getResetPasswordEmail,
   getVerificationEmail,
@@ -15,7 +23,15 @@ export interface SentEmailRecord {
   text?: string;
   url?: string;
   token?: string;
-  type: "verification" | "reset" | "invitation" | "other";
+  type:
+    | "verification"
+    | "reset"
+    | "invitation"
+    | "grade_released"
+    | "exam_opening"
+    | "course_access"
+    | "device_request_decided"
+    | "other";
   sentAt: Date;
 }
 
@@ -160,6 +176,86 @@ export async function sendInvitationEmail(options: {
       url: options.url,
       token,
       type: "invitation",
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text });
+}
+
+export async function sendGradeReleasedEmail(
+  options: GradeReleasedEmailParams & { to: string },
+): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getGradeReleasedEmail(options);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.reviewUrl,
+      type: "grade_released",
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text });
+}
+
+export async function sendExamOpeningEmail(
+  options: ExamOpeningEmailParams & { to: string },
+): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getExamOpeningEmail(options);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.examUrl,
+      type: "exam_opening",
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text });
+}
+
+export async function sendCourseAccessEmail(
+  options: CourseAccessEmailParams & { to: string },
+): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getCourseAccessEmail(options);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.courseUrl,
+      type: "course_access",
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text });
+}
+
+export async function sendDeviceRequestDecidedEmail(
+  options: DeviceRequestDecidedEmailParams & { to: string },
+): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getDeviceRequestDecidedEmail(options);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.loginUrl,
+      type: "device_request_decided",
       sentAt: new Date(),
     });
   }

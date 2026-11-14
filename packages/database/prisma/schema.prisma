@@ -166,6 +166,9 @@ model Tenant {
   quizQuestions   QuizQuestion[]
   attempts        Attempt[]
   attemptAnswers  AttemptAnswer[]
+  notifications   Notification[]
+  announcements   Announcement[]
+  comments        Comment[]
 
   @@map("tenants")
 }
@@ -189,6 +192,7 @@ model User {
   memberships            Membership[]
   auditLogs              AuditLog[]
   devices                Device[]
+  notifications          Notification[]
   decidedSupportRequests SupportRequest[]  @relation("SupportRequestDecidedBy")
   createdInvitations     Invitation[]      @relation("InvitationCreatedBy")
   redeemedInvitations    Invitation[]      @relation("InvitationRedeemedBy")
@@ -198,6 +202,7 @@ model User {
   revokedCodeBatches     AccessCodeBatch[] @relation("BatchRevokedBy")
   redeemedAccessCodes    AccessCode[]      @relation("CodeRedeemedBy")
   uploadedMediaAssets    MediaAsset[]      @relation("MediaUploadedBy")
+  createdAnnouncements   Announcement[]    @relation("AnnouncementCreatedBy")
 
   @@map("users")
 }
@@ -257,6 +262,7 @@ model SupportRequest {
   type            SupportRequestType
   status          SupportRequestStatus @default(open)
   message         String?
+  response        String?
   // device_change only: the browser that asked, bound until staff decide.
   pendingDeviceId String?              @map("pending_device_id") @db.Uuid
   decidedById     String?              @map("decided_by") @db.Uuid
@@ -339,6 +345,7 @@ model Membership {
   enrollments     Enrollment[]
   lessonProgress  LessonProgress[]
   attempts        Attempt[]
+  comments        Comment[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -385,6 +392,7 @@ model Course {
   contentItems  ContentItem[]
   questionBanks QuestionBank[]
   quizzes       Quiz[]
+  announcements Announcement[]
 
   @@index([tenantId, status, id(sort: Desc)])
   @@index([tenantId, deletedAt])
@@ -544,6 +552,7 @@ model ContentItem {
   quiz     Quiz?            @relation(fields: [quizId], references: [id], onDelete: SetNull)
   progress LessonProgress[]
   quizTargets QuizTarget[]
+  comments Comment[]
 
   @@index([tenantId, courseId])
   @@index([courseId, parentId, sortOrder])
@@ -763,3 +772,71 @@ model AttemptAnswer {
   @@index([tenantId, attemptId])
   @@map("attempt_answers")
 }
+
+// User notification (docs/04-database.md, FR-N01, ADR-006, step 9.1).
+model Notification {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String
+  data      Json      @default("{}")
+  readAt    DateTime? @map("read_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, readAt])
+  @@index([tenantId, userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+// Announcements: tenant-wide (courseId null) or course-specific (docs/04, docs/07 §10, FR-N04, step 9.6a).
+model Announcement {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  courseId    String?   @map("course_id") @db.Uuid
+  title       String
+  body        String
+  publishedAt DateTime  @default(now()) @map("published_at") @db.Timestamptz
+  createdBy   String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  author User    @relation("AnnouncementCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, publishedAt(sort: Desc)])
+  @@index([tenantId, courseId, publishedAt(sort: Desc)])
+  @@map("announcements")
+}
+
+// Lesson Q&A comments and threaded replies (docs/04-database.md, docs/07 §79-80, FR-C08, step 9.7a).
+model Comment {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  contentItemId      String    @map("content_item_id") @db.Uuid
+  authorMembershipId String    @map("author_membership_id") @db.Uuid
+  parentId           String?   @map("parent_id") @db.Uuid
+  body               String
+  hiddenAt           DateTime? @map("hidden_at") @db.Timestamptz
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  author      Membership  @relation(fields: [authorMembershipId], references: [id], onDelete: Cascade)
+  parent      Comment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[]   @relation("CommentReplies")
+
+  @@index([tenantId, contentItemId, createdAt])
+  @@index([tenantId, parentId])
+  @@map("comments")
+}
+
+
+

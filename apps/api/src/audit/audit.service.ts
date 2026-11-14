@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { getRequestContext, type ScopedPrismaClient } from "@itqan/database";
+import type { AuditLogListQueryDto, AuditLogListResponseDto } from "@itqan/shared";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { redact } from "./redact.js";
 
@@ -50,12 +51,56 @@ export class AuditService {
     });
   }
 
-  // Newest first, current tenant only. Filters by actor, action and date arrive with step 9.10.
-  list({ limit = 50, cursor }: { limit?: number; cursor?: string } = {}) {
-    return this.db.auditLog.findMany({
+  /**
+   * Newest first, current tenant only (FR-A01, step 9.10a).
+   * Filters by actor, action and date range with keyset cursor pagination.
+   */
+  async list(query: AuditLogListQueryDto = { limit: 50 }): Promise<AuditLogListResponseDto> {
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
+    const rows = await this.db.auditLog.findMany({
+      where: {
+        ...(query.actorUserId ? { actorUserId: query.actorUserId } : {}),
+        ...(query.action ? { action: query.action } : {}),
+        ...(query.from || query.to
+          ? {
+              createdAt: {
+                ...(query.from ? { gte: query.from } : {}),
+                ...(query.to ? { lte: query.to } : {}),
+              },
+            }
+          : {}),
+      },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: Math.min(Math.max(limit, 1), 100),
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take: limit + 1,
+      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        tenantId: true,
+        action: true,
+        targetType: true,
+        targetId: true,
+        meta: true,
+        ip: true,
+        userAgent: true,
+        createdAt: true,
+        actorUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
+
+    const page = rows.slice(0, limit);
+    return {
+      items: page.map(({ actorUser, ...r }) => ({
+        ...r,
+        meta: (r.meta ?? {}) as Record<string, unknown>,
+        actor: actorUser,
+      })),
+      nextCursor: rows.length > limit ? page.at(-1)!.id : null,
+    };
   }
 }

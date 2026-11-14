@@ -4,10 +4,12 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   UnauthorizedException,
 } from "@nestjs/common";
 import {
   type Auth,
+  type AuthUser,
   checkStudentAccess,
   createDeviceSecret,
   formatDeviceCookie,
@@ -19,6 +21,7 @@ import {
 import { getRequestContext, type ScopedPrismaClient } from "@itqan/database";
 import {
   AccessReasonCode,
+  type CreateGeneralSupportRequestDto,
   type DeviceRequestBody,
   type SignOutRequestBody,
   type SupportRequestListQuery,
@@ -27,6 +30,8 @@ import {
 import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
+import { SseService } from "../notifications/sse.service.js";
 
 export type SupportRequestResult = { requestId: string; status: "open" };
 
@@ -49,6 +54,10 @@ export class SupportRequestsService {
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Optional() private readonly sseService?: SseService,
+    @Optional()
+    @Inject(NotificationsService)
+    private readonly notificationsService?: NotificationsService,
   ) {}
 
   /** Staff list (step 5.8a): newest first; uuidv7 ids sort by creation time. */
@@ -66,6 +75,7 @@ export class SupportRequestsService {
         type: true,
         status: true,
         message: true,
+        response: true,
         createdAt: true,
         decidedAt: true,
         membership: { select: { id: true, user: { select: { name: true, email: true } } } },
@@ -80,6 +90,148 @@ export class SupportRequestsService {
       })),
       nextCursor: rows.length > query.limit ? page.at(-1)!.id : null,
     };
+  }
+
+  /** Student self-service list (step 9.8a): only own requests. */
+  async listOwn(userId: string, query: SupportRequestListQuery) {
+    const rows = await this.db.supportRequest.findMany({
+      where: {
+        membership: { userId },
+        ...(query.status ? { status: query.status } : {}),
+        ...(query.type ? { type: query.type } : {}),
+        ...(query.cursor ? { id: { lt: query.cursor } } : {}),
+      },
+      orderBy: { id: "desc" },
+      take: query.limit + 1,
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        message: true,
+        response: true,
+        createdAt: true,
+        decidedAt: true,
+      },
+    });
+    const page = rows.slice(0, query.limit);
+    return {
+      items: page,
+      nextCursor: rows.length > query.limit ? page.at(-1)!.id : null,
+    };
+  }
+
+  /** Student opens a general support request (step 9.8a, FR-N05). */
+  async createGeneral(user: AuthUser, body: CreateGeneralSupportRequestDto) {
+    const context = getRequestContext();
+    if (context?.kind !== "tenant") throw new NotFoundException();
+
+    const membership = await this.db.membership.findFirst({
+      where: { tenantId: context.tenantId, userId: user.id },
+      select: { id: true },
+    });
+    if (!membership) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        reason: "MEMBERSHIP_REQUIRED",
+        message: "Active tenant membership required.",
+      });
+    }
+
+    const created = await this.db.supportRequest.create({
+      data: {
+        tenantId: context.tenantId,
+        membershipId: membership.id,
+        type: "general",
+        status: "open",
+        message: body.message,
+      },
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        message: true,
+        createdAt: true,
+      },
+    });
+
+    await this.audit.record({
+      action: "support_request.create",
+      targetType: "support_request",
+      targetId: created.id,
+      actorUserId: user.id,
+      meta: { type: "general" },
+    });
+
+    return created;
+  }
+
+  /** Staff answers and closes a support request (step 9.8a, FR-N05). */
+  async close(id: string, actorUserId: string, responseMessage?: string) {
+    return this.db.$transaction(async (tx) => {
+      const request = await tx.supportRequest.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          membership: { select: { userId: true } },
+        },
+      });
+      if (!request) throw new NotFoundException();
+      if (request.status !== "open") {
+        throw conflict(SupportRequestReason.REQUEST_NOT_OPEN, "This request was already decided.");
+      }
+      const now = new Date();
+      const updated = await tx.supportRequest.update({
+        where: { id },
+        data: {
+          status: "closed",
+          response: responseMessage || null,
+          decidedById: actorUserId,
+          decidedAt: now,
+        },
+        select: {
+          id: true,
+          status: true,
+          response: true,
+          decidedAt: true,
+        },
+      });
+      await this.audit.record(
+        {
+          action: "support_request.close",
+          targetType: "support_request",
+          targetId: id,
+          actorUserId,
+          meta: { type: request.type, hasResponse: Boolean(responseMessage) },
+        },
+        tx,
+      );
+      return {
+        ...updated,
+        studentUserId: request.membership.userId,
+      };
+    }).then(async (res) => {
+      if (this.notificationsService) {
+        await this.notificationsService
+          .create({
+            userId: res.studentUserId,
+            type: "support_request_decided",
+            title: "Support request updated",
+            body: res.response ?? "Your support request has been closed.",
+            data: { requestId: res.id, status: res.status },
+          })
+          .catch(() => {
+            // non-blocking
+          });
+      }
+      return {
+        id: res.id,
+        status: res.status,
+        response: res.response,
+        decidedAt: res.decidedAt,
+      };
+    });
   }
 
   /**
@@ -143,7 +295,27 @@ export class SupportRequestsService {
         },
         tx,
       );
-      return { id, status: "approved" as const };
+      return {
+        id,
+        status: "approved" as const,
+        userId: request.userId,
+        revokedDeviceIds,
+        type: request.type,
+      };
+    }).then((res) => {
+      if (res.revokedDeviceIds.length > 0) {
+        for (const rId of res.revokedDeviceIds) {
+          this.sseService?.emitControlEvent(res.userId, "device_revoked", {
+            deviceId: rId,
+            revokedAt: new Date().toISOString(),
+          });
+        }
+      } else if (res.type === "sign_out_other") {
+        this.sseService?.emitControlEvent(res.userId, "session_terminated", {
+          reason: "SIGN_OUT_OTHER_APPROVED",
+        });
+      }
+      return { id: res.id, status: res.status };
     });
   }
 

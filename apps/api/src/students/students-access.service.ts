@@ -1,8 +1,9 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, NotFoundException, Optional } from "@nestjs/common";
 import { getRequestContext, type ScopedPrismaClient } from "@itqan/database";
 import { AccessReasonCode, type StudentAccessPatch } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { SseService } from "../notifications/sse.service.js";
 
 type Tx = Pick<ScopedPrismaClient, "$queryRaw" | "membership">;
 
@@ -16,67 +17,83 @@ export class StudentsAccessService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Optional() private readonly sseService?: SseService,
   ) {}
 
   /** Revoke a device: it can no longer sign in, and its sessions end at once. */
   revokeDevice(deviceId: string, actorUserId: string) {
-    return this.db.$transaction(async (tx) => {
-      const device = await tx.device.findUnique({
-        where: { id: deviceId },
-        select: { userId: true },
-      });
-      // Devices are global; only a student of this tenant makes the device reachable here.
-      const membership = device
-        ? await tx.membership.findFirst({
-            where: { userId: device.userId, role: "student" },
-            select: { id: true },
-          })
-        : null;
-      if (!device || !membership) throw new NotFoundException();
-      await this.lockUser(tx, device.userId);
-
-      const current = await tx.device.findUniqueOrThrow({
-        where: { id: deviceId },
-        select: { status: true },
-      });
-      if (current.status !== "revoked") {
-        await tx.device.update({
+    return this.db
+      .$transaction(async (tx) => {
+        const device = await tx.device.findUnique({
           where: { id: deviceId },
-          data: { status: "revoked", revokedAt: new Date() },
+          select: { userId: true },
         });
-        const { count } = await tx.session.deleteMany({ where: { deviceId } });
-        await this.audit.record(
-          {
-            action: "device.revoke",
-            targetType: "device",
-            targetId: deviceId,
-            actorUserId,
-            meta: { membershipId: membership.id, sessionsEnded: count },
-          },
-          tx,
-        );
-      }
-      return { id: deviceId, status: "revoked" as const };
-    });
+        // Devices are global; only a student of this tenant makes the device reachable here.
+        const membership = device
+          ? await tx.membership.findFirst({
+              where: { userId: device.userId, role: "student" },
+              select: { id: true },
+            })
+          : null;
+        if (!device || !membership) throw new NotFoundException();
+        await this.lockUser(tx, device.userId);
+
+        const current = await tx.device.findUniqueOrThrow({
+          where: { id: deviceId },
+          select: { status: true },
+        });
+        if (current.status !== "revoked") {
+          await tx.device.update({
+            where: { id: deviceId },
+            data: { status: "revoked", revokedAt: new Date() },
+          });
+          const { count } = await tx.session.deleteMany({ where: { deviceId } });
+          await this.audit.record(
+            {
+              action: "device.revoke",
+              targetType: "device",
+              targetId: deviceId,
+              actorUserId,
+              meta: { membershipId: membership.id, sessionsEnded: count },
+            },
+            tx,
+          );
+        }
+        return { id: deviceId, status: "revoked" as const, userId: device.userId };
+      })
+      .then((res) => {
+        this.sseService?.emitControlEvent(res.userId, "device_revoked", {
+          deviceId,
+          revokedAt: new Date().toISOString(),
+        });
+        return { id: res.id, status: res.status };
+      });
   }
 
   /** End every session of the student, on any tenant. Devices stay registered. */
   forceSignOut(membershipId: string, actorUserId: string) {
-    return this.db.$transaction(async (tx) => {
-      const student = await this.lockStudent(tx, membershipId);
-      const { count } = await tx.session.deleteMany({ where: { userId: student.userId } });
-      await this.audit.record(
-        {
-          action: "student.force_signout",
-          targetType: "membership",
-          targetId: membershipId,
-          actorUserId,
-          meta: { sessionsEnded: count },
-        },
-        tx,
-      );
-      return { membershipId, sessionsEnded: count };
-    });
+    return this.db
+      .$transaction(async (tx) => {
+        const student = await this.lockStudent(tx, membershipId);
+        const { count } = await tx.session.deleteMany({ where: { userId: student.userId } });
+        await this.audit.record(
+          {
+            action: "student.force_signout",
+            targetType: "membership",
+            targetId: membershipId,
+            actorUserId,
+            meta: { sessionsEnded: count },
+          },
+          tx,
+        );
+        return { membershipId, sessionsEnded: count, userId: student.userId };
+      })
+      .then((res) => {
+        this.sseService?.emitControlEvent(res.userId, "session_terminated", {
+          reason: "FORCE_SIGNOUT",
+        });
+        return { membershipId: res.membershipId, sessionsEnded: res.sessionsEnded };
+      });
   }
 
   /**
