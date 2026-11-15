@@ -138,21 +138,18 @@ export function isGradeReleased(
 }
 
 export interface ReviewReleaseContext {
-  reviewReleaseAt?: Date | null;
+  reviewReleaseAt: Date | null;
+  closesAt: Date | null;
+  gradesReleasedAt: Date | null;
 }
 
 /**
- * Determines whether review mode should be unlocked for a student.
- * If reviewReleaseAt is specified, it unlocks once now >= reviewReleaseAt.
- * Otherwise, it unlocks as soon as grades are released.
+ * Whether students may see review (correct answers, explanations). docs/06-flows.md section 7:
+ * review_release_at decides when, default closes_at, so nobody reads the answer key while
+ * classmates are still inside the exam window. A quiz with neither time opens review only once
+ * staff release grades by hand; "grades on submit" alone never does.
  */
-export function isReviewReleased(
-  quiz: ReviewReleaseContext,
-  gradesReleased: boolean,
-  now: Date = new Date(),
-): boolean {
-  if (quiz.reviewReleaseAt) {
-    return now.getTime() >= quiz.reviewReleaseAt.getTime();
-  }
-  return gradesReleased;
+export function isReviewReleased(quiz: ReviewReleaseContext, now: Date = new Date()): boolean {
+  const at = quiz.reviewReleaseAt ?? quiz.closesAt ?? quiz.gradesReleasedAt;
+  return at !== null && now.getTime() >= at.getTime();
 }

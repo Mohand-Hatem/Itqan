@@ -21,7 +21,14 @@
 | 15 | Minors' personal data | Legal | Collect only name, email, optional phone; guardian consent; privacy policy; deletion on request |
 
 ## 2. Headers (Nginx / Next.js)
-`Strict-Transport-Security`, `Content-Security-Policy` (self + R2 + Firebase + Sentry), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` minimal. NestJS: `helmet`.
+| Where | Headers |
+|---|---|
+| NestJS (`helmet`, `apps/api/src/app.setup.ts`), every response | `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` (the API serves only JSON and event streams), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, no `X-Powered-By` |
+| Nginx, every response | `server_tokens off`; nosniff and Referrer-Policy when the upstream did not send them (no duplicates); `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`; `X-Powered-By` hidden |
+| Nginx, HTTPS only (staging, production) | `Strict-Transport-Security: max-age=31536000; includeSubDomains` |
+| Next.js pages | `poweredByHeader: false`. The page CSP (nonce-based; self + R2 + Firebase + Sentry + the design's font and script sources) is step 11.3 and waits for the design |
+
+No CORS on the API: pages and `/api` share one host (Nginx, or Next.js rewrites in the preview), so no other origin may read API responses. Browser uploads go straight to R2, which has its own CORS rule. `npm run headers:check` scans the local stack; a public scan (Mozilla Observatory) runs once the domain exists (step 12.3).
 
 ## 3. Never log
 Passwords, session tokens, device secrets, invitation tokens, access codes, presigned URLs. Sentry `beforeSend` scrubs cookies and auth headers.

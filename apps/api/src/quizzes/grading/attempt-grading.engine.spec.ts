@@ -247,19 +247,26 @@ describe("attempt-grading.engine", () => {
   });
 
   describe("isReviewReleased helper", () => {
-    it("follows gradesReleased when reviewReleaseAt is null", () => {
-      expect(isReviewReleased({ reviewReleaseAt: null }, false)).toBe(false);
-      expect(isReviewReleased({ reviewReleaseAt: null }, true)).toBe(true);
+    const future = new Date(Date.now() + 60_000);
+    const past = new Date(Date.now() - 60_000);
+    const none = { reviewReleaseAt: null, closesAt: null, gradesReleasedAt: null };
+
+    it("respects explicit reviewReleaseAt", () => {
+      expect(isReviewReleased({ ...none, reviewReleaseAt: future, gradesReleasedAt: past })).toBe(false);
+      expect(isReviewReleased({ ...none, reviewReleaseAt: past })).toBe(true);
     });
 
-    it("respects explicit reviewReleaseAt regardless of gradesReleased", () => {
-      const future = new Date(Date.now() + 60_000);
-      const past = new Date(Date.now() - 60_000);
+    // Step 10.3 (audit lead isReviewReleased:null-reviewReleaseAt-falls-back-to-grade-release):
+    // docs/06-flows.md section 7, review_release_at defaults to closes_at.
+    it("defaults to closesAt, so answers stay hidden while the exam is still open", () => {
+      expect(isReviewReleased({ ...none, closesAt: future })).toBe(false);
+      expect(isReviewReleased({ ...none, closesAt: past })).toBe(true);
+    });
 
-      // Even if grades are released, review is locked if reviewReleaseAt is in future
-      expect(isReviewReleased({ reviewReleaseAt: future }, true)).toBe(false);
-      // Unlocked when past reviewReleaseAt
-      expect(isReviewReleased({ reviewReleaseAt: past }, false)).toBe(true);
+    it("with no review time and no close time, opens only after staff release grades", () => {
+      expect(isReviewReleased(none)).toBe(false);
+      expect(isReviewReleased({ ...none, gradesReleasedAt: past })).toBe(true);
+      expect(isReviewReleased({ ...none, gradesReleasedAt: future })).toBe(false);
     });
   });
 });

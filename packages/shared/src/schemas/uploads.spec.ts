@@ -58,3 +58,10 @@ describe("UploadCreateSchema", () => {
     }
   });
 });
+
+// Step 10.3 (audit lead upload-mime-allowlist-prototype-key-bypass).
+describe("uploadRejection with inherited object keys", () => {
+  it.each(["constructor", "__proto__", "tostring", "hasownproperty"])("refuses mimeType %s", (mimeType) => {
+    expect(uploadRejection({ mimeType, size: 10 * 1024 ** 3, purpose: "content" })).toBe("UPLOAD_TYPE_NOT_ALLOWED");
+  });
+});

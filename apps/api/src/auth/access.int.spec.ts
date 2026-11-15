@@ -89,6 +89,8 @@ async function createAuthenticatedUser(opts: {
   name: string;
   isSuperAdmin?: boolean;
   status?: "active" | "suspended";
+  /** Staff and super admins need TOTP (step 10.3). Set after sign-in: before it, sign-in asks for a code. */
+  mfa?: boolean;
 }): Promise<{ userId: string; cookie: string }> {
   const email = `access-${randomUUID().slice(0, 8)}@example.com`;
   const password = "StrongPassword123!";
@@ -119,6 +121,9 @@ async function createAuthenticatedUser(opts: {
     body: { email, password },
     returnHeaders: true,
   });
+  if (opts.mfa) {
+    await systemPrisma.user.update({ where: { id: signUp.user.id }, data: { twoFactorEnabled: true } });
+  }
 
   return {
     userId: signUp.user.id,
@@ -338,6 +343,7 @@ describe("AccessGuard Reason Codes over HTTP (FR-T03)", () => {
     const teacher = await createAuthenticatedUser({
       name: "Authorized Teacher",
       status: "active",
+      mfa: true,
     });
 
     await systemPrisma.membership.create({
@@ -368,6 +374,7 @@ describe("AccessGuard Reason Codes over HTTP (FR-T03)", () => {
       name: "Super Administrator",
       isSuperAdmin: true,
       status: "active",
+      mfa: true,
     });
 
     const res = await http.send(
@@ -382,5 +389,23 @@ describe("AccessGuard Reason Codes over HTTP (FR-T03)", () => {
     const body = res.body as { ok: boolean; isSuperAdmin: boolean };
     expect(body.ok).toBe(true);
     expect(body.isSuperAdmin).toBe(true);
+  });
+
+  // Step 10.3 (audit lead AccessGuard:staff-totp-not-enforced, FR-A03): staff need TOTP.
+  it("refuses staff routes to a teacher without TOTP", async () => {
+    const teacher = await createAuthenticatedUser({ name: "No TOTP Teacher", status: "active" });
+    await systemPrisma.membership.create({
+      data: { userId: teacher.userId, tenantId, role: "teacher", status: "active" },
+    });
+    const res = await http.send(tenantHost, "GET", "/api/access-test/teacher-only", undefined, { cookie: teacher.cookie });
+    expect(res.status).toBe(403);
+    expect((res.body as { reason: string }).reason).toBe(AccessReasonCode.MFA_ENROLMENT_REQUIRED);
+  });
+
+  it("refuses super admin routes to a super admin without TOTP", async () => {
+    const admin = await createAuthenticatedUser({ name: "No TOTP Admin", isSuperAdmin: true, status: "active" });
+    const res = await http.send(tenantHost, "GET", "/api/access-test/admin-only", undefined, { cookie: admin.cookie });
+    expect(res.status).toBe(403);
+    expect((res.body as { reason: string }).reason).toBe(AccessReasonCode.MFA_ENROLMENT_REQUIRED);
   });
 });

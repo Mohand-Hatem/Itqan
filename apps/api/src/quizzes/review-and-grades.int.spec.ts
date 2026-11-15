@@ -380,6 +380,9 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       await s.asStudent2("POST", `/attempts/${(start2.body as { id: string }).id}/submit`);
       expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
       expect(await gradeNotes(s.student2.user.id, quizId)).toHaveLength(1);
+      // Step 10.1: marked, so the close-time job will not announce it again.
+      const quiz = await systemPrisma.quiz.findUniqueOrThrow({ where: { id: quizId } });
+      expect(quiz.releaseNotifiedAt).not.toBeNull();
     });
 
     it("manual: release-grades notifies only students who submitted, and emails them", async () => {
@@ -395,6 +398,12 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
       expect(await gradeNotes(s.student2.user.id, quizId)).toHaveLength(0);
       await expectGradeEmail(s.student1.user.email);
+
+      // Step 10.1: the release is marked, so releasing again tells nobody twice.
+      expect((await s.asTeacher("POST", `/quizzes/${quizId}/release-grades`)).status).toBe(200);
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
+      const quiz = await systemPrisma.quiz.findUniqueOrThrow({ where: { id: quizId } });
+      expect(quiz.releaseNotifiedAt).not.toBeNull();
     });
   });
 
@@ -406,6 +415,10 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       const startRes = await s.asStudent1("POST", `/quizzes/${quizId}/attempts`);
       const attemptId = (startRes.body as { id: string }).id;
       await s.asStudent1("POST", `/attempts/${attemptId}/submit`);
+      // Step 10.3 (docs/06 section 7): no answer key while the exam is open; review opens at close.
+      expect((await s.asStudent1("GET", `/attempts/${attemptId}/review`)).status).toBe(403);
+      await systemPrisma.quiz.update({ where: { id: quizId }, data: { closesAt: new Date(Date.now() - 1000) } });
+
 
       const reviewRes = await s.asStudent1("GET", `/attempts/${attemptId}/review`);
       expect(reviewRes.status).toBe(200);
@@ -438,6 +451,10 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       });
 
       await s.asStudent1("POST", `/attempts/${attemptId}/submit`);
+      // Step 10.3 (docs/06 section 7): no answer key while the exam is open; review opens at close.
+      expect((await s.asStudent1("GET", `/attempts/${attemptId}/review`)).status).toBe(403);
+      await systemPrisma.quiz.update({ where: { id: quizId }, data: { closesAt: new Date(Date.now() - 1000) } });
+
 
       const reviewRes = await s.asStudent1("GET", `/attempts/${attemptId}/review`);
       expect(reviewRes.status).toBe(200);
@@ -481,6 +498,10 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       });
 
       await s.asStudent1("POST", `/attempts/${attemptId}/submit`);
+      // Step 10.3 (docs/06 section 7): no answer key while the exam is open; review opens at close.
+      expect((await s.asStudent1("GET", `/attempts/${attemptId}/review`)).status).toBe(403);
+      await systemPrisma.quiz.update({ where: { id: quizId }, data: { closesAt: new Date(Date.now() - 1000) } });
+
 
       const reviewRes = await s.asStudent1("GET", `/attempts/${attemptId}/review`);
       expect(reviewRes.status).toBe(200);

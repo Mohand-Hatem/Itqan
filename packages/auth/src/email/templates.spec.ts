@@ -340,3 +340,22 @@ describe("default locale handling (NFR-04 RTL)", () => {
     expect(dev.html).toContain('lang="ar"');
   });
 });
+
+// Step 10.3 (audit lead packages/auth/src/email/templates.ts:unescaped-html-interpolation).
+describe("HTML escaping of user- and staff-controlled fields", () => {
+  const evil = '<a href="https://evil.test">x</a>';
+  for (const locale of ["ar", "en"] as const) {
+    it(`escapes the user name in verification and reset emails (${locale})`, () => {
+      for (const t of [getVerificationEmail, getResetPasswordEmail]) {
+        const { html } = t({ url: "https://x.test/v?token=t", name: evil, locale });
+        expect(html).not.toContain('<a href="https://evil.test"');
+        expect(html).toContain("&lt;a href=");
+      }
+    });
+    it(`escapes tenant name and course titles in invitation emails (${locale})`, () => {
+      const { html } = getInvitationEmail({ url: "https://x.test/join", tenantName: "<b>T</b>", courseTitles: ["<img src=x>"], locale });
+      expect(html).not.toContain("<b>T</b>");
+      expect(html).not.toContain("<img src=x>");
+    });
+  }
+});

@@ -83,11 +83,13 @@ flowchart LR
 
 | Job | Every |
 |---|---|
-| Delete expired invitations and sessions | 1 hour |
-| Release grades for quizzes past close time (release modes 2 and 3) | 1 minute |
-| Purge tenants soft-deleted more than 30 days ago (DB rows and R2 prefix) | 1 day |
+| Delete expired sessions, and unused invitations 30 days after they expire (staff can resend an expired invitation until then) | 1 hour |
+| Mark pending uploads older than 24 hours `failed` and delete their R2 object | 1 hour |
+| Notify students of grades released at close time (`on_close`, and `all_submitted` falling back to close time) | 1 minute |
+| Send "exam opening" to enrolled students when a published quiz opens | 1 minute |
+| Purge tenants soft-deleted more than 30 days ago (R2 prefix `tenants/{id}/` first, then all tenant rows), with a platform audit entry `tenant.purge` | 1 day (03:00) |
 
-Jobs are idempotent. They are never the only authority: exam windows and grade visibility are also checked on every read.
+Code: `apps/api/src/jobs/` (`JobsService` holds the jobs, `JobsScheduler` the timers). Jobs are idempotent: each claims its work with a conditional write (`quizzes.release_notified_at`, `quizzes.opening_notified_at`, asset status), so a second run or a second server does nothing. Manual release and the `all_submitted` release on submit set the same release marker. Jobs are never the only authority: exam windows and grade visibility are also checked on every read. `JOBS_ENABLED=false` turns the timers off (tests set it). Bulk emails go out in the background, about 600 ms apart, to stay under Resend's rate limit.
 
 ## 7. Deployment
 
@@ -104,9 +106,9 @@ External: Neon (`main` for production, `dev` for testing), R2, Resend, FCM, Sent
   | Environment | Where | When | Database |
   |---|---|---|---|
   | Local | docker-compose on the developer's machine (Postgres, web, api, nginx); tenants via `<slug>.localhost` | Every step and all tests | Docker Postgres |
-  | Preview | Vercel (web) + Render free Docker service (api); `/api/*` reaches the API through Next.js rewrites; one demo tenant via `PREVIEW_TENANT_SLUG` | Teacher demo before buying the server (step 10.6) | Neon `dev` |
-  | Staging | VPS, `docker-compose.staging.yml`, `*.staging.<root-domain>` | After the teacher approves (step 10.8) | Neon `dev` |
-  | Production | VPS, production compose stack, `*.<root-domain>` | Launch (step 10.12) | Neon `main` |
+  | Preview | Vercel (web) + Render free Docker service (api); `/api/*` reaches the API through Next.js rewrites; one demo tenant via `PREVIEW_TENANT_SLUG` | Teacher demo before buying the server (step 12.1) | Neon `dev` |
+  | Staging | VPS, `docker-compose.staging.yml`, `*.staging.<root-domain>` | After the teacher approves (step 12.3) | Neon `dev` |
+  | Production | VPS, production compose stack, `*.<root-domain>` | Launch (step 12.7) | Neon `main` |
 - **DNS:** wildcard `*.<root-domain>` proxied by Cloudflare.
 - **Email:** SPF, DKIM and DMARC on the sending domain. Emails show the tenant's name as the sender name.
 - **Backups:** Neon point-in-time restore plus a nightly `pg_dump` to a separate R2 bucket. Restore tested monthly.

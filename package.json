@@ -23,7 +23,8 @@
     "db:migrate": "npm run migrate -w @itqan/database",
     "db:seed": "npm run seed -w @itqan/database",
     "db:promote:dev": "npm run promote -w @itqan/database -- dev",
-    "r2:check": "tsx apps/api/src/storage/r2-check.ts"
+    "r2:check": "tsx apps/api/src/storage/r2-check.ts",
+    "headers:check": "node scripts/check-headers.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -39,5 +40,8 @@
   "allowScripts": {
     "prisma@7.10.1": true,
     "@prisma/engines@7.10.1": true
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }

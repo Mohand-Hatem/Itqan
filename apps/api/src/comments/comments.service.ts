@@ -14,7 +14,9 @@ import type {
   ListCommentsResponseDto,
   UpdateCommentDto,
 } from "@itqan/shared";
+import type { AuthUser } from "@itqan/auth";
 import { AuditService } from "../audit/audit.service.js";
+import { ContentAccessService } from "../content-items/content-access.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 
 @Injectable()
@@ -24,6 +26,7 @@ export class CommentsService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     private readonly audit: AuditService,
+    private readonly contentAccess: ContentAccessService,
   ) {}
 
   private getTenantId(): string {
@@ -39,7 +42,7 @@ export class CommentsService {
    * Validates enrollment for students and parent comment validity for replies.
    */
   async create(
-    actor: { userId: string; role: Role; membershipId: string },
+    actor: { userId: string; role: Role; membershipId: string; user: AuthUser },
     contentItemId: string,
     dto: CreateCommentDto,
   ): Promise<CommentItemDto> {
@@ -53,20 +56,8 @@ export class CommentsService {
       throw new NotFoundException("Content item not found");
     }
 
-    if (actor.role === "student") {
-      const enrollment = await this.db.enrollment.findFirst({
-        where: {
-          tenantId,
-          courseId: item.courseId,
-          membershipId: actor.membershipId,
-          status: "active",
-        },
-        select: { id: true },
-      });
-      if (!enrollment) {
-        throw new ForbiddenException("You are not enrolled in this course");
-      }
-    }
+    // Same gate as lesson content: enrolled, course not a draft, item and parents published (step 10.3).
+    if (actor.role === "student") await this.contentAccess.studentItem(contentItemId, actor.user);
 
     if (dto.parentId) {
       const parent = await this.db.comment.findUnique({
@@ -122,11 +113,11 @@ export class CommentsService {
    * Staff see active comments including hidden ones.
    */
   async list(
-    actor: { userId: string; role: Role; membershipId: string },
+    actor: { userId: string; role: Role; membershipId: string; user: AuthUser },
     contentItemId: string,
     query: ListCommentsQueryDto,
   ): Promise<ListCommentsResponseDto> {
-    const tenantId = this.getTenantId();
+    this.getTenantId(); // refuses the admin host (no tenant context)
     const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
 
     const item = await this.db.contentItem.findUnique({
@@ -137,20 +128,8 @@ export class CommentsService {
       throw new NotFoundException("Content item not found");
     }
 
-    if (actor.role === "student") {
-      const enrollment = await this.db.enrollment.findFirst({
-        where: {
-          tenantId,
-          courseId: item.courseId,
-          membershipId: actor.membershipId,
-          status: "active",
-        },
-        select: { id: true },
-      });
-      if (!enrollment) {
-        throw new ForbiddenException("You are not enrolled in this course");
-      }
-    }
+    // Same gate as lesson content: enrolled, course not a draft, item and parents published (step 10.3).
+    if (actor.role === "student") await this.contentAccess.studentItem(contentItemId, actor.user);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let where: any = {
@@ -227,7 +206,7 @@ export class CommentsService {
    * Edit comment body (author only) or toggle hidden moderation status (staff only).
    */
   async update(
-    actor: { userId: string; role: Role; membershipId: string },
+    actor: { userId: string; role: Role; membershipId: string; user: AuthUser },
     commentId: string,
     dto: UpdateCommentDto,
   ): Promise<CommentItemDto> {
@@ -313,7 +292,7 @@ export class CommentsService {
    * Soft-delete comment by author or staff.
    */
   async delete(
-    actor: { userId: string; role: Role; membershipId: string },
+    actor: { userId: string; role: Role; membershipId: string; user: AuthUser },
     commentId: string,
   ): Promise<{ success: boolean }> {
     this.getTenantId();

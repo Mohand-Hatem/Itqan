@@ -13,11 +13,11 @@ Until the owner says the design is chosen, we build business logic only. Anythin
 **Track B, after the design is chosen (UI).** In this order:
 1. Step 3.1, the design gate: the owner chooses the design and the method is written in `docs/11-design.md`.
 2. The rest of Phase 3 (tokens, fonts and RTL, components, layouts, middleware and branding, states pages).
-3. Phase U: every ⏸ step in its original order, each built on its finished API.
+3. Every ⏸ step in its original order, each built on its finished API.
 4. Step 3.8 (accessibility and responsive audit) and the UI checkpoints.
-5. Phase 10 from step 10.6 (teacher preview) onward.
+5. Then Phase 12 (preview and launch).
 
-Track B must be done before step 10.6. The design can be chosen at any time: the step in progress is finished, then work switches to Track B. Choosing it before Phase 8 starts keeps the UI backlog from becoming one very large block.
+Track B is Phase 11 (UI, frontend and security) in [`tasks/todo.md`](../tasks/todo.md): steps 1 to 4 above plus the security steps that need real pages. It must be done before Phase 12. The design can be chosen at any time: the step in progress is finished, then work switches to Track B. Choosing it before Phase 8 starts keeps the UI backlog from becoming one very large block.
 
 ## What counts as UI
 
@@ -41,7 +41,7 @@ Exploration lives in `screens/` as plain HTML test pages (currently `screens/tes
 
 ## UI waiting list
 
-Built in Phase U, in this order. "API from" is the Track A step the page uses.
+Built in Phase 11, in this order. "API from" is the Track A step the page uses.
 
 | Step | UI to build | API from |
 |---|---|---|
@@ -76,6 +76,9 @@ Built in Phase U, in this order. "API from" is the Track A step the page uses.
 | 9.8b | Support requests | 9.8a |
 | 9.9b | Analytics overview | 9.9a |
 | 9.10b | Audit log page with filters | 9.10a |
+| 10.3 | On 403 `MFA_ENROLMENT_REQUIRED`, send staff and super admins to the TOTP enrolment screen (Better Auth `/two-factor/*`); `GET /me` still works there | 4.5, 4.6 |
+| 11.3 | Content-Security-Policy for the web pages: nonce-based, allowing self, R2, Firebase and Sentry plus the design's font and script sources | 10.2a, 9.4, 12.5 |
+| 10.5 | Privacy policy and terms pages (Arabic and English) from `docs/legal/`, linked in the footer and accepted at registration (with guardian consent for students under 18) | 10.5, 6.4, 6.6b, 7.12 |
 | 3.8 | Accessibility and responsive audit of everything above | — |
 
 ### Found during Track A

@@ -29,7 +29,7 @@ Work follows `tasks/todo.md`: **Phase → Step**. One step at a time. **Phase 3 
 6. **UI waits for the design (⏸, ADR-010, `docs/12-ui-later.md`).** The design is not chosen yet.
    - **Deferral:** build business logic only (Track A). Every 🎨 or ⏸ step, page, component, layout, style, font, colour, icon set and browser-only feature waits until the owner says the design is chosen. Do not build UI in Track A, not even a placeholder. API output a screen will need (reason codes, message keys, response shapes) is logic and is done now.
    - **Reminder, every step:** fill the "UI part" line of the step brief. Whenever UI comes up, in a brief, mid-step or in a report, tell the owner in one line: "This part is UI; it waits until the design is chosen", and add it to the waiting list in `docs/12-ui-later.md`.
-   - **Resume:** when the owner says the design is chosen, finish the current step, then start Track B with step 3.1 (rule 2), then Phase U. Track B must be done before step 10.6.
+   - **Resume:** when the owner says the design is chosen, finish the current step, then start Track B: Phase 11 (UI, frontend and security), beginning with step 3.1 (rule 2). Phase 11 must be done before Phase 12 (preview and launch).
    - Design exploration in `screens/` (test pages, no app code) when the owner asks is allowed; it is how the design gets chosen.
 
 ## Stack (do not swap without an ADR)

@@ -58,6 +58,12 @@ export type NotificationWriter = {
 
 export type PostCommitCallback = () => Promise<void> | void;
 
+/**
+ * Gap between emails of one batch. Resend allows about 2 requests a second by default, so a
+ * grade release to hundreds of students goes out paced in the background (step 10.1).
+ */
+export const EMAIL_SEND_GAP_MS = 600;
+
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
@@ -153,8 +159,11 @@ export class NotificationsService {
       const emails = inputs.filter((input) => input.sendEmail);
       if (emails.length === 0) return;
       void (async () => {
+        let first = true;
         for (const [i, input] of inputs.entries()) {
           if (!input.sendEmail) continue;
+          if (!first) await new Promise((r) => setTimeout(r, EMAIL_SEND_GAP_MS));
+          first = false;
           await this.dispatchEmail({
             userId: input.userId,
             tenantId: data[i]!.tenantId,

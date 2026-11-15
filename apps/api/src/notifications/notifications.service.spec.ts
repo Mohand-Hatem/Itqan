@@ -6,8 +6,8 @@ import {
   runWithContext,
   withTenantScope,
 } from "@itqan/database";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { NotificationsService } from "./notifications.service.js";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { EMAIL_SEND_GAP_MS, NotificationsService } from "./notifications.service.js";
 import { SseService } from "./sse.service.js";
 
 const raw = createTestClient();
@@ -40,6 +40,42 @@ afterAll(async () => {
 });
 
 describe("NotificationsService (unit & transactional)", () => {
+  it("paces bulk emails one gap apart to stay under the Resend rate limit (step 10.1)", async () => {
+    vi.useFakeTimers();
+    try {
+      const paced = new NotificationsService(scoped);
+      const sent: string[] = [];
+      paced.dispatchEmail = async (input) => {
+        sent.push(input.userId);
+        return {};
+      };
+      const tx = {
+        notification: {
+          createManyAndReturn: async ({ data }: { data: Array<{ userId: string }> }) => data,
+        },
+      };
+      const input = (userId: string) => ({
+        tenantId: a.id,
+        userId,
+        type: "t",
+        title: "x",
+        body: "y",
+        sendEmail: true,
+      });
+
+      const afterCommit = await paced.stage(tx, [input("u1"), input("u2"), input("u3")]);
+      afterCommit();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(sent).toEqual(["u1"]); // the first goes at once
+      await vi.advanceTimersByTimeAsync(EMAIL_SEND_GAP_MS);
+      expect(sent).toEqual(["u1", "u2"]);
+      await vi.advanceTimersByTimeAsync(EMAIL_SEND_GAP_MS);
+      expect(sent).toEqual(["u1", "u2", "u3"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("pushes over SSE only after the transaction commits, and never on rollback (step 9.11)", async () => {
     const pushed: string[] = [];
     const sse = {

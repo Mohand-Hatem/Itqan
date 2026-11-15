@@ -120,6 +120,8 @@ export function studentFixtures(password: string) {
       body: { email: u.email, password },
       returnHeaders: true,
     });
+    // Staff need TOTP (FR-A03, step 10.3). Turned on after sign-in: before it, sign-in asks for a code.
+    await systemPrisma.user.update({ where: { id: u.id }, data: { twoFactorEnabled: true } });
     return { user: u, cookie: cookiesOf(res.headers) };
   }
 

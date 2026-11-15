@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { Auth } from "@itqan/auth";
-import { getRequestContext, type ScopedPrismaClient } from "@itqan/database";
+import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import type {
   AssistantCreateDto,
   AssistantDeleteResponse,
@@ -216,11 +216,25 @@ export class AssistantsService {
         });
       }
 
-      // Evict active sessions on this tenant (or untagged staff sessions)
+      // Staff sessions carry no tenant and serve every tenant the user is staff on, so they end
+      // only when this was the user's last staff role (audit itqan-run-1). Access to this tenant
+      // ends at once anyway: AccessGuard reloads the membership on every request.
+      const staffElsewhere = await systemPrisma.membership.count({
+        where: {
+          userId: membership.userId,
+          id: { not: membership.id },
+          role: { in: ["teacher", "assistant"] },
+          status: "active",
+        },
+      });
+      const { isSuperAdmin } = await tx.user.findUniqueOrThrow({
+        where: { id: membership.userId },
+        select: { isSuperAdmin: true },
+      });
       const { count: sessionsEnded } = await tx.session.deleteMany({
         where: {
           userId: membership.userId,
-          OR: [{ tenantId }, { tenantId: null }],
+          OR: [{ tenantId }, ...(staffElsewhere || isSuperAdmin ? [] : [{ tenantId: null }])],
         },
       });
 

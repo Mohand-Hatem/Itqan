@@ -105,6 +105,8 @@ async function createAuthenticatedTeacher(opts: {
     body: { email, password },
     asResponse: true,
   });
+  // Staff need TOTP (FR-A03, step 10.3); turned on after sign-in.
+  await systemPrisma.user.update({ where: { email: email }, data: { twoFactorEnabled: true } });
 
   const cookie = toCookieHeader(signIn.headers);
   return { userId: signUp.user.id, email, cookie };

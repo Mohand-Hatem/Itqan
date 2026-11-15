@@ -31,7 +31,7 @@ export function getVerificationEmail(params: EmailTemplateParams) {
         </head>
         <body>
           <div class="container">
-            <h1>مرحباً ${name}،</h1>
+            <h1>مرحباً ${escapeHtml(name)}،</h1>
             <p>شكراً لتسجيلك في منصة <strong>إتقان</strong>. لتفعيل حسابك والمتابعة، يرجى تأكيد عنوان بريدك الإلكتروني بالنقر على الزر أدناه:</p>
             <p><a href="${params.url}" class="btn">تأكيد البريد الإلكتروني</a></p>
             <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك مباشرة:</p>
@@ -66,7 +66,7 @@ export function getVerificationEmail(params: EmailTemplateParams) {
       </head>
       <body>
         <div class="container">
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${escapeHtml(name)},</h1>
           <p>Thank you for signing up for <strong>Itqan</strong>. Please confirm your email address by clicking the button below:</p>
           <p><a href="${params.url}" class="btn">Verify Email Address</a></p>
           <p>Or copy and paste this URL into your browser:</p>
@@ -106,7 +106,7 @@ export function getResetPasswordEmail(params: EmailTemplateParams) {
         </head>
         <body>
           <div class="container">
-            <h1>مرحباً ${name}،</h1>
+            <h1>مرحباً ${escapeHtml(name)}،</h1>
             <p>تلقينا طلباً لإعادة تعيين كلمة المرور لحسابك على منصة <strong>إتقان</strong>. لإعادة تعيين كلمة المرور، اضغط على الزر التالي:</p>
             <p><a href="${params.url}" class="btn">إعادة تعيين كلمة المرور</a></p>
             <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك:</p>
@@ -141,7 +141,7 @@ export function getResetPasswordEmail(params: EmailTemplateParams) {
       </head>
       <body>
         <div class="container">
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${escapeHtml(name)},</h1>
           <p>We received a request to reset the password for your <strong>Itqan</strong> account. Click the button below to reset it:</p>
           <p><a href="${params.url}" class="btn">Reset Password</a></p>
           <p>Or copy and paste this URL into your browser:</p>
@@ -171,7 +171,7 @@ export function getInvitationEmail(params: InvitationEmailParams) {
       : "";
   const coursesHtmlAr =
     params.courseTitles && params.courseTitles.length > 0
-      ? `<p>للدورات التدريبية التالية:</p><ul>${params.courseTitles.map((t) => `<li><strong>${t}</strong></li>`).join("")}</ul>`
+      ? `<p>للدورات التدريبية التالية:</p><ul>${params.courseTitles.map((t) => `<li><strong>${escapeHtml(t)}</strong></li>`).join("")}</ul>`
       : "";
 
   const coursesTextEn =
@@ -180,7 +180,7 @@ export function getInvitationEmail(params: InvitationEmailParams) {
       : "";
   const coursesHtmlEn =
     params.courseTitles && params.courseTitles.length > 0
-      ? `<p>for the following courses:</p><ul>${params.courseTitles.map((t) => `<li><strong>${t}</strong></li>`).join("")}</ul>`
+      ? `<p>for the following courses:</p><ul>${params.courseTitles.map((t) => `<li><strong>${escapeHtml(t)}</strong></li>`).join("")}</ul>`
       : "";
 
   if (isArabic) {
@@ -205,8 +205,8 @@ export function getInvitationEmail(params: InvitationEmailParams) {
         </head>
         <body>
           <div class="container">
-            <h1>دعوة للانضمام إلى ${params.tenantName}</h1>
-            <p>تمت دعوتك للانضمام كطالب إلى <strong>${params.tenantName}</strong> على منصة إتقان.</p>
+            <h1>دعوة للانضمام إلى ${escapeHtml(params.tenantName)}</h1>
+            <p>تمت دعوتك للانضمام كطالب إلى <strong>${escapeHtml(params.tenantName)}</strong> على منصة إتقان.</p>
             ${coursesHtmlAr}
             <p><a href="${params.url}" class="btn">قبول الدعوة والتسجيل</a></p>
             <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك مباشرة:</p>
@@ -242,8 +242,8 @@ export function getInvitationEmail(params: InvitationEmailParams) {
       </head>
       <body>
         <div class="container">
-          <h1>Invitation to join ${params.tenantName}</h1>
-          <p>You have been invited to join <strong>${params.tenantName}</strong> on the Itqan Platform.</p>
+          <h1>Invitation to join ${escapeHtml(params.tenantName)}</h1>
+          <p>You have been invited to join <strong>${escapeHtml(params.tenantName)}</strong> on the Itqan Platform.</p>
           ${coursesHtmlEn}
           <p><a href="${params.url}" class="btn">Accept Invitation & Register</a></p>
           <p>Or copy and paste this URL into your browser:</p>

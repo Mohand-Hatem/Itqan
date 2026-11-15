@@ -232,6 +232,23 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       expect(dbMem.guardianConsentAt).not.toBeNull();
     });
 
+    // Step 10.3 (audit lead registerWithCode:user-exists-oracle; owner kept the 409, added a limit).
+    it("limits one code to 5 attempts per 15 minutes, so it cannot scan many emails", async () => {
+      const t = await fx.tenant();
+      const teacher = await fx.staffLogin(t, "teacher");
+      const course = await systemPrisma.course.create({ data: { tenantId: t.id, title: "Scan 101" } });
+      const code = (await mintCodes(t, teacher.cookie, course.id, 1)).codes[0]!.code;
+      const probe = async (i: number) =>
+        (await anon(t, "POST", "/register-with-code", {
+          code: i % 2 ? code.toLowerCase() : code, // formatting variants share one bucket
+          name: "Probe",
+          email: (await fx.member(t.id, "student")).user.email,
+          password: "NewPassword123!",
+        })).status;
+      for (let i = 0; i < 5; i++) expect(await probe(i)).toBe(409);
+      expect(await probe(5)).toBe(429);
+    });
+
     it("rejects duplicate email with 409 USER_ALREADY_EXISTS and leaves code unredeemed", async () => {
       const t = await fx.tenant();
       const teacher = await fx.staffLogin(t, "teacher");

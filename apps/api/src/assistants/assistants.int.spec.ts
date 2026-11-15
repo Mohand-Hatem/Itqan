@@ -271,6 +271,30 @@ describe("Assistant Management API (Integration — Step 6.10a)", () => {
       expect(meAfter.status).toBe(401);
     });
 
+    // Step 10.3 (audit lead AssistantsService:link-then-delete-global-staff-session-eviction).
+    it("removing a linked assistant does not sign them out of the tenant where they are teacher", async () => {
+      const tA = await fx.tenant();
+      const tB = await fx.tenant();
+      const teacherA = await fx.staffLogin(tA, "teacher");
+      const teacherB = await fx.staffLogin(tB, "teacher");
+      expect((await as(tB, teacherB.cookie, "GET", "/me")).status).toBe(200);
+
+      // Teacher A links teacher B's account by email, then removes it again.
+      const linked = await as(tA, teacherA.cookie, "POST", "/assistants", {
+        name: "Linked",
+        email: teacherB.user.email,
+        temporaryPassword: "IgnoredForExisting123!",
+      });
+      expect(linked.status).toBe(201);
+      const id = (linked.body as { id: string }).id;
+      expect((await as(tA, teacherA.cookie, "DELETE", `/assistants/${id}`)).status).toBe(200);
+
+      // Teacher B's staff session (no tenant) survives and still works on tenant B.
+      expect((await as(tB, teacherB.cookie, "GET", "/me")).status).toBe(200);
+      // And the removed membership no longer opens tenant A.
+      expect((await as(tA, teacherB.cookie, "GET", "/assistants")).status).toBe(403);
+    });
+
     it("returns 404 when assistant membership is not found", async () => {
       const t = await fx.tenant();
       const teacher = await fx.staffLogin(t, "teacher");

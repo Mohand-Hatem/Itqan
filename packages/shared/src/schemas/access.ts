@@ -10,6 +10,8 @@ export const AccessReasonCode = {
   // Sign-in routing (ADR-011): staff use /sign-in/email with TOTP, students /sign-in/student.
   USE_STAFF_SIGN_IN: "USE_STAFF_SIGN_IN",
   USE_STUDENT_SIGN_IN: "USE_STUDENT_SIGN_IN",
+  // FR-A03 (step 10.3): staff and super admins must enrol TOTP before using staff routes.
+  MFA_ENROLMENT_REQUIRED: "MFA_ENROLMENT_REQUIRED",
 } as const;
 
 export type AccessReasonCode = (typeof AccessReasonCode)[keyof typeof AccessReasonCode];

@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
+  accessCodeKey,
   CROCKFORD_ALPHABET,
   formatCode,
   generateCrockfordCode,
   hashAccessCode,
   normalizeAccessCode,
 } from "./crypto.js";
+
+// Step 10.3 (audit lead apps/api/src/code-batches/crypto.ts:hashAccessCode:hardcoded-hmac-key-fallback).
+describe("accessCodeKey", () => {
+  it("uses the dedicated ACCESS_CODE_HMAC_SECRET", () => {
+    expect(accessCodeKey({ NODE_ENV: "production", ACCESS_CODE_HMAC_SECRET: "k1" })).toBe("k1");
+  });
+
+  it("refuses in production without the dedicated key, even when BETTER_AUTH_SECRET is set", () => {
+    expect(() => accessCodeKey({ NODE_ENV: "production" })).toThrow(/ACCESS_CODE_HMAC_SECRET/);
+    expect(() => accessCodeKey({ NODE_ENV: "production", BETTER_AUTH_SECRET: "s" })).toThrow(/ACCESS_CODE_HMAC_SECRET/);
+  });
+
+  it("keeps the old fallback chain outside production so existing dev codes still match", () => {
+    expect(accessCodeKey({ BETTER_AUTH_SECRET: "s" })).toBe("s");
+    expect(accessCodeKey({})).toBeTruthy();
+  });
+});
 
 describe("Access Code Cryptographic Pipeline (Unit)", () => {
   describe("generateCrockfordCode()", () => {

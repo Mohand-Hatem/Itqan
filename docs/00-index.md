@@ -13,6 +13,7 @@
 | [09-security.md](09-security.md) | Threat model and protection limits |
 | [10-dev-setup.md](10-dev-setup.md) | MCP servers, skills and plugins for developers |
 | `11-design.md` | The design method (written at step 3.1, after the owner chooses the design) |
+| [legal/](legal/) | Privacy policy and terms drafts (Arabic binding, English), waiting for legal review (step 12.6a) |
 | [12-ui-later.md](12-ui-later.md) | Why UI waits, the two tracks, and the UI waiting list |
 | [adr/](adr/) | Why each big decision was made |
 | [../tasks/plan.md](../tasks/plan.md) | Phases, risks, open questions |

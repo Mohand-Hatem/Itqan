@@ -2,6 +2,21 @@ import { describe, expect, it } from "vitest";
 import { auth } from "./auth.js";
 
 describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
+  // Step 10.3 (audit lead better-auth-ratelimit-multihop-xff-shared-bucket): the limiter keys on
+  // X-Real-IP, which nginx overwrites with the address it saw; a client X-Forwarded-For is ignored.
+  it("does not give a fresh bucket for a changed client X-Forwarded-For", async () => {
+    const send = (spoof: string) =>
+      auth.handler(
+        new Request("http://localhost:3000/api/auth/sign-in/student", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-real-ip": "198.51.100.20", "x-forwarded-for": spoof },
+          body: JSON.stringify({ email: "nobody@example.com", password: "WrongPassword123!" }),
+        }),
+      );
+    for (let i = 1; i <= 5; i++) expect((await send(`203.0.113.${i}`)).status).not.toBe(429);
+    expect((await send("203.0.113.99")).status).toBe(429);
+  });
+
   it("enforces 5 requests / min on /sign-in/email and blocks 6th with 429", async () => {
     const testIp = "198.51.100.10";
 
@@ -11,7 +26,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": testIp,
+          "x-real-ip": testIp,
         },
         body: JSON.stringify({
           email: "nonexistent@example.com",
@@ -30,7 +45,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": testIp,
+          "x-real-ip": testIp,
         },
         body: JSON.stringify({
           email: "nonexistent@example.com",
@@ -50,7 +65,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": "198.51.100.11",
+          "x-real-ip": "198.51.100.11",
         },
         body: JSON.stringify({
           email: "nonexistent@example.com",
@@ -74,7 +89,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            "x-forwarded-for": testIp,
+            "x-real-ip": testIp,
           },
           body: JSON.stringify({
             email: "reset-target@example.com",
@@ -94,7 +109,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": testIp,
+          "x-real-ip": testIp,
         },
         body: JSON.stringify({
           email: "reset-target@example.com",
@@ -119,7 +134,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            "x-forwarded-for": testIp,
+            "x-real-ip": testIp,
           },
           body: JSON.stringify({
             email: "verify-target@example.com",
@@ -138,7 +153,7 @@ describe("Auth Endpoint Rate Limiting (FR-A01, FR-A02, §10)", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": testIp,
+          "x-real-ip": testIp,
         },
         body: JSON.stringify({
           email: "verify-target@example.com",

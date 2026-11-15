@@ -730,7 +730,15 @@ export class AttemptsService {
     } else if (
       attempt.quiz.gradeRelease === "all_submitted" &&
       allSubmitted &&
-      !allSubmittedBefore
+      !allSubmittedBefore &&
+      // Claim the release (shared with manual release and the step 10.1 job): two last
+      // students submitting at once, or a later job run, cannot announce it twice.
+      (
+        await this.db.quiz.updateMany({
+          where: { id: attempt.quiz.id, releaseNotifiedAt: null },
+          data: { releaseNotifiedAt: new Date() },
+        })
+      ).count === 1
     ) {
       const submitted = await this.db.attempt.findMany({
         where: { quizId: attempt.quiz.id, submittedAt: { not: null } },
@@ -1102,27 +1110,7 @@ export class AttemptsService {
       return this.buildReviewResponse(currentAttempt, currentAttempt.quiz, "full");
     }
 
-    // For students, check grade release & review release
-    let allSubmitted = false;
-    if (currentAttempt.quiz.gradeRelease === "all_submitted") {
-      allSubmitted = await this.checkAllSubmitted(currentAttempt.quiz.id, currentAttempt.quiz.courseId);
-    }
-
-    const gradesReleased = isGradeReleased(
-      {
-        gradeRelease: currentAttempt.quiz.gradeRelease,
-        closesAt: currentAttempt.quiz.closesAt,
-        gradesReleasedAt: currentAttempt.quiz.gradesReleasedAt,
-        allSubmitted,
-      },
-      now,
-    );
-
-    const reviewReleased = isReviewReleased(
-      { reviewReleaseAt: currentAttempt.quiz.reviewReleaseAt },
-      gradesReleased,
-      now,
-    );
+    const reviewReleased = isReviewReleased(currentAttempt.quiz, now);
 
     if (!reviewReleased) {
       throw new ForbiddenException({
@@ -1252,24 +1240,7 @@ export class AttemptsService {
     }
 
     if (isAlreadySubmitted && input.reopen) {
-      let allSubmitted = false;
-      if (attempt.quiz.gradeRelease === "all_submitted") {
-        allSubmitted = await this.checkAllSubmitted(attempt.quiz.id, attempt.quiz.courseId);
-      }
-      const gradesReleased = isGradeReleased(
-        {
-          gradeRelease: attempt.quiz.gradeRelease,
-          closesAt: attempt.quiz.closesAt,
-          gradesReleasedAt: attempt.quiz.gradesReleasedAt,
-          allSubmitted,
-        },
-        now,
-      );
-      const reviewReleased = isReviewReleased(
-        { reviewReleaseAt: attempt.quiz.reviewReleaseAt },
-        gradesReleased,
-        now,
-      );
+      const reviewReleased = isReviewReleased(attempt.quiz, now);
 
       if (reviewReleased) {
         throw new BadRequestException({

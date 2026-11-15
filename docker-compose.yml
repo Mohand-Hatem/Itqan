@@ -11,6 +11,7 @@ services:
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:8080}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - PLATFORM_ROOT_DOMAIN=${PLATFORM_ROOT_DOMAIN:-localhost}
     expose:
       - "3000"
     restart: unless-stopped
@@ -24,6 +25,18 @@ services:
       - PORT=4000
       - DATABASE_URL=${DOCKER_DATABASE_URL:-postgresql://itqan:itqan@postgres:5432/itqan}
       - PLATFORM_ROOT_DOMAIN=${PLATFORM_ROOT_DOMAIN:-localhost}
+      # Same secret and URL as web: the API verifies the session cookies web signs.
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:8080}
+      - ACCESS_CODE_HMAC_SECRET=${ACCESS_CODE_HMAC_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_PRIVATE_BUCKET=${R2_PRIVATE_BUCKET}
+      - R2_PUBLIC_BUCKET=${R2_PUBLIC_BUCKET}
+      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
     expose:
       - "4000"
     restart: unless-stopped

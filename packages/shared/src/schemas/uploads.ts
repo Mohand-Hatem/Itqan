@@ -46,7 +46,8 @@ export type UploadCreateInput = z.infer<typeof UploadCreateSchema>;
 export function uploadRejection(
   input: Pick<UploadCreateInput, "mimeType" | "size" | "purpose">,
 ): UploadReasonCode | null {
-  const limit = UPLOAD_LIMITS[input.mimeType];
+  // Own keys only: 'constructor' or '__proto__' must not count as allowed types (step 10.3).
+  const limit = Object.hasOwn(UPLOAD_LIMITS, input.mimeType) ? UPLOAD_LIMITS[input.mimeType] : undefined;
   if (limit === undefined) return UploadReasonCode.UPLOAD_TYPE_NOT_ALLOWED;
   // The public bucket serves files from a public URL: images only.
   if (input.purpose === "public" && !input.mimeType.startsWith("image/")) {

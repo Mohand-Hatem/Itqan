@@ -351,6 +351,8 @@ describe("Step 8.12: Staff Rescue Actions (FR-X09, FR-X10)", () => {
       // Submit attempt (grades and review released on submit)
       const submitRes = await s.asStudent1("POST", `/attempts/${attemptId}/submit`);
       expect(submitRes.status).toBe(200);
+      // Review opens at close time (step 10.3), so close the quiz first.
+      await systemPrisma.quiz.update({ where: { id: quizId }, data: { closesAt: new Date(Date.now() - 1000) } });
 
       // Student can view review (already released)
       const reviewRes = await s.asStudent1("GET", `/attempts/${attemptId}/review`);

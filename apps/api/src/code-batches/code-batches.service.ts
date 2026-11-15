@@ -100,10 +100,12 @@ export class CodeBatchesService {
 
     // Format single-use CSV output
     const csvHeader = "Serial,Code,FormattedCode,CourseTitle,BatchId,CreatedAt\n";
+    // A leading = + - @ tab or CR would run as a spreadsheet formula over the raw codes (step 10.3).
+    const csvTitle = course.title.replace(/"/g, '""').replace(/^[=+\-@\t\r]/, "'$&");
     const csvRows = generatedCodes
       .map(
         (c) =>
-          `${c.serialNumber},${c.raw},${c.formatted},"${course.title.replace(/"/g, '""')}",${result.id},${result.createdAt.toISOString()}`,
+          `${c.serialNumber},${c.raw},${c.formatted},"${csvTitle}",${result.id},${result.createdAt.toISOString()}`,
       )
       .join("\n");
     const csv = csvHeader + csvRows;

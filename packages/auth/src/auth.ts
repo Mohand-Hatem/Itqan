@@ -4,13 +4,13 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { twoFactor } from "better-auth/plugins";
 import { systemPrisma } from "@itqan/database";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email/client.js";
+import { resolveAuthSecret } from "./secrets.js";
 import { staffMfaPlugin } from "./staff-mfa.js";
 import { guardStudentSession, studentSignInPlugin } from "./student-sign-in.js";
 
 export const auth = betterAuth({
   appName: "Itqan",
-  secret:
-    process.env["BETTER_AUTH_SECRET"] || "development-secret-for-build-and-test-only-min-32-chars",
+  secret: resolveAuthSecret(),
   baseURL: process.env["BETTER_AUTH_URL"] || "http://localhost:3000",
   trustedOrigins: [
     "http://localhost:3000",
@@ -38,6 +38,9 @@ export const auth = betterAuth({
     database: {
       generateId: false,
     },
+    // Rate limits key on X-Real-IP, which nginx overwrites with the address it saw (the visitor,
+    // via CF-Connecting-IP in staging). A client-sent X-Forwarded-For is never trusted (step 10.3).
+    ipAddress: { ipAddressHeaders: ["x-real-ip"] },
   },
   emailVerification: {
     // Never log the link: it carries the token (CLAUDE.md "never log tokens").

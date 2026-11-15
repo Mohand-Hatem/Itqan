@@ -83,7 +83,7 @@ Order (CLAUDE.md): **Docker → Neon `dev` → Neon `main`**. Postgres 18 everyw
 `.env` rules:
 - `DATABASE_URL` and `TEST_DATABASE_URL` always point at **Docker**. Tests refuse any database not named `itqan_test`.
 - `NEON_DEV_DATABASE_URL` (pooled, host has `-pooler`) and `NEON_DEV_DIRECT_URL` (direct) point at the Neon **`dev`** branch, with `sslmode=verify-full`.
-- The production (`main`) URL is **not** kept in `.env` until step 10.12.
+- The production (`main`) URL is **not** kept in `.env` until step 12.7.
 
 Getting the Neon dev URLs: Neon console → project **Itqan** → branch `dev` → Connect, once with connection pooling on and once off. Or with the CLI: `npx neon@latest login`, then `npx neon@latest connection-string dev --project-id raspy-hill-22852603` (add `--pooled` for the pooled one). Paste into `.env` only.
 

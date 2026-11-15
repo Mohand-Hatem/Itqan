@@ -93,7 +93,7 @@ Same shape: the student asks from the blocked screen → staff approve → the A
 
 ## 8. Every authenticated request
 
-Guards from [03-system-design.md §3](03-system-design.md). For students: the device cookie must match `session.device_id` and that device must be `active`. A copied session cookie without the device cookie fails. A session opened by student sign-in works only on the tenant it was opened on, whatever role the user holds elsewhere: it was opened with a password only, so it must never reach staff routes that need TOTP (403 `NO_ACCESS`).
+Guards from [03-system-design.md §3](03-system-design.md). For students: the device cookie must match `session.device_id` and that device must be `active`. A copied session cookie without the device cookie fails. Staff and super admins must have TOTP set up: until then every API route except `GET /me` returns 403 `MFA_ENROLMENT_REQUIRED` (FR-A03, step 10.3), so the UI can send them to enrolment. Sign-in rate limits key on `X-Real-IP`, which nginx sets; a client `X-Forwarded-For` is ignored. A session opened by student sign-in works only on the tenant it was opened on, whatever role the user holds elsewhere: it was opened with a password only, so it must never reach staff routes that need TOTP (403 `NO_ACCESS`).
 
 ## 9. Exams and devices
 
@@ -106,6 +106,6 @@ Guards from [03-system-design.md §3](03-system-design.md). For students: the de
 |---|---|
 | Sign-in | 5 / min per IP+email |
 | Password reset, verification email | 3 / 15 min per email |
-| Code redemption | 5 / 15 min per user and per IP |
+| Code redemption and register-with-code | 5 / 15 min per code, from any IP, so one code cannot be used to check many emails (step 10.3) |
 | Invitation check | 10 / min per IP |
 | Device and sign-out requests | 3 / hour per email, 10 / hour per IP |

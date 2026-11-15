@@ -24,6 +24,7 @@ import { NotificationsModule } from "./notifications/notifications.module.js";
 import { AnnouncementsModule } from "./announcements/announcements.module.js";
 import { CommentsModule } from "./comments/comments.module.js";
 import { AnalyticsModule } from "./analytics/analytics.module.js";
+import { JobsModule } from "./jobs/jobs.module.js";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { AnalyticsModule } from "./analytics/analytics.module.js";
     AnnouncementsModule,
     CommentsModule,
     AnalyticsModule,
+    JobsModule,
   ],
   controllers: [HealthController],
   providers: [],

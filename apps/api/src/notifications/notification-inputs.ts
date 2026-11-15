@@ -45,3 +45,29 @@ export const deviceRequestDecidedNotification = (
   data: { requestId: request.id, requestType: request.type, status: request.status },
   sendEmail: true,
 });
+
+export const examOpeningNotification = (
+  userId: string,
+  quiz: {
+    id: string;
+    title: string;
+    durationMin: number;
+    opensAt: Date;
+    closesAt: Date | null;
+    course: { title: string };
+  },
+): CreateNotificationInput => ({
+  userId,
+  type: "exam_opening",
+  title: quiz.title,
+  body: "The exam is open.",
+  data: {
+    quizId: quiz.id,
+    quizTitle: quiz.title,
+    courseTitle: quiz.course.title,
+    opensAt: quiz.opensAt.toISOString(),
+    closesAt: quiz.closesAt?.toISOString() ?? null,
+    durationMin: quiz.durationMin,
+  },
+  sendEmail: true,
+});

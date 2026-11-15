@@ -586,7 +586,13 @@ export class QuizzesService {
         tx,
       );
 
-      // FR-N03: every student with a submitted attempt hears about the release.
+      // FR-N03: every student with a submitted attempt hears about the release, once. The
+      // marker is shared with the close-time job (step 10.1), so neither repeats the other.
+      const claimed = await tx.quiz.updateMany({
+        where: { id, releaseNotifiedAt: null },
+        data: { releaseNotifiedAt: now },
+      });
+      if (claimed.count === 0) return { updated, afterCommit: () => {} };
       const submitted = await tx.attempt.findMany({
         where: { quizId: id, submittedAt: { not: null } },
         distinct: ["membershipId"],

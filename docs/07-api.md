@@ -44,7 +44,7 @@ Every non-public request from a student must also carry the device cookie of the
 | POST | `/devices/:id/revoke` | T, A | Revoke a device of a student of this tenant: `revoked`, its sessions end (step 5.9). 200 `{ id, status: "revoked" }`, also when already revoked; 404 otherwise. Audited. |
 | POST | `/students/:membershipId/force-signout` | T, A | End all the student's sessions on every tenant; devices stay (step 5.9). By membership, not user id, so it only reaches this tenant's students. 200 `{ membershipId, sessionsEnded }`. Audited. |
 | GET/POST | `/assistants` | T | List / add an assistant: a new user with a temporary password, or an existing user by email (step 6.10a) |
-| DELETE | `/assistants/:id` | T | Remove an assistant. Their sessions on this tenant and their staff sessions (which carry no tenant) end. Audited. |
+| DELETE | `/assistants/:id` | T | Remove an assistant. Their sessions on this tenant end. Their staff sessions (which carry no tenant) end only if this was their last active staff role and they are not a super admin, so one tenant cannot sign out another tenant's staff (step 10.3). Access to this tenant ends at once either way. Audited. |
 
 ## Access
 | Method | Path | Who | Purpose |
@@ -59,7 +59,7 @@ Every non-public request from a student must also carry the device cookie of the
 | GET | `/code-batches` · `/:id/codes` | T, A | Status (redeemed / not) |
 | POST | `/code-batches/:id/revoke` | T | Revoke unredeemed |
 | POST | `/codes/redeem` | S | Existing user redeems |
-| GET/POST | `/payments` | T (A view) | Records. Not built yet: step 6.9a is put off until Phase U. |
+| GET/POST | `/payments` | T (A view) | Records. Not built yet: step 6.9a is put off until Phase 11 (step 11.2). |
 
 ## Content
 | Method | Path | Who | Purpose |

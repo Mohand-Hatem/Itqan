@@ -47,6 +47,8 @@ export default tseslint.config(
   {
     // Plain Node scripts (e.g. packages/database/scripts/promote.mjs).
     files: ["**/*.mjs"],
-    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly" } },
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", URL: "readonly", fetch: "readonly" },
+    },
   },
 );

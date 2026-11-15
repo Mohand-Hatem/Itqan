@@ -52,7 +52,7 @@ export class CommentsController {
     }
 
     return this.commentsService.create(
-      { userId: user.id, role: membership.role, membershipId: membership.id },
+      { userId: user.id, role: membership.role, membershipId: membership.id, user },
       contentItemId,
       parsed.data,
     );
@@ -81,7 +81,7 @@ export class CommentsController {
     }
 
     return this.commentsService.list(
-      { userId: user.id, role: membership.role, membershipId: membership.id },
+      { userId: user.id, role: membership.role, membershipId: membership.id, user },
       contentItemId,
       parsed.data,
     );
@@ -110,7 +110,7 @@ export class CommentsController {
     }
 
     return this.commentsService.update(
-      { userId: user.id, role: membership.role, membershipId: membership.id },
+      { userId: user.id, role: membership.role, membershipId: membership.id, user },
       commentId,
       parsed.data,
     );
@@ -128,7 +128,7 @@ export class CommentsController {
     }
 
     return this.commentsService.delete(
-      { userId: user.id, role: membership.role, membershipId: membership.id },
+      { userId: user.id, role: membership.role, membershipId: membership.id, user },
       commentId,
     );
   }

@@ -385,10 +385,10 @@ model Course {
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz
 
-  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  enrollments  Enrollment[]
-  codeBatches  AccessCodeBatch[]
-  accessCodes  AccessCode[]
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enrollments   Enrollment[]
+  codeBatches   AccessCodeBatch[]
+  accessCodes   AccessCode[]
   contentItems  ContentItem[]
   questionBanks QuestionBank[]
   quizzes       Quiz[]
@@ -543,16 +543,16 @@ model ContentItem {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
 
-  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  parent   ContentItem?     @relation("ContentTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children ContentItem[]    @relation("ContentTree")
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  parent      ContentItem?     @relation("ContentTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    ContentItem[]    @relation("ContentTree")
   // Restrict: a file still used by the tree cannot be removed.
-  asset    MediaAsset?      @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  quiz     Quiz?            @relation(fields: [quizId], references: [id], onDelete: SetNull)
-  progress LessonProgress[]
+  asset       MediaAsset?      @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  quiz        Quiz?            @relation(fields: [quizId], references: [id], onDelete: SetNull)
+  progress    LessonProgress[]
   quizTargets QuizTarget[]
-  comments Comment[]
+  comments    Comment[]
 
   @@index([tenantId, courseId])
   @@index([courseId, parentId, sortOrder])
@@ -616,11 +616,11 @@ model Question {
   createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz
 
-  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  bank       QuestionBank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
-  imageAsset MediaAsset?      @relation(fields: [imageAssetId], references: [id], onDelete: Restrict)
-  options    QuestionOption[]
-  quizQuestions QuizQuestion[]
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bank           QuestionBank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  imageAsset     MediaAsset?      @relation(fields: [imageAssetId], references: [id], onDelete: Restrict)
+  options        QuestionOption[]
+  quizQuestions  QuizQuestion[]
   attemptAnswers AttemptAnswer[]
 
   @@index([tenantId, bankId, deletedAt])
@@ -648,31 +648,35 @@ model QuestionOption {
 
 // Quiz entity (docs/04-database.md, FR-X02, FR-X03, step 8.3).
 model Quiz {
-  id               String         @id @default(uuid(7)) @db.Uuid
-  tenantId         String         @map("tenant_id") @db.Uuid
-  courseId         String         @map("course_id") @db.Uuid
-  title            String
-  description      String?
-  durationMin      Int            @map("duration_min")
-  passMark         Float          @map("pass_mark")
-  maxAttempts      Int            @default(1) @map("max_attempts")
-  selection        QuizSelection  @default(manual)
-  randomCount      Int?           @map("random_count")
-  randomBankIds    String[]       @default([]) @map("random_bank_ids") @db.Uuid
-  shuffleQuestions Boolean        @default(false) @map("shuffle_questions")
-  shuffleOptions   Boolean        @default(false) @map("shuffle_options")
-  navigation       QuizNavigation @default(free)
-  graceSec         Int            @default(10) @map("grace_sec")
-  gradeRelease     GradeRelease   @default(on_submit) @map("grade_release")
-  reviewMode       ReviewMode     @default(full) @map("review_mode")
-  opensAt          DateTime       @map("opens_at") @db.Timestamptz
-  closesAt         DateTime?      @map("closes_at") @db.Timestamptz
-  gradesReleasedAt DateTime?      @map("grades_released_at") @db.Timestamptz
-  reviewReleaseAt  DateTime?      @map("review_release_at") @db.Timestamptz
-  publishedAt      DateTime?      @map("published_at") @db.Timestamptz
-  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  id                String         @id @default(uuid(7)) @db.Uuid
+  tenantId          String         @map("tenant_id") @db.Uuid
+  courseId          String         @map("course_id") @db.Uuid
+  title             String
+  description       String?
+  durationMin       Int            @map("duration_min")
+  passMark          Float          @map("pass_mark")
+  maxAttempts       Int            @default(1) @map("max_attempts")
+  selection         QuizSelection  @default(manual)
+  randomCount       Int?           @map("random_count")
+  randomBankIds     String[]       @default([]) @map("random_bank_ids") @db.Uuid
+  shuffleQuestions  Boolean        @default(false) @map("shuffle_questions")
+  shuffleOptions    Boolean        @default(false) @map("shuffle_options")
+  navigation        QuizNavigation @default(free)
+  graceSec          Int            @default(10) @map("grace_sec")
+  gradeRelease      GradeRelease   @default(on_submit) @map("grade_release")
+  reviewMode        ReviewMode     @default(full) @map("review_mode")
+  opensAt           DateTime       @map("opens_at") @db.Timestamptz
+  closesAt          DateTime?      @map("closes_at") @db.Timestamptz
+  gradesReleasedAt  DateTime?      @map("grades_released_at") @db.Timestamptz
+  reviewReleaseAt   DateTime?      @map("review_release_at") @db.Timestamptz
+  /// Set when the "exam opening" notification went out (step 10.1 job; claim marker).
+  openingNotifiedAt DateTime?      @map("opening_notified_at") @db.Timestamptz
+  /// Set when students were told grades are released (manual, all_submitted or the job).
+  releaseNotifiedAt DateTime?      @map("release_notified_at") @db.Timestamptz
+  publishedAt       DateTime?      @map("published_at") @db.Timestamptz
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -688,11 +692,11 @@ model Quiz {
 
 // Curriculum targets/prerequisites for a quiz (FR-X02, step 8.3).
 model QuizTarget {
-  id            String      @id @default(uuid(7)) @db.Uuid
-  tenantId      String      @map("tenant_id") @db.Uuid
-  quizId        String      @map("quiz_id") @db.Uuid
-  contentItemId String      @map("content_item_id") @db.Uuid
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  id            String   @id @default(uuid(7)) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  quizId        String   @map("quiz_id") @db.Uuid
+  contentItemId String   @map("content_item_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   quiz        Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -755,14 +759,14 @@ model Attempt {
 
 // Student response to an attempt question (docs/04-database.md, FR-X04, step 8.5 schema / 8.6 logic).
 model AttemptAnswer {
-  id                String    @id @default(uuid(7)) @db.Uuid
-  tenantId          String    @map("tenant_id") @db.Uuid
-  attemptId         String    @map("attempt_id") @db.Uuid
-  questionId        String    @map("question_id") @db.Uuid
-  selectedOptionIds String[]  @default([]) @map("selected_option_ids") @db.Uuid
-  isCorrect         Boolean?  @map("is_correct")
-  marksAwarded      Float?    @map("marks_awarded")
-  savedAt           DateTime  @default(now()) @map("saved_at") @db.Timestamptz
+  id                String   @id @default(uuid(7)) @db.Uuid
+  tenantId          String   @map("tenant_id") @db.Uuid
+  attemptId         String   @map("attempt_id") @db.Uuid
+  questionId        String   @map("question_id") @db.Uuid
+  selectedOptionIds String[] @default([]) @map("selected_option_ids") @db.Uuid
+  isCorrect         Boolean? @map("is_correct")
+  marksAwarded      Float?   @map("marks_awarded")
+  savedAt           DateTime @default(now()) @map("saved_at") @db.Timestamptz
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
@@ -795,15 +799,15 @@ model Notification {
 
 // Announcements: tenant-wide (courseId null) or course-specific (docs/04, docs/07 §10, FR-N04, step 9.6a).
 model Announcement {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  tenantId    String    @map("tenant_id") @db.Uuid
-  courseId    String?   @map("course_id") @db.Uuid
+  id          String   @id @default(uuid(7)) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  courseId    String?  @map("course_id") @db.Uuid
   title       String
   body        String
-  publishedAt DateTime  @default(now()) @map("published_at") @db.Timestamptz
-  createdBy   String    @map("created_by") @db.Uuid
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -837,6 +841,3 @@ model Comment {
   @@index([tenantId, parentId])
   @@map("comments")
 }
-
-
-

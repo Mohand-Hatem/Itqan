@@ -1,7 +1,9 @@
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   NotFound,
   PutObjectCommand,
   S3Client,
@@ -128,6 +130,34 @@ export class StorageService {
   async delete(bucket: BucketName, key: string) {
     const { config, client } = this.get();
     await client.send(new DeleteObjectCommand({ Bucket: config.buckets[bucket], Key: key }));
+  }
+
+  /**
+   * Delete every object under `prefix` (the tenant purge, FR-T04), 1000 keys per request.
+   * Returns how many were deleted; an empty prefix deletes nothing and is not an error.
+   */
+  async deletePrefix(bucket: BucketName, prefix: string): Promise<number> {
+    if (!prefix.startsWith("tenants/") || !prefix.endsWith("/")) {
+      throw new Error("deletePrefix only removes a whole tenants/{id}/ folder.");
+    }
+    const { config, client } = this.get();
+    const Bucket = config.buckets[bucket];
+    let deleted = 0;
+    let token: string | undefined;
+    do {
+      const page = await client.send(
+        new ListObjectsV2Command({ Bucket, Prefix: prefix, ContinuationToken: token }),
+      );
+      const keys = (page.Contents ?? []).flatMap((o) => (o.Key ? [{ Key: o.Key }] : []));
+      if (keys.length > 0) {
+        await client.send(
+          new DeleteObjectsCommand({ Bucket, Delete: { Objects: keys, Quiet: true } }),
+        );
+        deleted += keys.length;
+      }
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    return deleted;
   }
 
   /** Public URL of an object in the public bucket (logos, thumbnails). */

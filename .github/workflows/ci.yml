@@ -2,15 +2,46 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Phase branches too, so each phase's push is checked before it reaches main (step 10.4).
+    branches: [main, "phase-*"]
   pull_request:
     branches: [main]
+
+# CI only reads the repository; it never pushes or publishes.
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Step 10.4: known-vulnerable dependencies and committed secrets fail the build.
+  security:
+    name: Dependency audit and secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code (full history for the secret scan)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit production dependencies (no moderate or worse)
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Audit all dependencies (no high or critical)
+        run: npm audit --audit-level=high
+
+      - name: Scan the full git history for secrets (gitleaks)
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.2
+          git /repo --redact --verbose --exit-code 1
+
   validate:
     name: Lint, Typecheck, Test, Build, Docker
     runs-on: ubuntu-latest

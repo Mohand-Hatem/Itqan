@@ -70,6 +70,8 @@ async function createAuthenticatedTeacher(opts: {
     headers: new Headers({ host: opts.tenantHost }),
     returnHeaders: true,
   });
+  // Staff need TOTP (FR-A03, step 10.3); turned on after sign-in.
+  await systemPrisma.user.update({ where: { email: email }, data: { twoFactorEnabled: true } });
 
   const cookie = toCookieHeader(signIn.headers);
   return { userId: signUp.user.id, email, cookie };
@@ -143,6 +145,7 @@ describe("Lesson Q&A Comments API (Integration)", () => {
         courseId: course1Id,
         kind: "lecture",
         title: "Lesson 1: Intro to Tajweed",
+        publishedAt: new Date(),
         sortOrder: 0,
         depth: 0,
       },
@@ -161,6 +164,7 @@ describe("Lesson Q&A Comments API (Integration)", () => {
         courseId: course2Id,
         kind: "lecture",
         title: "Lesson 2: Intro to Fiqh",
+        publishedAt: new Date(),
         sortOrder: 0,
         depth: 0,
       },
@@ -326,6 +330,17 @@ describe("Lesson Q&A Comments API (Integration)", () => {
   });
 
   describe("enrollment fencing (Gate G3)", () => {
+    // Step 10.3 (audit lead comments.service.ts:student-qa-skips-publish-gating).
+    it("enrolled student cannot read or post Q&A on an unpublished lesson (404)", async () => {
+      const draft = await systemPrisma.contentItem.create({
+        data: { tenantId: tenantIdA, courseId: course1Id, kind: "lecture", title: "Draft lesson", sortOrder: 9, depth: 0 },
+      });
+      const get = await http.send(tenantHostA, "GET", `/api/content-items/${draft.id}/comments`, undefined, { cookie: enrolledStudent.cookie });
+      expect(get.status).toBe(404);
+      const post = await http.send(tenantHostA, "POST", `/api/content-items/${draft.id}/comments`, { body: "hi" }, { cookie: enrolledStudent.cookie });
+      expect(post.status).toBe(404);
+    });
+
     it("unenrolled student cannot post comment on a lesson (403 Forbidden)", async () => {
       // Unenrolled student tries to post on Lesson 1
       const res = await http.send(

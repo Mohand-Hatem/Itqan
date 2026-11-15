@@ -10,10 +10,12 @@
    - **Track B (after the design is chosen):** Phase 3, then "Phase U", which builds every waiting UI step in its original order on top of finished APIs.
 2. Phase 3 is paused, not skipped. All 🎨 steps carry ⏸ in `tasks/todo.md` and are listed in `docs/12-ui-later.md`.
 3. Each phase closes with an **API checkpoint** now (full unit and integration suite green on Docker Postgres) and a **UI checkpoint** in Phase U. A phase is complete only when both are green.
-4. Track B must be finished before step 10.6, because the teacher preview needs real pages.
+4. Track B must be finished before the teacher preview, because it needs real pages.
 5. During Track A, any UI that comes up is not built, not even as a placeholder. It is named to the owner and added to the waiting list (CLAUDE.md rule 6).
 
 **Consequences:** Work continues while the design is open, and the UI is built once, on stable APIs, instead of being redone after a late design change. The costs:
 - Endpoints may need small additions (a field, a filter) when the pages are built.
 - Browser-only behaviour (device cookie in a real browser, SSE in an open tab, push, upload progress, video watermark) is proven late. Integration tests cover the server side now; browser tests run in Phase U.
 - The UI backlog becomes one large block of work (Phase 3 plus 28 steps). Choosing the design before Phase 8 starts lets the UI be built in batches.
+
+**Update (2026-11-16, owner):** "Phase U" is now **Phase 11: UI, frontend and security** in `tasks/todo.md`. It also holds the security work that needs real pages (page CSP, the security backlog from the 10.3 audit, and the full audit before production). The preview and launch steps that were 10.6 to 10.13 are now Phase 12. Older design notes that say "Phase U" mean Phase 11.
