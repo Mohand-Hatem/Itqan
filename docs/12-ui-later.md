@@ -84,4 +84,4 @@ UI items that come up while building logic and are not in the table above. Each 
 
 | Found in step | UI item | Notes |
 |---|---|---|
-| — | — | — |
+| 9.11 | The client reacts to the SSE events `device_revoked` and `session_terminated` (the server then closes the stream): show the blocked or sign-in screen | Part of 5.5 and 9.3 |

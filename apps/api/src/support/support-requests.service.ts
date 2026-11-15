@@ -30,6 +30,7 @@ import {
 import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { deviceRequestDecidedNotification } from "../notifications/notification-inputs.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { SseService } from "../notifications/sse.service.js";
 
@@ -295,24 +296,31 @@ export class SupportRequestsService {
         },
         tx,
       );
+      const afterCommit = await this.stageDecision(tx, request, id, "approved");
       return {
         id,
         status: "approved" as const,
         userId: request.userId,
         revokedDeviceIds,
         type: request.type,
+        afterCommit,
       };
     }).then((res) => {
+      res.afterCommit();
       if (res.revokedDeviceIds.length > 0) {
         for (const rId of res.revokedDeviceIds) {
-          this.sseService?.emitControlEvent(res.userId, "device_revoked", {
-            deviceId: rId,
-            revokedAt: new Date().toISOString(),
-          });
+          const event = { deviceId: rId, revokedAt: new Date().toISOString() };
+          this.sseService?.closeStreams(
+            res.userId,
+            { event: "device_revoked", data: event },
+            { deviceId: rId },
+          );
+          this.sseService?.emitControlEvent(res.userId, "device_revoked", event);
         }
       } else if (res.type === "sign_out_other") {
-        this.sseService?.emitControlEvent(res.userId, "session_terminated", {
-          reason: "SIGN_OUT_OTHER_APPROVED",
+        this.sseService?.closeStreams(res.userId, {
+          event: "session_terminated",
+          data: { reason: "SIGN_OUT_OTHER_APPROVED" },
         });
       }
       return { id: res.id, status: res.status };
@@ -341,8 +349,26 @@ export class SupportRequestsService {
         },
         tx,
       );
-      return { id, status: "rejected" as const };
+      const afterCommit = await this.stageDecision(tx, request, id, "rejected");
+      return { id, status: "rejected" as const, afterCommit };
+    }).then(({ afterCommit, ...res }) => {
+      afterCommit();
+      return res;
     });
+  }
+
+  /** FR-N03: the student is told (bell, SSE, email) when a device request is decided. */
+  private async stageDecision(
+    tx: Parameters<NotificationsService["stage"]>[0],
+    request: { type: string; userId: string },
+    id: string,
+    status: "approved" | "rejected",
+  ): Promise<() => void> {
+    if (!this.notificationsService) return () => {};
+    if (request.type !== "device_change" && request.type !== "sign_out_other") return () => {};
+    return this.notificationsService.stage(tx, [
+      deviceRequestDecidedNotification(request.userId, { id, type: request.type, status }),
+    ]);
   }
 
   /**

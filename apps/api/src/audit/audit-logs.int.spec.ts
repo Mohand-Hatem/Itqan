@@ -208,13 +208,13 @@ describe("Step 9.10a: Audit Log API with Filters (FR-A01)", () => {
       expect(resTeacher.status).toBe(200);
 
       // Seed 3 logs in Tenant A
-      const log1 = await systemPrisma.auditLog.create({
+      await systemPrisma.auditLog.create({
         data: { tenantId: tA.id, actorUserId: teacherA.user.id, action: "page.first" },
       });
-      const log2 = await systemPrisma.auditLog.create({
+      await systemPrisma.auditLog.create({
         data: { tenantId: tA.id, actorUserId: teacherA.user.id, action: "page.second" },
       });
-      const log3 = await systemPrisma.auditLog.create({
+      await systemPrisma.auditLog.create({
         data: { tenantId: tA.id, actorUserId: teacherA.user.id, action: "page.third" },
       });
 

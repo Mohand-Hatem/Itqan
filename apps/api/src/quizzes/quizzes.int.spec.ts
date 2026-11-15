@@ -1,5 +1,4 @@
 // Step 8.3: Quizzes API integration tests (FR-X02, FR-X03)
-import { randomUUID } from "node:crypto";
 import { systemPrisma } from "@itqan/database";
 import { QuizReasonCode } from "@itqan/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

@@ -6,7 +6,6 @@ import {
   AttemptStatusSchema,
   AttemptSubmitResponseSchema,
   SaveAttemptAnswerSchema,
-  SavedAttemptAnswerSchema,
   StudentAttemptQuestionSchema,
 } from "./attempts.js";
 

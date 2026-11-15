@@ -1,8 +1,8 @@
 // Step 8.10: Grade Release and Review Modes Integration Tests (FR-X07, FR-X08)
-import { randomUUID } from "node:crypto";
 import { systemPrisma } from "@itqan/database";
-import { AccessReasonCode, AttemptReasonCode, QuizReasonCode, type QuizCreateInput } from "@itqan/shared";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { AccessReasonCode, AttemptReasonCode, type QuizCreateInput } from "@itqan/shared";
+import { getLastSentEmail } from "@itqan/auth";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { AppModule } from "../app.module.js";
 import { createHttpTestApp } from "../testing/http.js";
 import { studentFixtures } from "../testing/students.js";
@@ -348,6 +348,54 @@ describe("Step 8.10: Grade Release and Review Modes (FR-X07, FR-X08)", () => {
       where: { targetId: quizId, action: "quiz.release_grades" },
     });
     expect(auditLogs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  describe("Grade-released notifications (FR-N03, step 9.11)", () => {
+    const gradeNotes = (userId: string, quizId: string) =>
+      systemPrisma.notification.findMany({
+        where: { userId, type: "grade_released", data: { path: ["quizId"], equals: quizId } },
+      });
+    const expectGradeEmail = (email: string) =>
+      vi.waitFor(() => expect(getLastSentEmail(email)?.type).toBe("grade_released"));
+
+    it("on_submit: the student is notified and emailed when they submit", async () => {
+      const s = await setup();
+      const quizId = await s.createQuiz({ gradeRelease: "on_submit" });
+      const start = await s.asStudent1("POST", `/quizzes/${quizId}/attempts`);
+      await s.asStudent1("POST", `/attempts/${(start.body as { id: string }).id}/submit`);
+
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
+      await expectGradeEmail(s.student1.user.email);
+    });
+
+    it("all_submitted: nobody is notified until the last student submits, then both are", async () => {
+      const s = await setup();
+      const quizId = await s.createQuiz({ gradeRelease: "all_submitted" });
+
+      const start1 = await s.asStudent1("POST", `/quizzes/${quizId}/attempts`);
+      await s.asStudent1("POST", `/attempts/${(start1.body as { id: string }).id}/submit`);
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(0);
+
+      const start2 = await s.asStudent2("POST", `/quizzes/${quizId}/attempts`);
+      await s.asStudent2("POST", `/attempts/${(start2.body as { id: string }).id}/submit`);
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
+      expect(await gradeNotes(s.student2.user.id, quizId)).toHaveLength(1);
+    });
+
+    it("manual: release-grades notifies only students who submitted, and emails them", async () => {
+      const s = await setup();
+      const quizId = await s.createQuiz({ gradeRelease: "manual" });
+      const start1 = await s.asStudent1("POST", `/quizzes/${quizId}/attempts`);
+      await s.asStudent1("POST", `/attempts/${(start1.body as { id: string }).id}/submit`);
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(0);
+
+      const res = await s.asTeacher("POST", `/quizzes/${quizId}/release-grades`);
+      expect(res.status).toBe(200);
+
+      expect(await gradeNotes(s.student1.user.id, quizId)).toHaveLength(1);
+      expect(await gradeNotes(s.student2.user.id, quizId)).toHaveLength(0);
+      await expectGradeEmail(s.student1.user.email);
+    });
   });
 
   describe("Review Modes (FR-X08)", () => {

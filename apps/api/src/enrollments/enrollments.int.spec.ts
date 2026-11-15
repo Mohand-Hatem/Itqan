@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { systemPrisma } from "@itqan/database";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { getLastSentEmail } from "@itqan/auth";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { AppModule } from "../app.module.js";
 import { createHttpTestApp } from "../testing/http.js";
 import { studentFixtures } from "../testing/students.js";
@@ -82,6 +83,28 @@ describe("Enrollments API (Integration — Step 6.7)", () => {
       const grantAudit = audits.find((a) => a.action === "enrollment.grant");
       expect(grantAudit).toBeDefined();
       expect(grantAudit?.actorUserId).toBe(teacher.user.id);
+    });
+
+    it("notifies and emails the student about the new course (FR-N03, step 9.11)", async () => {
+      const t = await fx.tenant();
+      const teacher = await fx.staffLogin(t, "teacher");
+      const student = await createAndLoginStudent(t);
+      const course = await systemPrisma.course.create({
+        data: { tenantId: t.id, title: "Notified Course" },
+      });
+
+      const res = await as(t, teacher.cookie, "POST", `/students/${student.membership.id}/enrollments`, {
+        courseId: course.id,
+      });
+      expect(res.status).toBe(201);
+
+      const notes = await systemPrisma.notification.findMany({
+        where: { userId: student.user.id, type: "course_access" },
+      });
+      expect(notes).toHaveLength(1);
+      expect(notes[0]?.tenantId).toBe(t.id);
+      expect(notes[0]?.data).toMatchObject({ courseId: course.id });
+      await vi.waitFor(() => expect(getLastSentEmail(student.user.email)?.type).toBe("course_access"));
     });
 
     it("allows assistant to manually grant course enrollment to a student", async () => {

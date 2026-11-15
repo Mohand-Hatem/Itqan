@@ -1,5 +1,5 @@
 // Step 9.8a: General support requests API (FR-N05).
-import { DEVICE_COOKIE_NAME, auth } from "@itqan/auth";
+import { auth } from "@itqan/auth";
 import { systemPrisma } from "@itqan/database";
 import { AccessReasonCode, SupportRequestReason } from "@itqan/shared";
 import type { APIError } from "better-auth/api";

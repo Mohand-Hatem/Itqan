@@ -411,6 +411,13 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       const redeemAudit = audits.find((a) => a.action === "code.redeem");
       expect(redeemAudit).toBeDefined();
       expect(redeemAudit?.actorUserId).toBe(student.user.id);
+
+      // FR-N03 (step 9.11): the student is told about the new course.
+      const notes = await systemPrisma.notification.findMany({
+        where: { userId: student.user.id, type: "course_access" },
+      });
+      expect(notes).toHaveLength(1);
+      expect(notes[0]).toMatchObject({ tenantId: t.id, data: { courseId: course.id } });
     });
 
     it("provisions a new student membership on Tenant B if existing user redeems Tenant B voucher (Cross-Tenant)", async () => {

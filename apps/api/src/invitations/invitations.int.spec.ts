@@ -504,6 +504,13 @@ describe("Invitations API (Integration)", () => {
       const acceptAudit = audits.find((a) => a.action === "invitation.accept");
       expect(acceptAudit).toBeDefined();
       expect(acceptAudit?.actorUserId).toBe(existingStudentUser.id);
+
+      // FR-N03 (step 9.11): one course_access notification per granted course, on tenant t.
+      const notes = await systemPrisma.notification.findMany({
+        where: { userId: existingStudentUser.id, type: "course_access" },
+      });
+      expect(notes).toHaveLength(1);
+      expect(notes[0]).toMatchObject({ tenantId: t.id, data: { courseId: course.id } });
     });
 
     it("requires authentication: unauthenticated request returns 401", async () => {

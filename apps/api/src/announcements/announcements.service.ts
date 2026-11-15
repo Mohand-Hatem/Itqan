@@ -74,7 +74,7 @@ export class AnnouncementsService {
         });
 
         // 2. Identify target student recipients
-        let targetStudentUserIds: string[] = [];
+        let targetStudentUserIds: string[];
         if (!dto.courseId) {
           // Tenant-wide announcement: all active students in this tenant
           const memberships = await tx.membership.findMany({

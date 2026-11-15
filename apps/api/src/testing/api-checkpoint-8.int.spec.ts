@@ -197,9 +197,9 @@ describe("API Checkpoint 8: Full End-to-End Exam Lifecycle (Track A Milestone)",
 
     // Verify zero answer leakage (FR-X08)
     for (const q of attemptBody.questions) {
-      expect((q as any).explanation).toBeUndefined();
+      expect((q as Record<string, unknown>).explanation).toBeUndefined();
       for (const opt of q.options) {
-        expect((opt as any).isCorrect).toBeUndefined();
+        expect((opt as Record<string, unknown>).isCorrect).toBeUndefined();
       }
     }
 
@@ -236,7 +236,7 @@ describe("API Checkpoint 8: Full End-to-End Exam Lifecycle (Track A Milestone)",
       reason: "Compensating for classroom connectivity disruption",
     });
     expect(extendRes.status).toBe(200);
-    expect((extendRes.body as any).extraTimeSec).toBe(900);
+    expect((extendRes.body as { extraTimeSec: number }).extraTimeSec).toBe(900);
 
     // -------------------------------------------------------------
     // 8. Submit Attempt & Grade Masking (FR-X06, FR-X07)
@@ -264,8 +264,8 @@ describe("API Checkpoint 8: Full End-to-End Exam Lifecycle (Track A Milestone)",
     // -------------------------------------------------------------
     const releaseRes = await as(t, teacher.cookie, "POST", `/quizzes/${quizId}/release-grades`);
     expect(releaseRes.status).toBe(200);
-    expect((releaseRes.body as any).success).toBe(true);
-    expect((releaseRes.body as any).gradesReleasedAt).toBeDefined();
+    expect((releaseRes.body as { success: boolean }).success).toBe(true);
+    expect((releaseRes.body as { gradesReleasedAt: string }).gradesReleasedAt).toBeDefined();
 
     // Student checks attempt: now unmasked!
     const updatedAttemptRes = await as(t, studentCookie, "GET", `/attempts/${attemptId}`);

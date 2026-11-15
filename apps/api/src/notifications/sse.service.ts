@@ -1,4 +1,5 @@
-import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import { Inject, Injectable, Logger, Optional, type OnModuleDestroy } from "@nestjs/common";
+import { PrismaClient } from "@itqan/database";
 import type { Response } from "express";
 
 export interface SseClientConnection {
@@ -6,6 +7,8 @@ export interface SseClientConnection {
   userId: string;
   tenantId: string;
   deviceId?: string | null;
+  /** Better Auth session behind the stream; the heartbeat closes the stream once it is gone. */
+  sessionId?: string | null;
   res: Response;
   connectedAt: Date;
 }
@@ -25,10 +28,13 @@ export class SseService implements OnModuleDestroy {
   private readonly connectionsByUser = new Map<string, SseClientConnection[]>();
   private pingInterval?: NodeJS.Timeout;
 
-  constructor() {
-    // Send keep-alive ping comment every 25 seconds (prevent proxy timeouts)
+  constructor(@Optional() @Inject(PrismaClient) private readonly db?: Pick<PrismaClient, "session">) {
+    // Every 25 s: keep-alive ping (prevents proxy timeouts) and close streams whose session ended.
     this.pingInterval = setInterval(() => {
       this.sendHeartbeat();
+      void this.sweepEndedSessions().catch((err) =>
+        this.logger.warn(`SSE session sweep failed: ${err}`),
+      );
     }, 25_000);
     if (this.pingInterval.unref) {
       this.pingInterval.unref();
@@ -159,6 +165,67 @@ export class SseService implements OnModuleDestroy {
   }
 
   /**
+   * Send a final event to the user's matching streams and end them. With no filter, every
+   * stream of the user ends. Used when a device is revoked or sessions are ended.
+   */
+  closeStreams(
+    userId: string,
+    final: SseMessage,
+    filter: { deviceId?: string; tenantId?: string } = {},
+  ): number {
+    const conns = this.connectionsByUser.get(userId);
+    if (!conns) return 0;
+    let closed = 0;
+    for (const conn of [...conns]) {
+      if (filter.deviceId && conn.deviceId !== filter.deviceId) continue;
+      if (filter.tenantId && conn.tenantId !== filter.tenantId) continue;
+      this.endConnection(conn, final);
+      closed++;
+    }
+    return closed;
+  }
+
+  /**
+   * Close streams whose session no longer exists or has expired. This catches every way a
+   * session can end (suspension, role pause, tenant delete, expiry) without each path having
+   * to know about SSE. Sessions are a global table, so no tenant filter applies.
+   */
+  async sweepEndedSessions(): Promise<number> {
+    if (!this.db) return 0;
+    const ids = new Set<string>();
+    for (const conns of this.connectionsByUser.values()) {
+      for (const conn of conns) if (conn.sessionId) ids.add(conn.sessionId);
+    }
+    if (ids.size === 0) return 0;
+
+    const live = await this.db.session.findMany({
+      where: { id: { in: [...ids] }, expiresAt: { gt: new Date() } },
+      select: { id: true },
+    });
+    const liveIds = new Set(live.map((s) => s.id));
+
+    let closed = 0;
+    for (const conns of [...this.connectionsByUser.values()]) {
+      for (const conn of [...conns]) {
+        if (!conn.sessionId || liveIds.has(conn.sessionId)) continue;
+        this.endConnection(conn, { event: "session_terminated", data: { reason: "SESSION_ENDED" } });
+        closed++;
+      }
+    }
+    return closed;
+  }
+
+  private endConnection(conn: SseClientConnection, final: SseMessage): void {
+    this.writeEvent(conn.res, final);
+    this.removeConnection(conn.userId, conn.id);
+    try {
+      conn.res.end();
+    } catch {
+      // already closed
+    }
+  }
+
+  /**
    * Send heartbeat comment (: ping\n\n) to all connected clients.
    */
   private sendHeartbeat(): void {
@@ -200,7 +267,10 @@ export class SseService implements OnModuleDestroy {
 
       payload += `data: ${dataStr}\n\n`;
 
-      return res.write(payload);
+      // write() returning false only means the buffer is full; Node queues the data and the
+      // socket is still open. A real disconnect fires "close", which removes the connection.
+      res.write(payload);
+      return true;
     } catch {
       return false;
     }

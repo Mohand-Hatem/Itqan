@@ -62,10 +62,10 @@ export class StudentsAccessService {
         return { id: deviceId, status: "revoked" as const, userId: device.userId };
       })
       .then((res) => {
-        this.sseService?.emitControlEvent(res.userId, "device_revoked", {
-          deviceId,
-          revokedAt: new Date().toISOString(),
-        });
+        const event = { deviceId, revokedAt: new Date().toISOString() };
+        // The revoked device's streams get the event and are closed; the others are told.
+        this.sseService?.closeStreams(res.userId, { event: "device_revoked", data: event }, { deviceId });
+        this.sseService?.emitControlEvent(res.userId, "device_revoked", event);
         return { id: res.id, status: res.status };
       });
   }
@@ -89,8 +89,9 @@ export class StudentsAccessService {
         return { membershipId, sessionsEnded: count, userId: student.userId };
       })
       .then((res) => {
-        this.sseService?.emitControlEvent(res.userId, "session_terminated", {
-          reason: "FORCE_SIGNOUT",
+        this.sseService?.closeStreams(res.userId, {
+          event: "session_terminated",
+          data: { reason: "FORCE_SIGNOUT" },
         });
         return { membershipId: res.membershipId, sessionsEnded: res.sessionsEnded };
       });

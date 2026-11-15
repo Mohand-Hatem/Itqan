@@ -15,8 +15,6 @@ import { ROLES_KEY, SUPER_ADMIN_ONLY_KEY } from "./roles.decorator.js";
 
 @Injectable()
 export class AccessGuard implements CanActivate {
-  private readonly pausedRolesCache = new Map<string, { pausedRoles: Role[]; expiresAt: number }>();
-
   constructor(
     private readonly reflector: Reflector,
     @Inject(PrismaClient) private readonly db: PrismaClient,
@@ -83,14 +81,18 @@ export class AccessGuard implements CanActivate {
     if (reqContext?.kind === "tenant") {
       const tenantId = reqContext.tenantId;
 
-      const membership = await this.db.membership.findUnique({
+      // Paused roles come in the same query, so a pause or unpause applies on the next request.
+      const row = await this.db.membership.findUnique({
         where: {
           tenantId_userId: {
             tenantId,
             userId: user.id,
           },
         },
+        include: { tenant: { select: { pausedRoles: true } } },
       });
+      const pausedRoles = row?.tenant.pausedRoles ?? [];
+      const membership = row ? (({ tenant: _tenant, ...rest }) => rest)(row) : null;
 
       if (!membership || membership.status !== "active") {
         if (!user.isSuperAdmin) {
@@ -104,23 +106,6 @@ export class AccessGuard implements CanActivate {
 
       if (membership) {
         req.membership = membership;
-
-        // Check if role is in tenant.paused_roles (cached 10s to prevent per-request DB stampede)
-        let pausedRoles: Role[] = [];
-        const cached = this.pausedRolesCache.get(tenantId);
-        if (cached && cached.expiresAt > Date.now()) {
-          pausedRoles = cached.pausedRoles;
-        } else {
-          const tenant = await this.db.tenant.findUnique({
-            where: { id: tenantId },
-            select: { pausedRoles: true },
-          });
-          pausedRoles = tenant?.pausedRoles ?? [];
-          this.pausedRolesCache.set(tenantId, {
-            pausedRoles,
-            expiresAt: Date.now() + 10_000,
-          });
-        }
 
         if (pausedRoles.includes(membership.role)) {
           throw new ForbiddenException({

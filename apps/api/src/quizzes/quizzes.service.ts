@@ -21,6 +21,8 @@ import {
   type QuizUpdateInput,
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
+import { gradeReleasedNotification } from "../notifications/notification-inputs.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 
 function fail(status: number, reason: string, message: string): never {
@@ -77,6 +79,7 @@ export class QuizzesService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   private getTenantId(): string {
@@ -562,22 +565,40 @@ export class QuizzesService {
     }
 
     const now = new Date();
-    const updated = await this.db.quiz.update({
-      where: { id },
-      data: { gradesReleasedAt: now },
-    });
+    const { updated, afterCommit } = await this.db.$transaction(async (tx) => {
+      const updated = await tx.quiz.update({
+        where: { id },
+        data: { gradesReleasedAt: now },
+      });
 
-    await this.audit.record({
-      action: "quiz.release_grades",
-      targetType: "quiz",
-      targetId: updated.id,
-      actorUserId,
-      meta: {
-        courseId: updated.courseId,
-        title: updated.title,
-        gradesReleasedAt: now.toISOString(),
-      },
+      await this.audit.record(
+        {
+          action: "quiz.release_grades",
+          targetType: "quiz",
+          targetId: updated.id,
+          actorUserId,
+          meta: {
+            courseId: updated.courseId,
+            title: updated.title,
+            gradesReleasedAt: now.toISOString(),
+          },
+        },
+        tx,
+      );
+
+      // FR-N03: every student with a submitted attempt hears about the release.
+      const submitted = await tx.attempt.findMany({
+        where: { quizId: id, submittedAt: { not: null } },
+        distinct: ["membershipId"],
+        select: { membership: { select: { userId: true } } },
+      });
+      const afterCommit = await this.notifications.stage(
+        tx,
+        submitted.map((a) => gradeReleasedNotification(a.membership.userId, updated)),
+      );
+      return { updated, afterCommit };
     });
+    afterCommit();
 
     return {
       success: true,

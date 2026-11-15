@@ -71,8 +71,8 @@ export function gradeAttempt(
   const maxScore = Math.round(rawMaxScore * 100) / 100;
   const score = Math.round(rawTotalScore * 100) / 100;
 
-  let percentage = 0;
-  let passed = false;
+  let percentage: number;
+  let passed: boolean;
 
   if (maxScore <= 0) {
     percentage = passMark === 0 ? 100 : 0;

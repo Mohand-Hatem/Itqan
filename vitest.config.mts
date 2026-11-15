@@ -16,6 +16,7 @@ export default defineConfig({
     // parallel, 1–2 s tests went past the 5 s default. Assertions are unchanged.
     testTimeout: 20_000,
     hookTimeout: 20_000,
-    exclude: ["**/node_modules/**", "**/dist/**", "**/.next/**"],
+    // Load tests (*.load.spec.ts) measure latency, so they run alone: `npm run test:load`.
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.next/**", "**/*.load.spec.ts"],
   },
 });

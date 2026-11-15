@@ -8,6 +8,7 @@ import {
 } from "@itqan/database";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { NotificationsService } from "./notifications.service.js";
+import { SseService } from "./sse.service.js";
 
 const raw = createTestClient();
 const scoped = withTenantScope(raw);
@@ -39,6 +40,53 @@ afterAll(async () => {
 });
 
 describe("NotificationsService (unit & transactional)", () => {
+  it("pushes over SSE only after the transaction commits, and never on rollback (step 9.11)", async () => {
+    const pushed: string[] = [];
+    const sse = {
+      emitToUser: (_u: string, m: { data: { title: string } }) => pushed.push(m.data.title),
+    };
+    const withSse = new NotificationsService(scoped, sse as unknown as SseService);
+    const user = await raw.user.create({
+      data: { email: `notif-sse-${randomUUID()}@example.com`, name: "Sse User" },
+    });
+
+    await inTenant(a, () =>
+      withSse.withTransaction(async (tx, postCommit) => {
+        await withSse.create(
+          { userId: user.id, type: "t", title: "committed", body: "b" },
+          tx,
+          postCommit,
+        );
+        expect(pushed).toEqual([]); // not yet: still inside the transaction
+      }),
+    );
+    expect(pushed).toEqual(["committed"]);
+
+    await expect(
+      inTenant(a, () =>
+        withSse.withTransaction(async (tx, postCommit) => {
+          await withSse.create(
+            { userId: user.id, type: "t", title: "rolled-back", body: "b" },
+            tx,
+            postCommit,
+          );
+          throw new Error("boom");
+        }),
+      ),
+    ).rejects.toThrow("boom");
+    expect(pushed).toEqual(["committed"]);
+
+    // stage(): rows are written with the transaction; the push waits for afterCommit().
+    const afterCommit = await inTenant(a, () =>
+      scoped.$transaction((tx) =>
+        withSse.stage(tx, [{ userId: user.id, type: "t", title: "staged", body: "b" }]),
+      ),
+    );
+    expect(pushed).toEqual(["committed"]);
+    afterCommit();
+    expect(pushed).toEqual(["committed", "staged"]);
+  });
+
   it("persists a notification in the tenant", async () => {
     const user = await raw.user.create({
       data: { email: `notif-user-${randomUUID()}@example.com`, name: "Notif User" },
@@ -247,7 +295,7 @@ describe("NotificationsService (unit & transactional)", () => {
       const userA = await raw.user.create({
         data: { email: `notif-user-a-${randomUUID()}@example.com`, name: "User A" },
       });
-      const userB = await raw.user.create({
+      await raw.user.create({
         data: { email: `notif-user-b-${randomUUID()}@example.com`, name: "User B" },
       });
 

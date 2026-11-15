@@ -125,7 +125,7 @@ describe("Step 9.9a: Analytics Overview API (FR-L02)", () => {
           opensAt: new Date(Date.now() - 3600000),
         },
       });
-      const quizItem = await systemPrisma.contentItem.create({
+      await systemPrisma.contentItem.create({
         data: { tenantId: t.id, courseId: c1.id, quizId: quiz.id, title: "Quiz 1 Item", kind: "quiz", sortOrder: 3, depth: 1, publishedAt: new Date() },
       });
 
@@ -229,7 +229,7 @@ describe("Step 9.9a: Analytics Overview API (FR-L02)", () => {
       });
 
       // Student B: lesson progress 4 days ago -> active
-      const { user: userB, membership: memB } = await fx.member(t.id, "student");
+      const { membership: memB } = await fx.member(t.id, "student");
       const c = await systemPrisma.course.create({
         data: { tenantId: t.id, title: "Course Act" },
       });
@@ -252,7 +252,7 @@ describe("Step 9.9a: Analytics Overview API (FR-L02)", () => {
       const quiz = await systemPrisma.quiz.create({
         data: { tenantId: t.id, courseId: c.id, title: "Quiz Act", durationMin: 10, passMark: 50, opensAt: new Date(Date.now() - 3600000) },
       });
-      const quizItem = await systemPrisma.contentItem.create({
+      await systemPrisma.contentItem.create({
         data: { tenantId: t.id, courseId: c.id, quizId: quiz.id, title: "Q1", kind: "quiz", sortOrder: 2, depth: 1, publishedAt: new Date() },
       });
       await systemPrisma.attempt.create({
@@ -313,7 +313,7 @@ describe("Step 9.9a: Analytics Overview API (FR-L02)", () => {
       const quiz = await systemPrisma.quiz.create({
         data: { tenantId: t.id, courseId: c.id, title: "QG", durationMin: 15, passMark: 50, opensAt: new Date(Date.now() - 3600000) },
       });
-      const qItem = await systemPrisma.contentItem.create({
+      await systemPrisma.contentItem.create({
         data: { tenantId: t.id, courseId: c.id, quizId: quiz.id, title: "QG", kind: "quiz", sortOrder: 1, depth: 1, publishedAt: new Date() },
       });
 

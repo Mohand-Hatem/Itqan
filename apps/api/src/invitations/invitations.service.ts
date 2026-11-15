@@ -17,6 +17,8 @@ import type {
   InvitationRegisterInput,
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
+import { courseAccessNotification } from "../notifications/notification-inputs.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { joinLink } from "./join-link.js";
@@ -27,6 +29,7 @@ export class InvitationsService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
   ) {}
 
@@ -466,7 +469,7 @@ export class InvitationsService {
   async accept(input: InvitationAcceptInput, authUser: AuthUser) {
     const tokenHash = createHash("sha256").update(input.token).digest("hex");
 
-    return systemPrisma.$transaction(async (tx) => {
+    const { result, afterCommit } = await systemPrisma.$transaction(async (tx) => {
       // Atomic claim
       const claimed = await tx.invitation.updateMany({
         where: {
@@ -530,7 +533,7 @@ export class InvitationsService {
 
       const activeCourses = await tx.course.findMany({
         where: { id: { in: inv.courseIds }, tenantId: inv.tenantId, deletedAt: null },
-        select: { id: true },
+        select: { id: true, title: true, tenantId: true },
       });
 
       for (const course of activeCourses) {
@@ -569,9 +572,13 @@ export class InvitationsService {
         tx,
       );
 
-      return {
-        membershipId: membership.id,
-      };
+      const afterCommit = await this.notifications.stage(
+        tx,
+        activeCourses.map((course) => courseAccessNotification(authUser.id, course)),
+      );
+      return { result: { membershipId: membership.id }, afterCommit };
     });
+    afterCommit();
+    return result;
   }
 }

@@ -34,6 +34,7 @@ export class SseController {
       userId: user.id,
       tenantId,
       deviceId: session?.deviceId ?? null,
+      sessionId: session?.id ?? null,
       res,
       connectedAt: new Date(),
     });

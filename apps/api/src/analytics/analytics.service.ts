@@ -26,8 +26,7 @@ export class AnalyticsService {
     if (context?.kind !== "tenant") throw new NotFoundException();
     const tenantId = context.tenantId;
 
-    try {
-      const rows = await this.db.$queryRaw<RawAnalyticsRow[]>(Prisma.sql`
+    const rows = await this.db.$queryRaw<RawAnalyticsRow[]>(Prisma.sql`
       WITH
         student_counts AS (
           SELECT
@@ -109,31 +108,27 @@ export class AnalyticsService {
         request_counts rc;
     `);
 
-      const row = rows[0] ?? {
-        students: 0,
-        activeStudents7d: 0,
-        courses: 0,
-        publishedItems: 0,
-        quizParticipation: 0,
-        averageGrade: null,
-        pendingRequests: 0,
-      };
+    const row = rows[0] ?? {
+      students: 0,
+      activeStudents7d: 0,
+      courses: 0,
+      publishedItems: 0,
+      quizParticipation: 0,
+      averageGrade: null,
+      pendingRequests: 0,
+    };
 
-      return {
-        students: Number(row.students ?? 0),
-        activeStudents7d: Number(row.activeStudents7d ?? 0),
-        courses: Number(row.courses ?? 0),
-        publishedItems: Number(row.publishedItems ?? 0),
-        quizParticipation: Number(row.quizParticipation ?? 0),
-        averageGrade:
-          row.averageGrade === null || row.averageGrade === undefined
-            ? null
-            : Number(row.averageGrade),
-        pendingRequests: Number(row.pendingRequests ?? 0),
-      };
-    } catch (err) {
-      console.error("AnalyticsService.getOverview error:", err);
-      throw err;
-    }
+    return {
+      students: Number(row.students ?? 0),
+      activeStudents7d: Number(row.activeStudents7d ?? 0),
+      courses: Number(row.courses ?? 0),
+      publishedItems: Number(row.publishedItems ?? 0),
+      quizParticipation: Number(row.quizParticipation ?? 0),
+      averageGrade:
+        row.averageGrade === null || row.averageGrade === undefined
+          ? null
+          : Number(row.averageGrade),
+      pendingRequests: Number(row.pendingRequests ?? 0),
+    };
   }
 }

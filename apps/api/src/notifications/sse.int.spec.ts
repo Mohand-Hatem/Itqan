@@ -7,14 +7,20 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../app.module.js";
 import { createHttpTestApp } from "../testing/http.js";
 import { NotificationsService } from "./notifications.service.js";
-import { StudentsAccessService } from "../students/students-access.service.js";
+import { SseService } from "./sse.service.js";
+
+function withTimeout(p: Promise<void>, ms: number): Promise<"done" | "timeout"> {
+  return Promise.race([
+    p.then(() => "done" as const),
+    new Promise<"timeout">((r) => setTimeout(() => r("timeout"), ms)),
+  ]);
+}
 
 let httpTestApp: Awaited<ReturnType<typeof createHttpTestApp>>;
 let tenantSlug: string;
 let tenantHost: string;
 let tenantId: string;
 let notificationsService: NotificationsService;
-let studentsAccessService: StudentsAccessService;
 
 const createdUserIds: string[] = [];
 
@@ -113,6 +119,8 @@ function connectSse(
   statusCode: number;
   headers: http.IncomingHttpHeaders;
   waitForEvent: (eventName: string, timeoutMs?: number) => Promise<string>;
+  /** Resolves when the server ends the stream. */
+  ended: Promise<void>;
   close: () => void;
 }> {
   return new Promise((resolve, reject) => {
@@ -132,6 +140,11 @@ function connectSse(
       (res) => {
         let buffer = "";
         const waiters: Array<{ eventName: string; resolve: (data: string) => void }> = [];
+
+        const ended = new Promise<void>((resEnd) => {
+          res.on("end", () => resEnd());
+          res.on("close", () => resEnd());
+        });
 
         res.setEncoding("utf8");
         res.on("data", (chunk: string) => {
@@ -168,6 +181,7 @@ function connectSse(
           statusCode: res.statusCode ?? 0,
           headers: res.headers,
           waitForEvent,
+          ended,
           close: () => {
             req.destroy();
             res.destroy();
@@ -185,7 +199,6 @@ describe("SSE Real-Time Stream (FR-N02, Step 9.2)", () => {
   beforeAll(async () => {
     httpTestApp = await createHttpTestApp(AppModule);
     notificationsService = httpTestApp.app.get(NotificationsService);
-    studentsAccessService = httpTestApp.app.get(StudentsAccessService);
 
     tenantSlug = `sse-t-${randomUUID().slice(0, 8)}`;
     tenantHost = `${tenantSlug}.localhost`;
@@ -309,6 +322,69 @@ describe("SSE Real-Time Stream (FR-N02, Step 9.2)", () => {
       const chunk = await sse.waitForEvent("device_revoked");
       expect(chunk).toContain("event: device_revoked");
       expect(chunk).toContain(student.deviceId);
+    } finally {
+      sse.close();
+    }
+  });
+
+  it("closes the revoked device's stream so it gets no more events (step 9.11)", async () => {
+    const student = await createAuthenticatedStudent({ name: "Closed Stream Student" });
+    const teacher = await createAuthenticatedTeacher({ name: "Closed Stream Teacher" });
+    const sse = await connectSse(
+      httpTestApp.app.getHttpServer(),
+      tenantHost,
+      "/api/sse",
+      student.cookie,
+    );
+
+    try {
+      await sse.waitForEvent("connected");
+      const revokeRes = await httpTestApp.send(
+        tenantHost,
+        "POST",
+        `/api/devices/${student.deviceId}/revoke`,
+        undefined,
+        { cookie: teacher.cookie },
+      );
+      expect(revokeRes.status).toBe(200);
+
+      await sse.waitForEvent("device_revoked");
+      await expect(withTimeout(sse.ended, 3000)).resolves.toBe("done");
+      expect(httpTestApp.app.get(SseService).getConnectionCount(student.userId)).toBe(0);
+    } finally {
+      sse.close();
+    }
+  });
+
+  it("sweep closes the stream of a suspended student (step 9.11)", async () => {
+    const student = await createAuthenticatedStudent({ name: "Suspended Stream Student" });
+    const teacher = await createAuthenticatedTeacher({ name: "Suspended Stream Teacher" });
+    const membership = await systemPrisma.membership.findUniqueOrThrow({
+      where: { tenantId_userId: { tenantId, userId: student.userId } },
+      select: { id: true },
+    });
+    const sse = await connectSse(
+      httpTestApp.app.getHttpServer(),
+      tenantHost,
+      "/api/sse",
+      student.cookie,
+    );
+
+    try {
+      await sse.waitForEvent("connected");
+      const res = await httpTestApp.send(
+        tenantHost,
+        "PATCH",
+        `/api/students/${membership.id}`,
+        { status: "suspended" },
+        { cookie: teacher.cookie },
+      );
+      expect(res.status).toBe(200);
+
+      // The heartbeat runs this every 25 s; call it directly instead of waiting.
+      expect(await httpTestApp.app.get(SseService).sweepEndedSessions()).toBeGreaterThanOrEqual(1);
+      await sse.waitForEvent("session_terminated");
+      await expect(withTimeout(sse.ended, 3000)).resolves.toBe("done");
     } finally {
       sse.close();
     }

@@ -2,7 +2,6 @@
 // Guarantees zero leakage of correct answers, explanations, or grading hints
 // across all student-accessible endpoints before grade release.
 
-import { randomUUID } from "node:crypto";
 import { systemPrisma } from "@itqan/database";
 import { AccessReasonCode, type QuizCreateInput } from "@itqan/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

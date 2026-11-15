@@ -156,7 +156,7 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 - [x] **8.10** Grade release and review modes (FR-X07, X08). _Done when:_ a test covers each mode, including the all-submitted fallback.
 - [ ] **8.11** 🎨⏸ Results pages for students and staff. _Done when:_ each sees the right level of detail.
 - [x] **8.12** Rescue actions: extend time, move attempt to a new device (FR-X09). _Done when:_ both are audited and tested.
-- [x] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on the local Docker stack against Neon `dev`.
+- [x] **8.13** Load test: 300 students start one quiz within a minute (NFR-03). _Done when:_ p95 is under target on the local Docker stack (Docker Postgres), run alone with `npm run test:load`.
 
 **API checkpoint 8:** a full exam runs end to end through the API on the local Docker stack · owner review.
 **UI checkpoint 8 (Phase U):** a real exam runs end to end in the browser.
@@ -178,6 +178,7 @@ Track B. Runs first when the owner says the design is chosen; 3.3 and 3.6 are fr
 - [ ] **9.9b** 🎨⏸ Analytics overview page. _Done when:_ the page shows the seeded numbers.
 - [x] **9.10a** Audit log API with filters. _Done when:_ a test filters by actor, action and date.
 - [ ] **9.10b** 🎨⏸ Audit log page with filters. _Done when:_ the teacher filters by actor, action and date.
+- [x] **9.11** Phase 9 fixes from the review: paused roles apply at once; SSE streams close when their device is revoked or their session ends, and a full write buffer no longer drops a stream; grade release, course access and device-request decisions create notifications and emails (FR-N03); lint clean; load test runs alone. _Done when:_ `npm test`, `npm run lint`, `npm run typecheck` and `npm run test:load` all pass.
 
 **API checkpoint 9:** notifications work through SSE, the API and email · owner review.
 **UI checkpoint 9 (Phase U):** notifications work online, offline (push) and by email.

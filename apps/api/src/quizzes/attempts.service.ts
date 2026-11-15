@@ -37,6 +37,8 @@ import {
   type StoredAttemptSnapshot,
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
+import { gradeReleasedNotification } from "../notifications/notification-inputs.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { EnrollmentsService } from "../enrollments/enrollments.service.js";
 import { gradeAttempt, isGradeReleased, isReviewReleased } from "./grading/attempt-grading.engine.js";
@@ -57,6 +59,7 @@ export class AttemptsService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(EnrollmentsService) private readonly enrollments: EnrollmentsService,
   ) {}
 
@@ -197,7 +200,7 @@ export class AttemptsService {
         isCorrect: boolean;
         sortOrder: number;
       }>;
-    }> = [];
+    }>;
 
     if (quiz.selection === "manual") {
       questions = quiz.quizQuestions
@@ -715,8 +718,28 @@ export class AttemptsService {
     const finalized = await this.finalizeAttempt(attempt.id, effectiveSubmittedAt, isLate);
 
     // Re-check allSubmitted after finalizing this attempt
+    const allSubmittedBefore = allSubmitted;
     if (attempt.quiz.gradeRelease === "all_submitted") {
       allSubmitted = await this.checkAllSubmitted(attempt.quiz.id, attempt.quiz.courseId);
+    }
+
+    // FR-N03 grade-released notifications for the release modes a submit triggers. The
+    // time-based ones (on_close, all_submitted falling back to close time) are step 10.1 jobs.
+    if (attempt.quiz.gradeRelease === "on_submit") {
+      await this.notifications.notify([gradeReleasedNotification(membership.userId, attempt.quiz)]);
+    } else if (
+      attempt.quiz.gradeRelease === "all_submitted" &&
+      allSubmitted &&
+      !allSubmittedBefore
+    ) {
+      const submitted = await this.db.attempt.findMany({
+        where: { quizId: attempt.quiz.id, submittedAt: { not: null } },
+        distinct: ["membershipId"],
+        select: { membership: { select: { userId: true } } },
+      });
+      await this.notifications.notify(
+        submitted.map((a) => gradeReleasedNotification(a.membership.userId, attempt.quiz)),
+      );
     }
 
     return this.toSubmitResponse(finalized, attempt.quiz, isLate, now, allSubmitted);

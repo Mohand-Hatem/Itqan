@@ -177,6 +177,7 @@ describe("AccessGuard (unit)", () => {
           id: "m-1",
           role: "student",
           status: "suspended",
+          tenant: { pausedRoles: [] },
         }),
       },
     } as unknown as PrismaClient;
@@ -210,11 +211,7 @@ describe("AccessGuard (unit)", () => {
           id: "m-3",
           role: "student",
           status: "active",
-        }),
-      },
-      tenant: {
-        findUnique: vi.fn().mockResolvedValue({
-          pausedRoles: ["student"],
+          tenant: { pausedRoles: ["student"] },
         }),
       },
     } as unknown as PrismaClient;
@@ -248,11 +245,7 @@ describe("AccessGuard (unit)", () => {
           id: "m-4",
           role: "student",
           status: "active",
-        }),
-      },
-      tenant: {
-        findUnique: vi.fn().mockResolvedValue({
-          pausedRoles: [],
+          tenant: { pausedRoles: [] },
         }),
       },
     } as unknown as PrismaClient;
@@ -286,11 +279,7 @@ describe("AccessGuard (unit)", () => {
           id: "m-5",
           role: "teacher",
           status: "active",
-        }),
-      },
-      tenant: {
-        findUnique: vi.fn().mockResolvedValue({
-          pausedRoles: [],
+          tenant: { pausedRoles: [] },
         }),
       },
     } as unknown as PrismaClient;

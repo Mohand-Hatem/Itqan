@@ -8,6 +8,8 @@ import {
 import type { AuthUser } from "@itqan/auth";
 import { getRequestContext, type Membership, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import { AuditService } from "../audit/audit.service.js";
+import { courseAccessNotification } from "../notifications/notification-inputs.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 
 @Injectable()
@@ -15,6 +17,7 @@ export class EnrollmentsService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   async grant(membershipId: string, courseId: string, actorUserId: string) {
@@ -66,68 +69,62 @@ export class EnrollmentsService {
       },
     });
 
-    if (existing) {
-      if (existing.status === "active") {
-        throw new BadRequestException({
-          statusCode: 400,
-          reason: "ALREADY_ENROLLED",
-          message: "The student is already actively enrolled in this course.",
-        });
-      }
-
-      const reactivated = await systemPrisma.enrollment.update({
-        where: { id: existing.id },
-        data: {
-          status: "active",
-          source: "manual",
-          grantedBy: actorUserId,
-          terminatedAt: null,
-          terminatedBy: null,
-          updatedAt: new Date(),
-        },
+    if (existing?.status === "active") {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: "ALREADY_ENROLLED",
+        message: "The student is already actively enrolled in this course.",
       });
-
-      await this.audit.record({
-        action: "enrollment.grant",
-        tenantId,
-        targetType: "enrollment",
-        targetId: reactivated.id,
-        actorUserId,
-        meta: {
-          membershipId: targetMembership.id,
-          courseId: course.id,
-          reactivated: true,
-        },
-      });
-
-      return reactivated;
     }
 
-    const created = await systemPrisma.enrollment.create({
-      data: {
-        tenantId,
-        membershipId: targetMembership.id,
-        courseId: course.id,
-        status: "active",
-        source: "manual",
-        grantedBy: actorUserId,
-      },
-    });
+    const { enrollment, afterCommit } = await systemPrisma.$transaction(async (tx) => {
+      const enrollment = existing
+        ? await tx.enrollment.update({
+            where: { id: existing.id },
+            data: {
+              status: "active",
+              source: "manual",
+              grantedBy: actorUserId,
+              terminatedAt: null,
+              terminatedBy: null,
+              updatedAt: new Date(),
+            },
+          })
+        : await tx.enrollment.create({
+            data: {
+              tenantId,
+              membershipId: targetMembership.id,
+              courseId: course.id,
+              status: "active",
+              source: "manual",
+              grantedBy: actorUserId,
+            },
+          });
 
-    await this.audit.record({
-      action: "enrollment.grant",
-      tenantId,
-      targetType: "enrollment",
-      targetId: created.id,
-      actorUserId,
-      meta: {
-        membershipId: targetMembership.id,
-        courseId: course.id,
-        reactivated: false,
-      },
-    });
+      await this.audit.record(
+        {
+          action: "enrollment.grant",
+          tenantId,
+          targetType: "enrollment",
+          targetId: enrollment.id,
+          actorUserId,
+          meta: {
+            membershipId: targetMembership.id,
+            courseId: course.id,
+            reactivated: Boolean(existing),
+          },
+        },
+        tx,
+      );
 
-    return created;
+      const afterCommit = await this.notifications.stage(tx, [
+        courseAccessNotification(targetMembership.userId, course),
+      ]);
+      return { enrollment, afterCommit };
+    });
+    afterCommit();
+
+    return enrollment;
   }
 
   async terminate(enrollmentId: string, actorUserId: string, isSuperAdmin: boolean) {

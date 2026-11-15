@@ -16,6 +16,7 @@
     "pretest": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run build -w @itqan/auth",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:load": "npm run pretest && vitest run --config vitest.load.config.mts",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose stop postgres",
     "db:generate": "npm run generate -w @itqan/database",

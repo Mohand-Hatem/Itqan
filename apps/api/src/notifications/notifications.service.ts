@@ -50,6 +50,8 @@ export type NotificationWriter = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createMany?: (args: any) => Promise<any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createManyAndReturn?: (args: any) => Promise<any[]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateMany?: (args: any) => Promise<any>;
   };
 };
@@ -94,24 +96,9 @@ export class NotificationsService {
       },
     });
 
-    if (!tx && this.sseService) {
-      this.sseService.emitToUser(
-        input.userId,
-        {
-          event: "notification.created",
-          data: {
-            id: row.id,
-            type: row.type,
-            title: row.title,
-            body: row.body,
-            data: row.data,
-            readAt: row.readAt,
-            createdAt: row.createdAt,
-          },
-        },
-        tenantId,
-      );
-    }
+    // Inside a transaction the push waits for commit, so nobody sees a row that rolls back.
+    if (!tx) this.emitCreated(row);
+    else registerPostCommit?.(() => this.emitCreated(row));
 
     if (input.sendEmail) {
       const emailPayload = {
@@ -133,6 +120,78 @@ export class NotificationsService {
     }
 
     return row;
+  }
+
+  /**
+   * Write notification rows inside the caller's transaction (FR-N01, one query) and return a
+   * function to call after commit. It pushes each row over SSE and sends the emails in the
+   * background, so a grade release to many students does not hold the request open.
+   */
+  async stage(
+    tx: NotificationWriter,
+    inputs: CreateNotificationInput[],
+  ): Promise<() => void> {
+    if (inputs.length === 0) return () => {};
+    const context = getRequestContext();
+    const contextTenantId = context?.kind === "tenant" ? context.tenantId : undefined;
+    const data = inputs.map((input) => {
+      const tenantId = input.tenantId ?? contextTenantId;
+      if (!tenantId) throw new Error("Cannot create notification without tenant context.");
+      return {
+        tenantId,
+        userId: input.userId,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        data: (input.data ?? {}) as object,
+      };
+    });
+    const rows = await tx.notification.createManyAndReturn!({ data });
+
+    return () => {
+      for (const row of rows) this.emitCreated(row);
+      const emails = inputs.filter((input) => input.sendEmail);
+      if (emails.length === 0) return;
+      void (async () => {
+        for (const [i, input] of inputs.entries()) {
+          if (!input.sendEmail) continue;
+          await this.dispatchEmail({
+            userId: input.userId,
+            tenantId: data[i]!.tenantId,
+            type: input.type,
+            title: input.title,
+            data: input.data,
+            emailOptions: input.emailOptions,
+          });
+        }
+      })();
+    };
+  }
+
+  /** Same as stage() for callers with no transaction of their own. */
+  async notify(inputs: CreateNotificationInput[]): Promise<void> {
+    const afterCommit = await this.stage(this.db, inputs);
+    afterCommit();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private emitCreated(row: any): void {
+    this.sseService?.emitToUser(
+      row.userId,
+      {
+        event: "notification.created",
+        data: {
+          id: row.id,
+          type: row.type,
+          title: row.title,
+          body: row.body,
+          data: row.data,
+          readAt: row.readAt,
+          createdAt: row.createdAt,
+        },
+      },
+      row.tenantId,
+    );
   }
 
   /**

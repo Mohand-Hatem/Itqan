@@ -1,9 +1,9 @@
 // Step 5.8a: staff list, approve and reject device and sign-out requests (FR-D06).
-import { DEVICE_COOKIE_NAME, auth } from "@itqan/auth";
+import { DEVICE_COOKIE_NAME, auth, getLastSentEmail } from "@itqan/auth";
 import { systemPrisma } from "@itqan/database";
 import { AccessReasonCode, SupportRequestReason } from "@itqan/shared";
 import type { APIError } from "better-auth/api";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { AppModule } from "../app.module.js";
 import { createHttpTestApp } from "../testing/http.js";
 import { studentFixtures } from "../testing/students.js";
@@ -92,6 +92,9 @@ type ListBody = {
 };
 
 /** Open device_change request from a fresh browser of a student at the device limit. */
+const notesOf = (userId: string, type: string) =>
+  systemPrisma.notification.findMany({ where: { userId, type } });
+
 async function deviceRequest(t: Tenant, opts: { maxDevices?: number } = {}) {
   const { user, membership } = await fx.member(t.id, "student", opts);
   for (let i = 0; i < (opts.maxDevices ?? 1); i++) await fx.device(user.id);
@@ -136,6 +139,10 @@ describe("full flows with separate sessions (FR-D03, FR-D05, FR-D06)", () => {
     expect(item?.pendingDevice).not.toBeNull();
 
     expect((await decide(t, teacher.cookie, requestId, "approve")).status).toBe(200);
+    // FR-N03 (step 9.11): the student is told the request was approved.
+    const approvedNotes = await notesOf(user.id, "device_request_decided");
+    expect(approvedNotes).toHaveLength(1);
+    expect(approvedNotes[0]?.data).toMatchObject({ status: "approved", requestType: "device_change" });
 
     // Browser 1: its session is gone and its device is revoked.
     expect((await me(t, browser1.cookies)).status).toBe(401);
@@ -194,6 +201,12 @@ describe("POST /api/support-requests/:id/approve and /reject", () => {
     expect(await studentLogin(t, r.user.email, r.pendingCookie)).toMatchObject({
       code: AccessReasonCode.DEVICE_LIMIT,
     });
+    // FR-N03 (step 9.11): the student is told, and emailed, that the request was rejected.
+    const notes = await notesOf(r.user.id, "device_request_decided");
+    expect(notes[0]?.data).toMatchObject({ status: "rejected" });
+    await vi.waitFor(() =>
+      expect(getLastSentEmail(r.user.email)?.type).toBe("device_request_decided"),
+    );
   });
 
   it("with max_devices 2, approval revokes only the least recently used device", async () => {

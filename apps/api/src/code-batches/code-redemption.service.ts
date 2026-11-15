@@ -10,6 +10,8 @@ import type { Auth, AuthUser } from "@itqan/auth";
 import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import { AccessReasonCode, type CodeRedeemInput, type CodeRegisterInput } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
+import { courseAccessNotification } from "../notifications/notification-inputs.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { hashAccessCode, normalizeAccessCode } from "./crypto.js";
@@ -20,6 +22,7 @@ export class CodeRedemptionService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
   ) {}
 
@@ -317,7 +320,7 @@ export class CodeRedemptionService {
       }
     }
 
-    return systemPrisma.$transaction(async (tx) => {
+    const { result, afterCommit } = await systemPrisma.$transaction(async (tx) => {
       // Single-statement atomic conditional claim
       const claimed = await tx.accessCode.updateMany({
         where: {
@@ -418,12 +421,21 @@ export class CodeRedemptionService {
         tx,
       );
 
+      const afterCommit = await this.notifications.stage(tx, [
+        courseAccessNotification(authUser.id, code.course),
+      ]);
+
       return {
-        membershipId: membership.id,
-        courseId: code.courseId,
-        courseTitle: code.course.title,
-        status: "active",
+        result: {
+          membershipId: membership.id,
+          courseId: code.courseId,
+          courseTitle: code.course.title,
+          status: "active",
+        },
+        afterCommit,
       };
     });
+    afterCommit();
+    return result;
   }
 }

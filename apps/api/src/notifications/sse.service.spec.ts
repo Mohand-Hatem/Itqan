@@ -155,4 +155,76 @@ describe("SseService (unit)", () => {
       expect(resB.written.some((w) => w.includes("New Announcement"))).toBe(false);
     });
   });
+
+  describe("ending access (step 9.11)", () => {
+    function register(id: string, userId: string, extra: Partial<{ deviceId: string; tenantId: string; sessionId: string }> = {}) {
+      const res = new MockResponse();
+      service.registerConnection({
+        id,
+        userId,
+        tenantId: extra.tenantId ?? "t1",
+        deviceId: extra.deviceId ?? null,
+        sessionId: extra.sessionId ?? null,
+        res: res as unknown as Response,
+        connectedAt: new Date(),
+      });
+      return res;
+    }
+
+    it("closeStreams ends only the matching device's streams, with a final event", () => {
+      const revoked = register("c1", "u5", { deviceId: "dev-1" });
+      const other = register("c2", "u5", { deviceId: "dev-2" });
+
+      const closed = service.closeStreams(
+        "u5",
+        { event: "device_revoked", data: { deviceId: "dev-1" } },
+        { deviceId: "dev-1" },
+      );
+
+      expect(closed).toBe(1);
+      expect(revoked.writableEnded).toBe(true);
+      expect(revoked.written.some((w) => w.includes("event: device_revoked"))).toBe(true);
+      expect(other.writableEnded).toBe(false);
+      expect(service.getConnectionCount("u5")).toBe(1);
+    });
+
+    it("closeStreams with no filter ends every stream of the user", () => {
+      const a = register("c1", "u6", { tenantId: "t1" });
+      const b = register("c2", "u6", { tenantId: "t2" });
+
+      expect(service.closeStreams("u6", { event: "session_terminated", data: {} })).toBe(2);
+      expect(a.writableEnded && b.writableEnded).toBe(true);
+      expect(service.getConnectionCount("u6")).toBe(0);
+    });
+
+    it("keeps a live stream whose write buffer is full (backpressure is not a disconnect)", () => {
+      const res = register("c1", "u7");
+      res.write = (chunk: string) => {
+        res.written.push(chunk);
+        return false; // Node returns false when the buffer is full, the socket is still open
+      };
+
+      service.emitToUser("u7", { event: "notification.created", data: { id: "n1" } });
+      service.emitToUser("u7", { event: "notification.created", data: { id: "n2" } });
+
+      expect(service.getConnectionCount("u7")).toBe(1);
+      expect(res.written.filter((w) => w.includes("notification.created"))).toHaveLength(2);
+    });
+
+    it("sweepEndedSessions closes streams whose session is gone or expired", async () => {
+      const db = {
+        session: {
+          findMany: async () => [{ id: "s-live" }],
+        },
+      };
+      service = new SseService(db as never);
+      const live = register("c1", "u8", { sessionId: "s-live" });
+      const ended = register("c2", "u8", { sessionId: "s-ended" });
+
+      expect(await service.sweepEndedSessions()).toBe(1);
+      expect(ended.writableEnded).toBe(true);
+      expect(ended.written.some((w) => w.includes("event: session_terminated"))).toBe(true);
+      expect(live.writableEnded).toBe(false);
+    });
+  });
 });
