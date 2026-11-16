@@ -1,7 +1,7 @@
 import process from "node:process";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { twoFactor } from "better-auth/plugins";
+import { openAPI, twoFactor } from "better-auth/plugins";
 import { systemPrisma } from "@itqan/database";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email/client.js";
 import { resolveAuthSecret } from "./secrets.js";
@@ -150,6 +150,9 @@ export const auth = betterAuth({
     }),
     staffMfaPlugin(),
     studentSignInPlugin(),
+    // Route description for `npm run openapi:export` (step 10.6). Development only: it adds a
+    // public GET /open-api/generate-schema route, which production must not expose.
+    ...(process.env["NODE_ENV"] === "production" ? [] : [openAPI({ disableDefaultReference: true })]),
   ],
 });
 

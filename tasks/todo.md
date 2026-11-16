@@ -193,6 +193,8 @@ Everything here runs before the design is chosen. Phase 10 closes after 10.5 wit
 - [x] **10.4** Dependency audit and secret scanning in CI: new `security` job (`npm audit` with no moderate+ in production dependencies and no high+ anywhere; gitleaks v8.24.2 over the full git history), `permissions: contents: read`, CI also runs on `phase-*` branches; minimatch pinned >= 11.0.1 through `overrides` (Dependabot alert). _Done when:_ both are green (locally: 0 vulnerabilities, 32 commits and the uncommitted work scanned with no leaks; on GitHub: the security job on the phase-10 push).
 - [x] **10.5** Privacy policy and terms, with legal review for minors: drafts in Arabic (binding) and English in `docs/legal/`, following Saudi Arabia's Personal Data Protection Law, written from the system's real behaviour; open choices marked [TO CONFIRM]. The lawyer review is required before 12.7. _Done when:_ both are written.
 
+- [x] **10.6** API documentation: one OpenAPI file for every route (NestJS and Better Auth) with request bodies from the Zod schemas, Swagger UI at `/api/docs` in development only, `npm run openapi:export` writing `docs/api/openapi.json` for Apidog and Postman, and a current README. _Done when:_ the file imports into Apidog or Postman, a test proves it is in sync with the code and every write route has a body, and the full suite passes.
+
 **Checkpoint 10:** jobs, headers, the audit fixes, CI scans and the legal pages are done; full test suite green · owner review.
 
 ## Phase 11: UI, frontend and security (Track B, after the design is chosen)

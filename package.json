@@ -24,7 +24,8 @@
     "db:seed": "npm run seed -w @itqan/database",
     "db:promote:dev": "npm run promote -w @itqan/database -- dev",
     "r2:check": "tsx apps/api/src/storage/r2-check.ts",
-    "headers:check": "node scripts/check-headers.mjs"
+    "headers:check": "node scripts/check-headers.mjs",
+    "openapi:export": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run build -w @itqan/auth && npm run build -w @itqan/api && node apps/api/dist/openapi/export.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
