@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Inject } from "@nestjs/common";
 import type { AuthSession, AuthUser } from "@itqan/auth";
 import type { Membership } from "@itqan/database";
 import type { MeResponse } from "@itqan/shared";
@@ -8,7 +8,7 @@ import { MeService } from "./me.service.js";
 
 @Controller("me")
 export class MeController {
-  constructor(private readonly meService: MeService) {}
+  constructor(@Inject(MeService) private readonly meService: MeService) {}
 
   @Get()
   @AllowWithoutMfa()

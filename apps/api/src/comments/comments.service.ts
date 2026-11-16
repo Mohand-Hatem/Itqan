@@ -25,8 +25,8 @@ export class CommentsService {
 
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
-    private readonly audit: AuditService,
-    private readonly contentAccess: ContentAccessService,
+    @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(ContentAccessService) private readonly contentAccess: ContentAccessService,
   ) {}
 
   private getTenantId(): string {

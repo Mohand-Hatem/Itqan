@@ -16,7 +16,7 @@ import { ALLOW_WITHOUT_MFA_KEY, ROLES_KEY, SUPER_ADMIN_ONLY_KEY } from "./roles.
 @Injectable()
 export class AccessGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(PrismaClient) private readonly db: PrismaClient,
   ) {}
 

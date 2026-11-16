@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Controller, Get, Req, Res } from "@nestjs/common";
+import { Controller, Get, Inject, Req, Res } from "@nestjs/common";
 import type { AuthSession, AuthUser } from "@itqan/auth";
 import { getRequestContext } from "@itqan/database";
 import type { Request, Response } from "express";
@@ -8,7 +8,7 @@ import { SseService } from "./sse.service.js";
 
 @Controller()
 export class SseController {
-  constructor(private readonly sseService: SseService) {}
+  constructor(@Inject(SseService) private readonly sseService: SseService) {}
 
   @Get(["sse", "notifications/stream"])
   stream(

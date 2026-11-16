@@ -24,8 +24,8 @@ export class AnnouncementsService {
 
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
-    private readonly audit: AuditService,
-    @Optional() private readonly sse?: SseService,
+    @Inject(AuditService) private readonly audit: AuditService,
+    @Optional() @Inject(SseService) private readonly sse?: SseService,
   ) {}
 
   private getTenantId(): string {
@@ -56,8 +56,8 @@ export class AnnouncementsService {
       }
     }
 
-    const { row, targetStudentUserIds, authorName, courseTitle } =
-      await this.db.$transaction(async (tx) => {
+    const { row, targetStudentUserIds, authorName, courseTitle } = await this.db.$transaction(
+      async (tx) => {
         // 1. Create announcement row
         const row = await tx.announcement.create({
           data: {
@@ -131,7 +131,8 @@ export class AnnouncementsService {
           authorName: row.author.name,
           courseTitle: row.course?.title ?? null,
         };
-      });
+      },
+    );
 
     // 5. Post-commit SSE emission
     if (this.sse) {

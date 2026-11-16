@@ -17,7 +17,7 @@ export class StudentsAccessService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AuditService) private readonly audit: AuditService,
-    @Optional() private readonly sseService?: SseService,
+    @Optional() @Inject(SseService) private readonly sseService?: SseService,
   ) {}
 
   /** Revoke a device: it can no longer sign in, and its sessions end at once. */

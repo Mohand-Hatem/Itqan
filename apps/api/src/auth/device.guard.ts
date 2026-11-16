@@ -21,7 +21,7 @@ import { IS_PUBLIC_KEY } from "./public.decorator.js";
 @Injectable()
 export class DeviceGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(PrismaClient) private readonly db: PrismaClient,
   ) {}
 

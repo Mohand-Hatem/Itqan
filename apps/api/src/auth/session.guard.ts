@@ -26,7 +26,7 @@ export const AUTH_INSTANCE = Symbol("AUTH_INSTANCE");
 @Injectable()
 export class SessionGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AUTH_INSTANCE) private readonly authClient: Auth,
   ) {}
 
@@ -39,9 +39,10 @@ export class SessionGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     const headers = toFetchHeaders(req.headers);
 
-    const sessionResult = (await this.authClient.api
-      .getSession({ headers })
-      .catch(() => null)) as { session: AuthSession; user: AuthUser } | null;
+    const sessionResult = (await this.authClient.api.getSession({ headers }).catch(() => null)) as {
+      session: AuthSession;
+      user: AuthUser;
+    } | null;
 
     if (sessionResult?.session && sessionResult?.user) {
       req.session = sessionResult.session;

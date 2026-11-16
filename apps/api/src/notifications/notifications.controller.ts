@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Inject,
   Patch,
   Query,
 } from "@nestjs/common";
@@ -19,7 +20,9 @@ import { NotificationsService } from "./notifications.service.js";
 
 @Controller("notifications")
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(
+    @Inject(NotificationsService) private readonly notificationsService: NotificationsService,
+  ) {}
 
   @Get()
   async list(

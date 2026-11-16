@@ -70,6 +70,12 @@ The local stack runs web, api and Nginx in Docker on port 8080, like production:
 docker compose up -d --build web api nginx
 ```
 
+For API work with reload on save, run the API alone (port 4000, Swagger UI at `/api/docs`; Postgres must be up):
+
+```bash
+npm run dev -w @itqan/api
+```
+
 Academies are reached by subdomain: `http://demo.localhost:8080`. Browsers resolve `*.localhost` on their own. For other tools (curl, Postman, Apidog), add this line to your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/etc/hosts` elsewhere):
 
 ```text

@@ -70,7 +70,7 @@ export class NotificationsService {
 
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
-    @Optional() private readonly sseService?: SseService,
+    @Optional() @Inject(SseService) private readonly sseService?: SseService,
   ) {}
 
   /**

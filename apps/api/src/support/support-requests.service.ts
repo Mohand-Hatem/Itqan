@@ -55,7 +55,7 @@ export class SupportRequestsService {
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
     @Inject(AuditService) private readonly audit: AuditService,
-    @Optional() private readonly sseService?: SseService,
+    @Optional() @Inject(SseService) private readonly sseService?: SseService,
     @Optional()
     @Inject(NotificationsService)
     private readonly notificationsService?: NotificationsService,
