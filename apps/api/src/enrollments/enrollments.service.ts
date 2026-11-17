@@ -11,6 +11,7 @@ import { AuditService } from "../audit/audit.service.js";
 import { courseAccessNotification } from "../notifications/notification-inputs.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { assertGuardianConsent } from "../guardian-consent/consent-state.js";
 
 @Injectable()
 export class EnrollmentsService {
@@ -247,6 +248,9 @@ export class EnrollmentsService {
         message: "Your enrollment in this course has been terminated.",
       });
     }
+
+    // 10R.7 (FR-A06): every content, progress, comment and attempt-start path passes here.
+    await assertGuardianConsent(authUser);
 
     return {
       access: true,

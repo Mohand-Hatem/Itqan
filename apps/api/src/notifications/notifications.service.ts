@@ -221,21 +221,18 @@ export class NotificationsService {
       const tenantId =
         input.tenantId ?? (context?.kind === "tenant" ? context.tenantId : undefined);
 
-      let to = emailOptions?.to;
-      let studentName = emailOptions?.studentName;
-
-      if (!to || !studentName) {
-        const user = await this.db.user.findUnique({
-          where: { id: userId },
-          select: { email: true, name: true },
-        });
-        if (!user || !user.email) {
-          this.logger.warn(`Cannot send notification email: User ${userId} has no email address`);
-          return { error: "User has no email address" };
-        }
-        to = to ?? user.email;
-        studentName = studentName ?? user.name;
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true, emailVerified: true },
+      });
+      if (!user || !user.email) {
+        this.logger.warn(`Cannot send notification email: User ${userId} has no email address`);
+        return { error: "User has no email address" };
       }
+      // FR-N03 (10R.3): an address nobody has proven gets no email; the in-app notification stays.
+      if (!user.emailVerified) return { skipped: true };
+      const to = emailOptions?.to ?? user.email;
+      const studentName = emailOptions?.studentName ?? user.name;
 
       let tenantName = emailOptions?.tenantName;
       if (!tenantName && tenantId) {

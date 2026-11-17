@@ -11,7 +11,11 @@ import { getRequestContext, PrismaClient, type Role } from "@itqan/database";
 import { AccessReasonCode } from "@itqan/shared";
 import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "./public.decorator.js";
-import { ALLOW_WITHOUT_MFA_KEY, ROLES_KEY, SUPER_ADMIN_ONLY_KEY } from "./roles.decorator.js";
+import {
+  ALLOW_WHILE_PASSWORD_CHANGE_KEY,
+  ROLES_KEY,
+  SUPER_ADMIN_ONLY_KEY,
+} from "./roles.decorator.js";
 
 @Injectable()
 export class AccessGuard implements CanActivate {
@@ -25,13 +29,27 @@ export class AccessGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+    const req = context.switchToHttp().getRequest<Request>();
+    const user = req.user;
+
+    // FR-A08 (10R.3): until the password is changed, only routes marked
+    // @AllowWhilePasswordChangeRequired answer. Public routes that act for the signed-in user
+    // (code redemption, invitation accept) are included. The change itself goes to Better Auth.
+    const passwordChangeAllowed = this.reflector.getAllAndOverride<boolean>(
+      ALLOW_WHILE_PASSWORD_CHANGE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (user?.mustChangePassword && !passwordChangeAllowed) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        reason: AccessReasonCode.PASSWORD_CHANGE_REQUIRED,
+        message: "Choose a new password to continue.",
+      });
+    }
 
     if (isPublic) {
       return true;
     }
-
-    const req = context.switchToHttp().getRequest<Request>();
-    const user = req.user;
 
     if (!user) {
       throw new UnauthorizedException("Unauthorized");
@@ -60,7 +78,6 @@ export class AccessGuard implements CanActivate {
           message: "Super admin access required.",
         });
       }
-      this.requireMfa(context, user);
       return true;
     }
 
@@ -75,7 +92,6 @@ export class AccessGuard implements CanActivate {
           message: "Super admin access required for admin portal.",
         });
       }
-      this.requireMfa(context, user);
       return true;
     }
 
@@ -134,27 +150,9 @@ export class AccessGuard implements CanActivate {
         }
       }
 
-      if (user.isSuperAdmin || (membership && membership.role !== "student")) {
-        this.requireMfa(context, user);
-      }
       return true;
     }
 
     return true;
-  }
-
-  /** FR-A03: staff and super admins act only after TOTP is set up (step 10.3). */
-  private requireMfa(context: ExecutionContext, user: { twoFactorEnabled?: boolean | null }) {
-    if (user.twoFactorEnabled) return;
-    const allowed = this.reflector.getAllAndOverride<boolean>(ALLOW_WITHOUT_MFA_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (allowed) return;
-    throw new ForbiddenException({
-      statusCode: 403,
-      reason: AccessReasonCode.MFA_ENROLMENT_REQUIRED,
-      message: "Set up two-factor authentication to continue.",
-    });
   }
 }

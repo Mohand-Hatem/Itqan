@@ -34,7 +34,7 @@ export class DeviceGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request>();
     if (req.session?.deviceId) {
-      // A session from student sign-in (password only, no TOTP) is valid only on the tenant it
+      // A session from student sign-in is valid only on the tenant it
       // was opened on, whatever role the user holds here. Otherwise it would open staff routes
       // on another tenant where the same user is staff (security audit, Phase 5).
       const ctx = getRequestContext();

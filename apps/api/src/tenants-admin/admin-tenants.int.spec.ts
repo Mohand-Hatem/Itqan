@@ -55,7 +55,9 @@ describe("Super Admin Tenant API (Integration — Step 6.11a)", () => {
         slug: string;
         name: string;
         status: string;
-        teacher: { name: string; email: string };
+        teachers: { name: string; email: string; status: string }[];
+        assistantCount: number;
+        studentCount: number;
         usage: { studentCount: number; courseCount: number; storageBytes: number };
         existingUserLinked: boolean;
       };
@@ -63,8 +65,10 @@ describe("Super Admin Tenant API (Integration — Step 6.11a)", () => {
       expect(body.slug).toBe(slug);
       expect(body.name).toBe("Alpha Physics Academy");
       expect(body.status).toBe("active");
-      expect(body.teacher.email).toBe(teacherEmail);
-      expect(body.teacher.name).toBe("Ustaz Alpha");
+      expect(body.teachers).toEqual([expect.objectContaining({ email: teacherEmail, status: "active" })]);
+      expect(body.assistantCount).toBe(0);
+      expect(body.studentCount).toBe(0);
+      expect(body.teachers[0]!.name).toBe("Ustaz Alpha");
       expect(body.usage).toEqual({ studentCount: 0, courseCount: 0, storageBytes: 0 });
       expect(body.existingUserLinked).toBe(false);
 
@@ -104,9 +108,9 @@ describe("Super Admin Tenant API (Integration — Step 6.11a)", () => {
       });
 
       expect(res.status).toBe(201);
-      const body = res.body as { existingUserLinked: boolean; teacher: { id: string } };
+      const body = res.body as { existingUserLinked: boolean; teachers: { id: string }[] };
       expect(body.existingUserLinked).toBe(true);
-      expect(body.teacher.id).toBe(user.id);
+      expect(body.teachers[0]!.id).toBe(user.id);
 
       // Verify user's existing student membership on Tenant A remains intact
       const memberA = await systemPrisma.membership.findFirst({

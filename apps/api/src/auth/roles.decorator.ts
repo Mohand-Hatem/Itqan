@@ -18,10 +18,11 @@ declare global {
 
 export const ROLES_KEY = "roles";
 export const SUPER_ADMIN_ONLY_KEY = "superAdminOnly";
-export const ALLOW_WITHOUT_MFA_KEY = "allowWithoutMfa";
+export const ALLOW_WHILE_PASSWORD_CHANGE_KEY = "allowWhilePasswordChange";
 
-/** Lets staff without TOTP reach this route, so the UI can send them to enrolment (FR-A03). */
-export const AllowWithoutMfa = (): CustomDecorator => SetMetadata(ALLOW_WITHOUT_MFA_KEY, true);
+/** Lets a user who must change their password reach this route (FR-A08), so the UI can send them on. */
+export const AllowWhilePasswordChangeRequired = (): CustomDecorator =>
+  SetMetadata(ALLOW_WHILE_PASSWORD_CHANGE_KEY, true);
 
 /**
  * Decorator to require one of the specified tenant roles.

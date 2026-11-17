@@ -46,13 +46,10 @@ async function createAuthenticatedUser(opts: {
     }
   }
 
-  if (opts.isSuperAdmin || opts.status) {
+  if (opts.isSuperAdmin) {
     await systemPrisma.user.update({
       where: { id: signUp.user.id },
-      data: {
-        isSuperAdmin: opts.isSuperAdmin ?? false,
-        status: opts.status ?? "active",
-      },
+      data: { isSuperAdmin: true },
     });
   }
 
@@ -60,6 +57,15 @@ async function createAuthenticatedUser(opts: {
     body: { email, password },
     asResponse: true,
   });
+
+  // After sign-in: a suspended account gets no new session (10R.3); this shows the guard
+  // refusing an open session once the account is suspended.
+  if (opts.status) {
+    await systemPrisma.user.update({
+      where: { id: signUp.user.id },
+      data: { status: opts.status },
+    });
+  }
 
   const cookie = toCookieHeader(signIn.headers);
   return { userId: signUp.user.id, email, cookie };

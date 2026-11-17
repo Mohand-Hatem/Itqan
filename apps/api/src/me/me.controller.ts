@@ -3,7 +3,11 @@ import type { AuthSession, AuthUser } from "@itqan/auth";
 import type { Membership } from "@itqan/database";
 import type { MeResponse } from "@itqan/shared";
 import { CurrentSession, CurrentUser } from "../auth/current-user.decorator.js";
-import { AllowWithoutMfa, CurrentMembership, Roles } from "../auth/roles.decorator.js";
+import {
+  AllowWhilePasswordChangeRequired,
+  CurrentMembership,
+  Roles,
+} from "../auth/roles.decorator.js";
 import { MeService } from "./me.service.js";
 
 @Controller("me")
@@ -11,7 +15,7 @@ export class MeController {
   constructor(@Inject(MeService) private readonly meService: MeService) {}
 
   @Get()
-  @AllowWithoutMfa()
+  @AllowWhilePasswordChangeRequired()
   async getMe(
     @CurrentUser() user: AuthUser,
     @CurrentMembership() membership?: Membership,

@@ -22,8 +22,11 @@ export const MeUserSchema = z.object({
   image: z.string().nullable().optional(),
   emailVerified: z.boolean(),
   isSuperAdmin: z.boolean(),
-  twoFactorEnabled: z.boolean(),
-  status: z.enum(["active", "suspended"]),
+  // 10R.3 (FR-A08): the UI sends the user to the change-password screen while true.
+  mustChangePassword: z.boolean(),
+  status: z.enum(["active", "suspended", "pending"]),
+  // 10R.7 (FR-A06): `required` or `pending` means course content is closed until a guardian consents.
+  guardianConsent: z.enum(["not_required", "required", "pending", "given"]),
   createdAt: z.string(),
 });
 

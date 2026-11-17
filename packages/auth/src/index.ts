@@ -1,5 +1,12 @@
 export const AUTH_VERSION = "0.1.0";
-export { auth, type Auth, type AuthSession, type AuthUser, type SessionPayload } from "./auth.js";
+export {
+  auth,
+  DISABLED_AUTH_PATHS,
+  type Auth,
+  type AuthSession,
+  type AuthUser,
+  type SessionPayload,
+} from "./auth.js";
 export {
   DEVICE_COOKIE_MAX_AGE,
   DEVICE_COOKIE_NAME,
@@ -21,6 +28,7 @@ export {
   sendEmail,
   sendExamOpeningEmail,
   sendGradeReleasedEmail,
+  sendGuardianConsentEmail,
   sendInvitationEmail,
   sendResetPasswordEmail,
   sendTestEmail,
@@ -35,26 +43,30 @@ export {
   type EmailTemplateParams,
   type ExamOpeningEmailParams,
   type GradeReleasedEmailParams,
+  type GuardianConsentEmailParams,
   getCourseAccessEmail,
   getDeviceRequestDecidedEmail,
   getExamOpeningEmail,
   getGradeReleasedEmail,
+  getGuardianConsentEmail,
   getInvitationEmail,
   getResetPasswordEmail,
   getVerificationEmail,
   type InvitationEmailParams,
 } from "./email/templates.js";
-export {
-  MFA_ENROLMENT_REQUIRED_REASON,
-  checkStaffMfaRequirement,
-  isStaffOrSuperAdmin,
-  staffMfaPlugin,
-  type MfaStatus,
-} from "./staff-mfa.js";
-export { guardStudentSession, studentSignInPlugin } from "./student-sign-in.js";
+export { accountPolicyPlugin, requiredPasswordLength } from "./account-policy.js";
+export { isStaffOrSuperAdmin } from "./staff.js";
+export { guardNewSession, studentSignInPlugin } from "./student-sign-in.js";
 export {
   checkStudentAccess,
   verifyCredentials,
   type PasswordContext,
   type StudentAccess,
 } from "./student-access.js";
+export {
+  BootstrapError,
+  bootstrapSuperAdmin,
+  createSuperAdminIn,
+  recoverSuperAdmin,
+} from "./bootstrap.js";
+export { DEV_ACCOUNTS, seedDevAccounts } from "./dev-seed.js";

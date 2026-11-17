@@ -159,12 +159,21 @@ export function getResetPasswordEmail(params: EmailTemplateParams) {
 export interface InvitationEmailParams {
   url: string;
   tenantName: string;
+  /** The role the invitation gives (10R.6); student when absent. */
+  role?: "teacher" | "assistant" | "student";
   courseTitles?: string[];
   locale?: EmailLocale;
 }
 
 export function getInvitationEmail(params: InvitationEmailParams) {
   const isArabic = params.locale !== "en";
+  const role = params.role ?? "student";
+  const roleAr = { teacher: "معلّماً", assistant: "مساعداً", student: "طالباً" }[role];
+  const roleEn = { teacher: "a teacher", assistant: "an assistant", student: "a student" }[role];
+  const existingAr =
+    "إذا كان لديك حساب في إتقان بهذا البريد، فسجّل الدخول به واقبل الدعوة؛ لن تتغير كلمة مرورك.";
+  const existingEn =
+    "If you already have an Itqan account with this email, sign in with it and accept; your password does not change.";
   const coursesTextAr =
     params.courseTitles && params.courseTitles.length > 0
       ? `للدورات التالية:\n- ${params.courseTitles.join("\n- ")}\n\n`
@@ -186,7 +195,7 @@ export function getInvitationEmail(params: InvitationEmailParams) {
   if (isArabic) {
     return {
       subject: `دعوة للانضمام إلى ${params.tenantName} - منصة إتقان`,
-      text: `مرحباً،\n\nلقد تمت دعوتك للانضمام إلى أكاديمية ${params.tenantName} على منصة إتقان ${coursesTextAr}يرجى استخدام الرابط التالي لإتمام انضمامك:\n${params.url}\n\nهذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة.\nإذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.`,
+      text: `مرحباً،\n\nلقد تمت دعوتك للانضمام ${roleAr} إلى أكاديمية ${params.tenantName} على منصة إتقان ${coursesTextAr}يرجى استخدام الرابط التالي لإتمام انضمامك:\n${params.url}\n\nهذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة.\n${existingAr}\nإذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة.`,
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
@@ -206,13 +215,14 @@ export function getInvitationEmail(params: InvitationEmailParams) {
         <body>
           <div class="container">
             <h1>دعوة للانضمام إلى ${escapeHtml(params.tenantName)}</h1>
-            <p>تمت دعوتك للانضمام كطالب إلى <strong>${escapeHtml(params.tenantName)}</strong> على منصة إتقان.</p>
+            <p>تمت دعوتك للانضمام ${roleAr} إلى <strong>${escapeHtml(params.tenantName)}</strong> على منصة إتقان.</p>
             ${coursesHtmlAr}
             <p><a href="${params.url}" class="btn">قبول الدعوة والتسجيل</a></p>
             <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك مباشرة:</p>
             <p class="raw-link">${params.url}</p>
             <div class="footer">
-              <p>هذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهلها بأمان.</p>
+              <p>هذا الرابط صالح للاستخدام مرة واحدة ولمدة 72 ساعة. ${existingAr}</p>
+              <p>إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهلها بأمان.</p>
             </div>
           </div>
         </body>
@@ -223,7 +233,7 @@ export function getInvitationEmail(params: InvitationEmailParams) {
 
   return {
     subject: `Invitation to join ${params.tenantName} - Itqan Platform`,
-    text: `Hello,\n\nYou have been invited to join ${params.tenantName} on Itqan Platform ${coursesTextEn}Please use the following link to complete your registration:\n${params.url}\n\nThis single-use link expires in 72 hours.\nIf you did not expect this invitation, you can safely ignore this email.`,
+    text: `Hello,\n\nYou have been invited to join ${params.tenantName} as ${roleEn} on Itqan Platform ${coursesTextEn}Please use the following link to complete your registration:\n${params.url}\n\nThis single-use link expires in 72 hours.\n${existingEn}\nIf you did not expect this invitation, you can safely ignore this email.`,
     html: `
       <!DOCTYPE html>
       <html dir="ltr" lang="en">
@@ -243,13 +253,14 @@ export function getInvitationEmail(params: InvitationEmailParams) {
       <body>
         <div class="container">
           <h1>Invitation to join ${escapeHtml(params.tenantName)}</h1>
-          <p>You have been invited to join <strong>${escapeHtml(params.tenantName)}</strong> on the Itqan Platform.</p>
+          <p>You have been invited to join <strong>${escapeHtml(params.tenantName)}</strong> as ${roleEn} on the Itqan Platform.</p>
           ${coursesHtmlEn}
           <p><a href="${params.url}" class="btn">Accept Invitation & Register</a></p>
           <p>Or copy and paste this URL into your browser:</p>
           <p class="raw-link">${params.url}</p>
           <div class="footer">
-            <p>This single-use link expires in 72 hours. If you did not expect this invitation, you can safely ignore this email.</p>
+            <p>This single-use link expires in 72 hours. ${existingEn}</p>
+            <p>If you did not expect this invitation, you can safely ignore this email.</p>
           </div>
         </div>
       </body>
@@ -564,6 +575,73 @@ export function getCourseAccessEmail(params: CourseAccessEmailParams) {
           ${courseBtnEn}
           <div class="footer">
             <p>Itqan Platform - ${safeTenant}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim(),
+  };
+}
+
+export interface GuardianConsentEmailParams {
+  studentName: string;
+  tenantName: string;
+  url: string;
+  locale?: EmailLocale;
+}
+
+/** 10R.7 (FR-A06, ADR-014): asks the guardian to confirm consent for a student under 18. */
+export function getGuardianConsentEmail(params: GuardianConsentEmailParams) {
+  const isArabic = params.locale !== "en";
+  const student = escapeHtml(params.studentName);
+  const tenant = escapeHtml(params.tenantName);
+  const style = `body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #111827; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            h1 { font-size: 20px; font-weight: 600; margin-top: 0; color: #111827; }
+            p { font-size: 15px; line-height: 1.6; color: #374151; }
+            .btn { display: inline-block; padding: 12px 24px; background-color: #111827; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; margin: 16px 0; }
+            .footer { font-size: 13px; color: #6b7280; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px; }
+            .raw-link { word-break: break-all; color: #2563eb; }`;
+
+  if (isArabic) {
+    return {
+      subject: `موافقة ولي الأمر على حساب ${params.studentName} - منصة إتقان`,
+      text: `مرحباً،\n\nسجّل ${params.studentName} حساباً لدى ${params.tenantName} على منصة إتقان، وذكر أنك ولي أمره. لا يمكنه فتح محتوى الدورات قبل موافقتك.\n\nلقراءة الشروط وتأكيد الموافقة افتح الرابط التالي:\n${params.url}\n\nالرابط صالح لمدة 7 أيام. إذا لم تكن ولي أمر هذا الطالب، فتجاهل هذه الرسالة.`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head><meta charset="utf-8"><style>${style}</style></head>
+        <body>
+          <div class="container">
+            <h1>طلب موافقة ولي الأمر</h1>
+            <p>سجّل <strong>${student}</strong> حساباً لدى <strong>${tenant}</strong> على منصة إتقان، وذكر أنك ولي أمره. لا يمكنه فتح محتوى الدورات قبل موافقتك.</p>
+            <p><a href="${params.url}" class="btn">قراءة الشروط والموافقة</a></p>
+            <p class="raw-link">${params.url}</p>
+            <div class="footer">
+              <p>الرابط صالح لمدة 7 أيام. إذا لم تكن ولي أمر هذا الطالب، فتجاهل هذه الرسالة.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `.trim(),
+    };
+  }
+
+  return {
+    subject: `Guardian consent for ${params.studentName} - Itqan`,
+    text: `Hello,\n\n${params.studentName} has an account with ${params.tenantName} on Itqan and named you as their guardian. They cannot open course content until you consent.\n\nRead the terms and confirm here:\n${params.url}\n\nThe link is valid for 7 days. If you are not this student's guardian, ignore this email.`,
+    html: `
+      <!DOCTYPE html>
+      <html dir="ltr" lang="en">
+      <head><meta charset="utf-8"><style>${style}</style></head>
+      <body>
+        <div class="container">
+          <h1>Guardian consent request</h1>
+          <p><strong>${student}</strong> has an account with <strong>${tenant}</strong> on Itqan and named you as their guardian. They cannot open course content until you consent.</p>
+          <p><a href="${params.url}" class="btn">Read the terms and consent</a></p>
+          <p class="raw-link">${params.url}</p>
+          <div class="footer">
+            <p>The link is valid for 7 days. If you are not this student's guardian, ignore this email.</p>
           </div>
         </div>
       </body>

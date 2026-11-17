@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import { DEVICE_COOKIE_NAME, deviceCookieOptions } from "@itqan/auth";
 import { getRootDomain } from "@itqan/database";
 import { DeviceRequestBodySchema } from "@itqan/shared";
@@ -21,6 +21,8 @@ const HOUR_MS = 60 * 60 * 1000;
 
 @Controller("device-requests")
 @UseGuards(ThrottlerGuard)
+// No access code here, so the per-code limit (code routes only) does not apply.
+@SkipThrottle({ code: true })
 export class DeviceRequestsController {
   constructor(@Inject(SupportRequestsService) private readonly service: SupportRequestsService) {}
 

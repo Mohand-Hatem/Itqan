@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import { SignOutRequestBodySchema } from "@itqan/shared";
 import type { Request } from "express";
 import { Public } from "../auth/public.decorator.js";
@@ -18,6 +18,8 @@ const HOUR_MS = 60 * 60 * 1000;
 
 @Controller("signout-requests")
 @UseGuards(ThrottlerGuard)
+// No access code here, so the per-code limit (code routes only) does not apply.
+@SkipThrottle({ code: true })
 export class SignOutRequestsController {
   constructor(@Inject(SupportRequestsService) private readonly service: SupportRequestsService) {}
 

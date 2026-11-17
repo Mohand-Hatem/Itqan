@@ -546,13 +546,8 @@ export class SupportRequestsService {
         message: "Invalid email or password",
       });
     }
-    if (!user.emailVerified) {
-      throw new ForbiddenException({
-        statusCode: 403,
-        reason: "EMAIL_NOT_VERIFIED",
-        message: "Email not verified",
-      });
-    }
+    // Account status, including `pending` (EMAIL_NOT_VERIFIED), is checked with the student rules
+    // below, so a student created directly by staff (active, unverified) can still ask (10R.3).
     const access = await checkStudentAccess(user.id, context.tenantId);
     if (!access.ok) {
       throw new ForbiddenException({

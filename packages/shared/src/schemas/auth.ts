@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+/**
+ * Password lengths (FR-A09). Teachers, assistants and super admins need 12 characters, students 8.
+ * The maximum is Better Auth's default.
+ */
+export const PASSWORD_MIN_LENGTH = { staff: 12, student: 8 } as const;
+export const PASSWORD_MAX_LENGTH = 128;
+export const PASSWORD_TOO_SHORT = "PASSWORD_TOO_SHORT";
+
+/** Body of POST /api/admin/users/:id/password (10R.3, FR-A07). Staff targets need 12 characters. */
+export const AdminSetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(PASSWORD_MIN_LENGTH.student).max(PASSWORD_MAX_LENGTH),
+  })
+  .strict();
+
+export type AdminSetPassword = z.infer<typeof AdminSetPasswordSchema>;
+
 /** Body of POST /api/auth/sign-in/student (ADR-011). */
 export const StudentSignInBodySchema = z.object({
   email: z.email(),

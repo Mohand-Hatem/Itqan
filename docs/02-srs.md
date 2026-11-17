@@ -2,14 +2,16 @@
 
 IDs are stable; reference them in tasks and tests.
 
+Requirements changed on 2026-11-17 by [ADR-012](adr/012-no-two-factor.md), [ADR-013](adr/013-account-provisioning.md) and [ADR-014](adr/014-guardian-consent.md) are built in Phase 10R of [../tasks/todo.md](../tasks/todo.md). Until a step there is ticked, the code may still follow the old rule.
+
 ## 1. Functional requirements
 
 ### Tenancy and super admin
 | ID | Requirement |
 |---|---|
 | FR-T01 | The tenant is resolved from the request hostname (`<slug>.<root-domain>`). Unknown hosts return 404. |
-| FR-T02 | The super admin creates tenants with a slug, name and teacher email. |
-| FR-T03 | The super admin can pause any combination of roles in a tenant (teacher, assistants, students) and suspend individual users. |
+| FR-T02 | The super admin creates tenants with a slug, a name and a first teacher, and manages each tenant's teachers and assistants. A tenant can have several teachers and assistants and always keeps at least one active teacher. |
+| FR-T03 | The super admin can pause any combination of roles in a tenant (teacher, assistants, students) and suspend individual users, except a tenant's last active teacher. |
 | FR-T04 | The super admin can soft-delete a tenant. Data and files are purged after 30 days. |
 | FR-T05 | The super admin sees per-tenant usage: student count, course count, storage bytes. |
 | FR-T06 | The teacher edits branding and public settings: name, logo, favicon, colors, hero, about, how-it-works, contact info, social links, default language, timezone, device limit default. |
@@ -17,12 +19,16 @@ IDs are stable; reference them in tasks and tests.
 ### Accounts and auth
 | ID | Requirement |
 |---|---|
-| FR-A01 | Users log in with email and password. Email must be verified before first login. |
-| FR-A02 | Password reset by email link. |
-| FR-A03 | Teacher, assistants and super admin must use TOTP MFA. |
-| FR-A04 | One user (email) can hold memberships in several tenants. Data stays per tenant. |
-| FR-A05 | Public self-registration is disabled. Students register only with an invitation or an access code. |
-| FR-A06 | Registration requires a guardian-consent checkbox for students under 18. |
+| FR-A01 | Users sign in with email and password. Accounts created by access-code registration must verify their email before first sign-in. Accepting an invitation verifies the email. Accounts created directly by staff are active without verification. |
+| FR-A02 | Password reset by email link, sent only to verified email addresses. A user whose address is not verified gets a new password from the super admin (FR-A07). |
+| FR-A03 | There is no two-factor authentication. Staff accounts are protected by the password rules (FR-A09), rate limits, the sign-in audit (FR-L01) and session revocation ([ADR-012](adr/012-no-two-factor.md)). |
+| FR-A04 | One user (email) can hold memberships in several tenants, with a different role in each. Data stays per tenant. |
+| FR-A05 | Public self-registration is disabled. Accounts are created only by invitation, by access-code registration, directly by authorized staff (FR-E08), or by the super admin bootstrap (FR-A10). |
+| FR-A06 | A student under 18 needs guardian consent, recorded once per person and reused in every academy. The guardian gives it through an emailed confirmation link, or academy staff record it from a signed offline form, by document reference. A student's own checkbox is not consent. Until consent is recorded, a minor can sign in but cannot open course content, save progress, post questions, or start or continue assessments. Withdrawing consent closes the same access. Code redemption never asks for consent ([ADR-014](adr/014-guardian-consent.md)). |
+| FR-A07 | Only the super admin can set another user's password, never another super admin's. It ends all of that user's sessions, is audited, and the user must choose a new password at the next sign-in. Teachers and assistants cannot reset passwords. |
+| FR-A08 | Staff accounts created directly must change their password at first sign-in. For students created directly this is a choice, on by default. Until the change, the API answers only the current-user route. |
+| FR-A09 | Teacher, assistant and super admin passwords have at least 12 characters; student passwords at least 8. An account that receives its first staff role must choose a new password before acting as staff. |
+| FR-A10 | The first super admin is created by a server-side bootstrap command, which also recovers a super admin's password. No API route creates or promotes a super admin. |
 
 ### Devices and sessions
 | ID | Requirement |
@@ -39,12 +45,14 @@ IDs are stable; reference them in tasks and tests.
 ### Access and enrollment
 | ID | Requirement |
 |---|---|
-| FR-E01 | The teacher creates email invitations for one or more courses. Links expire after 72 hours, are single-use and can be resent or revoked. |
-| FR-E02 | The teacher generates access codes in batches per course and exports them as CSV. Codes are single-use and revocable. |
-| FR-E03 | A new student registers with an invitation or a code. An existing student redeems a code from their account. |
+| FR-E01 | Email invitations: the super admin invites any role into any tenant, the teacher invites assistants and students, the assistant invites students. Student invitations can grant one or more courses. Links expire after 72 hours, are single-use, can be resent or revoked, and accepting one verifies the email. |
+| FR-E02 | The teacher generates access codes in batches per course and exports them as CSV. Codes are single-use and revocable. Codes are never sent by email. |
+| FR-E03 | A new student registers with an invitation or a code, or staff create the account (FR-E08). An existing student redeems a code from their account, with no consent step. |
 | FR-E04 | Enrollment is lifetime until terminated. |
 | FR-E05 | The teacher or super admin can terminate an enrollment. History and grades stay. |
 | FR-E06 | The teacher records offline payments: student, course (optional), amount, date, method, note. |
+| FR-E07 | Teachers and assistants enroll existing students in a course by hand. Ending an enrollment stays with the teacher and super admin (FR-E05). |
+| FR-E08 | Accounts are created directly or by invitation (FR-E01). Direct: the creator sets the password, the account is active at once, no email is sent and the address stays unverified. The super admin creates any role in any tenant, the teacher assistants and students in their tenant, the assistant students in their tenant. Teachers and assistants cannot directly create an account for an email that already has one; they send an invitation. The super admin can link an existing account to a tenant directly, without changing its password, profile or other memberships ([ADR-013](adr/013-account-provisioning.md)). |
 
 ### Content
 | ID | Requirement |
@@ -77,28 +85,38 @@ IDs are stable; reference them in tasks and tests.
 |---|---|
 | FR-N01 | Notifications are stored and shown in a bell with an unread count. |
 | FR-N02 | Online users get them instantly over SSE. |
-| FR-N03 | Important types also go by push (FCM) and email (Resend): activation, password reset, grade released, exam opening, new course access, device request decided. |
+| FR-N03 | Important types also go by push (FCM) and email (Resend): invitation, password reset, guardian consent request, grade released, exam opening, new course access, device request decided. Emails go only to verified addresses, except the invitation and the guardian consent request, which go to the address being invited or asked. |
 | FR-N04 | Staff publish announcements to the whole tenant or one course. |
 | FR-N05 | Support requests have types: device change, sign-out other device, general. |
 
 ### Audit and analytics
 | ID | Requirement |
 |---|---|
-| FR-L01 | Every staff and super admin write action creates an audit entry. Blocked logins are logged too. |
+| FR-L01 | Every staff and super admin write action creates an audit entry. Blocked logins are logged too, and so is every staff and super admin sign-in attempt, successful or failed, with a failure category but never a password, token or the email of an unknown account. |
 | FR-L02 | Dashboard numbers: students, active students (7 days), courses, published items, quiz participation, average grades, pending requests. |
 
 ## 2. Roles and permissions
 
 | Action | Super admin | Teacher | Assistant | Student |
 |---|---|---|---|---|
-| Manage tenants, pause roles | ✅ | | | |
-| Website settings, manage assistants | ✅ | ✅ | | |
+| Manage tenants, pause roles, suspend users | ✅ | | | |
+| Create, invite, re-role and remove teachers | ✅ | | | |
+| Link an existing account to a tenant directly | ✅ | | | |
+| Set another user's password | ✅ (not super admins) | | | |
+| Create or invite assistants, remove assistants | ✅ | ✅ | | |
+| Website settings, audit log | ✅ | ✅ | | |
 | Payments | ✅ | ✅ | view | |
 | Courses, content, exams | ✅ | ✅ | ✅ | |
-| Students, enrollments, invitations, codes | ✅ | ✅ | ✅ | |
+| Create or invite students, enroll students | ✅ | ✅ | ✅ | |
+| End enrollments, change device limits | ✅ | ✅ | | |
+| Generate or revoke access-code batches | ✅ | ✅ | view | |
 | Devices, sessions, support requests | ✅ | ✅ | ✅ | own |
+| Record or withdraw guardian consent | ✅ | ✅ | ✅ | ask a guardian (own) |
+| Change a student's minor status after creation | ✅ | | | |
 | Delete course | ✅ | ✅ | | |
 | Learn, take exams | | | | ✅ |
+
+The super admin has no membership role: it is a platform flag, created only by the bootstrap command (FR-A10). Teacher and assistant rights apply only inside the tenant where the person holds that role.
 
 Shortcut: assistant permissions are fixed. Per-assistant permission toggles come later if teachers ask for them.
 

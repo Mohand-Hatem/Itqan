@@ -197,7 +197,7 @@ describe("Step 8.12: Staff Rescue Actions (FR-X09, FR-X10)", () => {
       expect(studentTransfer.status).toBe(403);
       expect(reasonOf(studentTransfer.body)).toBe(AccessReasonCode.ROLE_FORBIDDEN);
 
-      // 3. Teacher caller -> 200 (using both /extend and /extend-time aliases)
+      // 3. Teacher caller -> 200
       const teacherExtend = await s.asTeacher("POST", `/attempts/${attemptId}/extend`, {
         extraMinutes: 10,
         reason: "Student had connectivity drop",
@@ -206,7 +206,7 @@ describe("Step 8.12: Staff Rescue Actions (FR-X09, FR-X10)", () => {
       expect((teacherExtend.body as { success: boolean }).success).toBe(true);
 
       // 4. Assistant caller -> 200
-      const assistantExtend = await s.asAssistant("POST", `/attempts/${attemptId}/extend-time`, {
+      const assistantExtend = await s.asAssistant("POST", `/attempts/${attemptId}/extend`, {
         extraMinutes: 5,
         reason: "Assistant granted 5 extra minutes",
       });

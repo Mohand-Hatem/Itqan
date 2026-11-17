@@ -64,6 +64,9 @@ export async function checkStudentAccess(userId: string, tenantId: string): Prom
   if (record.status === "suspended") {
     return no(AccessReasonCode.USER_SUSPENDED, "Your account is not active here.");
   }
+  // Self-registered and not verified yet (10R.3). Directly created accounts are `active` while
+  // unverified and pass (ADR-013).
+  if (record.status === "pending") return no(AccessReasonCode.EMAIL_NOT_VERIFIED, "Email not verified");
   if (record.isSuperAdmin) return no(AccessReasonCode.USE_STAFF_SIGN_IN, "Use the staff sign-in.");
   const membership = record.memberships[0];
   if (!membership || membership.status !== "active") {

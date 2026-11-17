@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type { Auth } from "@itqan/auth";
+import { type Auth, requiredPasswordLength } from "@itqan/auth";
 import { PrismaClient } from "@itqan/database";
+import { AccessReasonCode, PASSWORD_TOO_SHORT } from "@itqan/shared";
 import type {
   AdminTenantCreateDto,
   AdminTenantListItem,
@@ -19,7 +21,9 @@ import type {
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
+import { ProvisioningService } from "../provisioning/provisioning.service.js";
 import { TenantResolver } from "../tenancy/tenant-resolver.js";
+import { assertTeacherRemains } from "./last-teacher.js";
 
 @Injectable()
 export class AdminTenantsService {
@@ -28,6 +32,7 @@ export class AdminTenantsService {
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(TenantResolver) private readonly tenantResolver: TenantResolver,
+    @Inject(ProvisioningService) private readonly provisioning: ProvisioningService,
   ) {}
 
   /** Provisions a new tenant with initial teacher credentials and warms resolver cache. */
@@ -59,52 +64,21 @@ export class AdminTenantsService {
         },
       });
 
-      // 3. User & Teacher Account
-      const existingUser = await tx.user.findUnique({
-        where: { email: teacherEmail },
+      // 3–4. First teacher through the shared provisioning rules (10R.4, ADR-013): a new account is
+      // active, unverified and changes its password at first sign-in; an existing one is linked.
+      const teacher = await this.provisioning.provisionIn(tx, {
+        tenantId: tenant.id,
+        actor: { userId: actorUserId, isSuperAdmin: true },
+        role: "teacher",
+        email: teacherEmail,
+        name: teacherName,
+        password: dto.temporaryPassword,
       });
-
-      let userId: string;
-      let userRecord: { id: string; name: string; email: string };
-      let existingUserLinked = false;
-
-      if (existingUser) {
-        userId = existingUser.id;
-        userRecord = { id: existingUser.id, name: existingUser.name, email: existingUser.email };
-        existingUserLinked = true;
-      } else {
-        const ctx = await this.auth.$context;
-        const hashedPassword = await ctx.password.hash(dto.temporaryPassword);
-
-        const newUser = await tx.user.create({
-          data: {
-            name: teacherName,
-            email: teacherEmail,
-            emailVerified: true,
-          },
-        });
-
-        await tx.account.create({
-          data: {
-            userId: newUser.id,
-            accountId: newUser.id,
-            providerId: "credential",
-            password: hashedPassword,
-          },
-        });
-
-        userId = newUser.id;
-        userRecord = { id: newUser.id, name: newUser.name, email: newUser.email };
-      }
-
-      // 4. Create primary teacher membership
-      await tx.membership.create({
-        data: {
-          tenantId: tenant.id,
-          userId,
-          role: "teacher",
-          status: "active",
-        },
+      const userId = teacher.userId;
+      const existingUserLinked = teacher.existingUserLinked;
+      const userRecord = await tx.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { id: true, name: true, email: true },
       });
 
       // 5. Transactional Audit Log
@@ -134,7 +108,9 @@ export class AdminTenantsService {
         name: tenant.name,
         status: tenant.status,
         pausedRoles: tenant.pausedRoles,
-        teacher: userRecord,
+        teachers: [{ ...userRecord, status: "active" as const }],
+        assistantCount: 0,
+        studentCount: 0,
         usage: {
           studentCount: 0,
           courseCount: 0,
@@ -157,17 +133,6 @@ export class AdminTenantsService {
         cursor: query.cursor ? { id: query.cursor } : undefined,
         skip: query.cursor ? 1 : 0,
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        include: {
-          memberships: {
-            where: { role: "teacher" },
-            take: 1,
-            include: {
-              user: {
-                select: { id: true, name: true, email: true },
-              },
-            },
-          },
-        },
       })
       .catch((err) => {
         if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
@@ -186,17 +151,9 @@ export class AdminTenantsService {
     const nextCursor = hasNextPage ? items[items.length - 1]!.id : null;
     const tenantIds = items.map((t) => t.id);
 
-    // Batched metrics aggregation: 2 queries for entire list
-    const [studentCounts, courseCounts] = await Promise.all([
-      this.db.membership.groupBy({
-        by: ["tenantId"],
-        where: {
-          tenantId: { in: tenantIds },
-          role: "student",
-          status: "active",
-        },
-        _count: { id: true },
-      }),
+    // Batched: staff and student numbers in 3 queries, courses in 1, for the whole page.
+    const [staff, courseCounts] = await Promise.all([
+      this.staffOf(tenantIds),
       this.db.course.groupBy({
         by: ["tenantId"],
         where: {
@@ -208,22 +165,20 @@ export class AdminTenantsService {
       }),
     ]);
 
-    const studentCountMap = new Map(studentCounts.map((s) => [s.tenantId, s._count.id]));
     const courseCountMap = new Map(courseCounts.map((c) => [c.tenantId, c._count.id]));
 
     return {
       items: items.map((t) => {
-        const teacherMember = t.memberships[0];
-        const teacher = teacherMember?.user ?? null;
+        const s = staff(t.id);
         return {
           id: t.id,
           slug: t.slug,
           name: t.name,
           status: t.status,
           pausedRoles: t.pausedRoles,
-          teacher: teacher ? { id: teacher.id, name: teacher.name, email: teacher.email } : null,
+          ...s,
           usage: {
-            studentCount: studentCountMap.get(t.id) ?? 0,
+            studentCount: s.studentCount,
             courseCount: courseCountMap.get(t.id) ?? 0,
             storageBytes: 0,
           },
@@ -234,21 +189,42 @@ export class AdminTenantsService {
     };
   }
 
+  /**
+   * D8 (10R.5): all teachers (oldest first, with membership status) plus active assistant and
+   * student counts, for any set of tenants in three queries.
+   */
+  private async staffOf(tenantIds: string[]) {
+    const [teachers, counts] = await Promise.all([
+      this.db.membership.findMany({
+        where: { tenantId: { in: tenantIds }, role: "teacher" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        select: {
+          tenantId: true,
+          status: true,
+          user: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      this.db.membership.groupBy({
+        by: ["tenantId", "role"],
+        where: { tenantId: { in: tenantIds }, role: { in: ["assistant", "student"] }, status: "active" },
+        _count: { id: true },
+      }),
+    ]);
+    const count = (tenantId: string, role: "assistant" | "student") =>
+      counts.find((c) => c.tenantId === tenantId && c.role === role)?._count.id ?? 0;
+    return (tenantId: string) => ({
+      teachers: teachers
+        .filter((t) => t.tenantId === tenantId)
+        .map((t) => ({ ...t.user, status: t.status })),
+      assistantCount: count(tenantId, "assistant"),
+      studentCount: count(tenantId, "student"),
+    });
+  }
+
   /** Retrieves single tenant details with live usage breakdown. */
   async getById(id: string): Promise<AdminTenantListItem> {
     const tenant = await this.db.tenant.findFirst({
       where: { id, deletedAt: null },
-      include: {
-        memberships: {
-          where: { role: "teacher" },
-          take: 1,
-          include: {
-            user: {
-              select: { id: true, name: true, email: true },
-            },
-          },
-        },
-      },
     });
 
     if (!tenant) {
@@ -260,38 +236,33 @@ export class AdminTenantsService {
       });
     }
 
-    const [studentCount, courseCount] = await Promise.all([
-      this.db.membership.count({
-        where: {
-          tenantId: tenant.id,
-          role: "student",
-          status: "active",
-        },
-      }),
+    return this.toItem(tenant);
+  }
+
+  /** One tenant with its teachers, counts and usage (D8). */
+  private async toItem(tenant: {
+    id: string;
+    slug: string;
+    name: string;
+    status: "active" | "deleted";
+    pausedRoles: ("teacher" | "assistant" | "student")[];
+    createdAt: Date;
+  }): Promise<AdminTenantListItem> {
+    const [staff, courseCount] = await Promise.all([
+      this.staffOf([tenant.id]),
       this.db.course.count({
-        where: {
-          tenantId: tenant.id,
-          status: "published",
-          deletedAt: null,
-        },
+        where: { tenantId: tenant.id, status: "published", deletedAt: null },
       }),
     ]);
-
-    const teacherMember = tenant.memberships[0];
-    const teacher = teacherMember?.user ?? null;
-
+    const s = staff(tenant.id);
     return {
       id: tenant.id,
       slug: tenant.slug,
       name: tenant.name,
       status: tenant.status,
       pausedRoles: tenant.pausedRoles,
-      teacher: teacher ? { id: teacher.id, name: teacher.name, email: teacher.email } : null,
-      usage: {
-        studentCount,
-        courseCount,
-        storageBytes: 0,
-      },
+      ...s,
+      usage: { studentCount: s.studentCount, courseCount, storageBytes: 0 },
       createdAt: tenant.createdAt.toISOString(),
     };
   }
@@ -359,17 +330,6 @@ export class AdminTenantsService {
           slug: newSlug,
           pausedRoles: dto.pausedRoles,
         },
-        include: {
-          memberships: {
-            where: { role: "teacher" },
-            take: 1,
-            include: {
-              user: {
-                select: { id: true, name: true, email: true },
-              },
-            },
-          },
-        },
       });
 
       await this.audit.record(
@@ -398,40 +358,7 @@ export class AdminTenantsService {
       this.tenantResolver.set(newSlug, { id: updatedTenant.id, slug: updatedTenant.slug });
     }
 
-    const [studentCount, courseCount] = await Promise.all([
-      this.db.membership.count({
-        where: {
-          tenantId: updatedTenant.id,
-          role: "student",
-          status: "active",
-        },
-      }),
-      this.db.course.count({
-        where: {
-          tenantId: updatedTenant.id,
-          status: "published",
-          deletedAt: null,
-        },
-      }),
-    ]);
-
-    const teacherMember = updatedTenant.memberships[0];
-    const teacher = teacherMember?.user ?? null;
-
-    return {
-      id: updatedTenant.id,
-      slug: updatedTenant.slug,
-      name: updatedTenant.name,
-      status: updatedTenant.status,
-      pausedRoles: updatedTenant.pausedRoles,
-      teacher: teacher ? { id: teacher.id, name: teacher.name, email: teacher.email } : null,
-      usage: {
-        studentCount,
-        courseCount,
-        storageBytes: 0,
-      },
-      createdAt: updatedTenant.createdAt.toISOString(),
-    };
+    return this.toItem(updatedTenant);
   }
 
   /** Soft-deletes a tenant, terminates all its sessions, and invalidates resolver cache. */
@@ -537,11 +464,42 @@ export class AdminTenantsService {
     }
 
     return this.db.$transaction(async (tx) => {
+      // T5 (FR-T03): suspending the person suspends their teaching everywhere, so no tenant may
+      // lose its last active teacher this way either.
+      if (dto.status === "suspended" && user.status === "active") {
+        const teaching = await tx.membership.findMany({
+          where: { userId: targetUserId, role: "teacher", status: "active" },
+          select: { tenantId: true },
+        });
+        await assertTeacherRemains(
+          tx,
+          teaching.map((t) => t.tenantId),
+          { userId: targetUserId },
+        );
+      }
       const updated = await tx.user.update({
         where: { id: targetUserId },
-        data: { status: dto.status },
-        select: { id: true, name: true, email: true, status: true },
+        data: { status: dto.status, isMinor: dto.isMinor },
+        select: { id: true, name: true, email: true, status: true, isMinor: true },
       });
+
+      // 10R.7 (FR-A06): a person-level flag, so only the super admin changes it after creation.
+      if (dto.isMinor !== undefined && dto.isMinor !== user.isMinor) {
+        await this.audit.record(
+          {
+            action: "user.minor_flag_change",
+            targetType: "user",
+            targetId: targetUserId,
+            tenantId: null,
+            actorUserId,
+            meta: { previous: user.isMinor, isMinor: dto.isMinor },
+          },
+          tx,
+        );
+      }
+      if (dto.status === undefined) {
+        return { ...updated, sessionsEvicted: 0 };
+      }
 
       let sessionsEvicted = 0;
       if (dto.status === "suspended") {
@@ -572,8 +530,83 @@ export class AdminTenantsService {
         name: updated.name,
         email: updated.email,
         status: updated.status,
+        isMinor: updated.isMinor,
         sessionsEvicted,
       };
+    });
+  }
+
+  /**
+   * FR-A07 (10R.3): only the super admin sets another user's password, for example when an
+   * unverified address cannot receive a reset link. Never a super admin's (bootstrap recovery).
+   * The user must choose their own password at the next sign-in; every session ends at once.
+   * The password is hashed here and never logged, audited or returned.
+   */
+  async setUserPassword(
+    actorUserId: string,
+    targetUserId: string,
+    newPassword: string,
+  ): Promise<{ sessionsEnded: number }> {
+    const user = await this.db.user.findUnique({
+      where: { id: targetUserId },
+      select: { isSuperAdmin: true },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: 404,
+        reason: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+    if (user.isSuperAdmin) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        reason: AccessReasonCode.ROLE_FORBIDDEN,
+        message: "A super admin's password is reset only with the bootstrap recovery command.",
+      });
+    }
+    const min = await requiredPasswordLength(targetUserId);
+    if (newPassword.length < min) {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: PASSWORD_TOO_SHORT,
+        message: `Password must be at least ${min} characters.`,
+      });
+    }
+    const hash = await (await this.auth.$context).password.hash(newPassword);
+
+    return this.db.$transaction(async (tx) => {
+      const { count } = await tx.account.updateMany({
+        where: { userId: targetUserId, providerId: "credential" },
+        data: { password: hash },
+      });
+      if (count === 0) {
+        await tx.account.create({
+          data: {
+            userId: targetUserId,
+            accountId: targetUserId,
+            providerId: "credential",
+            password: hash,
+          },
+        });
+      }
+      await tx.user.update({ where: { id: targetUserId }, data: { mustChangePassword: true } });
+      // Every session on every tenant ends; open SSE streams close at their next session check.
+      const { count: sessionsEnded } = await tx.session.deleteMany({
+        where: { userId: targetUserId },
+      });
+      await this.audit.record(
+        {
+          action: "user.password_reset_by_admin",
+          targetType: "user",
+          targetId: targetUserId,
+          tenantId: null,
+          actorUserId,
+          meta: { sessionsEnded },
+        },
+        tx,
+      );
+      return { sessionsEnded };
     });
   }
 }

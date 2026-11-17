@@ -21,7 +21,7 @@ Independent teachers sell courses but have no affordable platform that:
 
 ## 4. MVP scope
 1. **Tenancy:** shared deployment, one subdomain per teacher, per-tenant branding (name, logo, colors, social and contact links, public pages).
-2. **Accounts:** email login, email verification, password reset, MFA for teacher, assistants and super admin.
+2. **Accounts:** email and password login for every role (no two-factor), email verification, password reset; staff create accounts directly or by invitation; several teachers and assistants per academy; guardian consent once per student under 18.
 3. **Access:** invitations, access codes, lifetime enrollments, removal from a course by teacher or super admin.
 4. **Anti-sharing:** 1 registered device per student (admin can raise it), 1 active session at a time, device change by request and approval.
 5. **Content:** course tree (folders, chapters, lectures), PDFs, DOCX/PPTX downloads, MP4 videos with moving watermark.

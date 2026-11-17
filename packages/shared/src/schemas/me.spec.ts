@@ -67,8 +67,9 @@ describe("Permissions and MeResponse Schema", () => {
         image: null,
         emailVerified: true,
         isSuperAdmin: false,
-        twoFactorEnabled: false,
+        mustChangePassword: false,
         status: "active",
+        guardianConsent: "not_required",
         createdAt: new Date().toISOString(),
       },
       tenant: {

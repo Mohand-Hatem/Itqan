@@ -1,6 +1,16 @@
 # Database
 
-Neon PostgreSQL with Prisma. UUID primary keys, UTC `timestamptz`, `created_at`/`updated_at` on all tables. Tables marked **T** carry `tenant_id` and are auto-scoped by the Prisma extension. Better Auth owns `user`, `session`, `account`, `verification`, `two_factor`; we extend `user` and `session`.
+Neon PostgreSQL with Prisma. UUID primary keys, UTC `timestamptz`, `created_at`/`updated_at` on all tables. Tables marked **T** carry `tenant_id` and are auto-scoped by the Prisma extension. Better Auth owns `user`, `session`, `account`, `verification`; we extend `user` and `session`.
+
+**Phase 10R changes** ([ADR-012](adr/012-no-two-factor.md) to [ADR-014](adr/014-guardian-consent.md)), each in its own migration, Docker → Neon `dev` → `main`:
+
+| Migration | Change | Step |
+|---|---|---|
+| M1a | `"UserStatus"` enum gains `pending`. Alone in its migration: PostgreSQL cannot use a new enum value in the transaction that adds it. | 10R.3 |
+| M1b | `users.must_change_password bool not null default false`; users with `email_verified = false` become `pending`; every existing teacher, assistant and super admin gets `must_change_password = true` (their stored hash cannot show the password length) | 10R.3 |
+| M2 | `invitations.role` (`teacher`/`assistant`/`student`, default `student`) | 10R.6 |
+| M3 | `users.is_minor bool not null default false`; table `guardian_consents`; old `memberships.guardian_consent_at` values copied as `legacy_checkbox` | 10R.7 |
+| M4 | Drop `two_factors` (and its indexes) and `users.two_factor_enabled`. **Destructive:** runs only after every environment's rows are counted, a backup is verified and the owner approves this migration on its own. Until then the unused column and table stay; the code no longer reads them after 10R.2. Counted 0 rows on Docker and Neon `dev` (10R.9); the owner moved `main` and this decision to step 12.7. | 12.7 |
 
 ## ERD (core)
 
@@ -27,6 +37,7 @@ erDiagram
   memberships ||--o{ attempts : takes
   attempts ||--o{ attempt_answers : has
   users ||--o{ notifications : receives
+  users ||--o{ guardian_consents : "consent for"
   memberships ||--o{ support_requests : opens
 ```
 
@@ -36,9 +47,10 @@ erDiagram
 | Table | Key columns | Notes |
 |---|---|---|
 | `tenants` | slug (unique), name, status (`active`/`deleted`), paused_roles `text[]`, settings `jsonb`, deleted_at | Settings validated by a Zod schema (`TenantSettingsSchema`, step 7.11): branding (logo/favicon asset ids, colors), hero, pages (sanitized HTML), contact, social links (https), locale (`ar` default), timezone (`Africa/Cairo` default), defaultMaxDevices (1–5, used for new student accounts). `{}` reads as all defaults. |
-| `users` (Better Auth) | email (unique), name, email_verified, + `max_devices int default 1`, `status` (`active`/`suspended`), `is_super_admin bool` | Global identity. |
+| `users` (Better Auth) | email (unique), name, email_verified, + `max_devices int default 1`, `status` (`active`/`suspended`; `pending` from 10R.3), `is_super_admin bool`, `must_change_password bool` (10R.3), `is_minor bool` (10R.7) | Global identity. `status` (may the account be used) and `email_verified` (is the mailbox proven) are separate ([05 §1a](05-auth-devices.md)). `is_super_admin` is never written by any API route (bootstrap only). `is_minor` is set at creation; afterwards only the super admin changes it. |
+| `guardian_consents` (10R.7) | user_id, status (`pending`/`given`/`withdrawn`), method (`electronic_email`/`offline`/`legacy_checkbox`), guardian_name, guardian_relationship (`parent`/`legal_guardian`/`other`), guardian_email, token_hash (unique), expires_at, obtained_at, recorded_by_user_id, recorded_tenant_id, evidence_reference, notes, policy_version, ip, user_agent | Global, one per person, not tenant-scoped ([06 §10](06-flows.md)). At most one `pending` or `given` row per user (partial unique index, or a user-row lock if the Prisma preview feature does not fit). Foreign keys: user cascade; recorded-by user and tenant set null. Document references only; no files. `legacy_checkbox` rows are history and never count as consent. |
 | `sessions` (Better Auth) | token, user_id, expires_at, + `device_id`, `tenant_id` | Host-only cookie. Global, not tenant-filtered: `tenant_id` records the subdomain the session was opened on, and the one-session rule reads a student's sessions on every tenant. `device_id` is null for staff and super admin sessions; `tenant_id` is null on the super admin host. |
-| `memberships` **T** | user_id, role (`teacher`/`assistant`/`student`), status (`active`/`suspended`), guardian_consent_at, phone | Unique (tenant_id, user_id). |
+| `memberships` **T** | user_id, role (`teacher`/`assistant`/`student`), status (`active`/`suspended`), guardian_consent_at, phone | Unique (tenant_id, user_id): one role per person per tenant, any number of teachers and assistants per tenant. `guardian_consent_at` is read-only history from 10R.7 (consent moves to `guardian_consents`). |
 
 ### Devices and support
 | Table | Key columns | Notes |
@@ -50,7 +62,7 @@ erDiagram
 ### Access and money
 | Table | Key columns | Notes |
 |---|---|---|
-| `invitations` **T** | email, token_hash (unique), course_ids `uuid[]`, expires_at, redeemed_at, redeemed_by, revoked_at, created_by | 72 h, single use. |
+| `invitations` **T** | email, role (10R.6), token_hash (unique), course_ids `uuid[]`, expires_at, redeemed_at, redeemed_by, revoked_at, created_by | 72 h, single use, one open per email per tenant. `course_ids` only for student invitations. |
 | `access_codes` **T** | course_id, code_hash (unique), batch_id, redeemed_by, redeemed_at, revoked_at | HMAC-SHA256 of the code with a server secret. |
 | `enrollments` **T** | membership_id, course_id, status (`active`/`terminated`), source (`invitation`/`code`/`manual`), granted_by, terminated_by, terminated_at | Unique (membership_id, course_id). |
 | `payments` **T** | membership_id, course_id (nullable), amount (numeric), currency, paid_at, method, note, recorded_by | Records only; no gateway. |

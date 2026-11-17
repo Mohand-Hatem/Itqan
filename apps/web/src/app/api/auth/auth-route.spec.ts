@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { clearTestMailbox, getLastSentEmail } from "@itqan/auth";
+import { auth, clearTestMailbox, DISABLED_AUTH_PATHS, getLastSentEmail } from "@itqan/auth";
 import { systemPrisma } from "@itqan/database";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { GET, POST } from "./[...all]/route.js";
@@ -33,27 +33,44 @@ describe("Next.js /api/auth/* Route Handler", () => {
     expect(body).toBeNull();
   });
 
-  it("handles POST /api/auth/sign-up/email creating a new user", async () => {
-    const email = `route-test-${randomUUID().slice(0, 8)}@example.com`;
-    const req = new Request("http://localhost:3000/api/auth/sign-up/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password: "StrongPassword123!",
-        name: "Route Test User",
-      }),
-    });
+  // ADR-012, FR-A05: public sign-up and the other unused Better Auth routes are switched off.
+  it("answers 404 on every switched-off path, and public sign-up creates no user", async () => {
+    expect(DISABLED_AUTH_PATHS).toHaveLength(13);
+    for (const path of DISABLED_AUTH_PATHS) {
+      const res = await POST(
+        new Request(`http://localhost:3000/api/auth${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        }),
+      );
+      expect(res.status, path).toBe(404);
+      const get = await GET(new Request(`http://localhost:3000/api/auth${path}`, { method: "GET" }));
+      expect(get.status, path).toBe(404);
+    }
 
-    const res = await POST(req);
-    expect([200, 201]).toContain(res.status);
-    const body = (await res.json()) as { user?: { id: string; email: string } };
-    expect(body.user).toBeDefined();
-    expect(body.user?.email).toBe(email);
-    if (body.user?.id) {
-      createdUserIds.push(body.user.id);
+    const email = `route-test-${randomUUID().slice(0, 8)}@example.com`;
+    const res = await POST(
+      new Request("http://localhost:3000/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "StrongPassword123!", name: "Route Test User" }),
+      }),
+    );
+    expect(res.status).toBe(404);
+    expect(await systemPrisma.user.findUnique({ where: { email } })).toBeNull();
+  });
+
+  it("answers 404 for the removed two-factor routes", async () => {
+    for (const path of ["/two-factor/enable", "/two-factor/verify-totp", "/mfa/status"]) {
+      const res = await POST(
+        new Request(`http://localhost:3000/api/auth${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        }),
+      );
+      expect(res.status, path).toBe(404);
     }
   });
 
@@ -75,19 +92,11 @@ describe("Next.js /api/auth/* Route Handler", () => {
 
   it("handles GET /api/auth/verify-email with valid token and redirects or returns ok", async () => {
     const email = `route-verify-${randomUUID().slice(0, 8)}@example.com`;
-    const signUpReq = new Request("http://localhost:3000/api/auth/sign-up/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password: "StrongPassword123!",
-        name: "Route Verify User",
-      }),
+    // Server-side creation: the HTTP sign-up route is switched off.
+    const signUpBody = await auth.api.signUpEmail({
+      body: { email, password: "StrongPassword123!", name: "Route Verify User" },
     });
-    const signUpRes = await POST(signUpReq);
-    expect([200, 201]).toContain(signUpRes.status);
-    const signUpBody = (await signUpRes.json()) as { user?: { id: string } };
-    if (signUpBody.user?.id) createdUserIds.push(signUpBody.user.id);
+    createdUserIds.push(signUpBody.user.id);
 
     const sentEmail = getLastSentEmail(email);
     expect(sentEmail?.token).toBeDefined();
@@ -112,19 +121,11 @@ describe("Next.js /api/auth/* Route Handler", () => {
     const initialPassword = "InitialPassword123!";
     const newPassword = "NewStrongPassword456!";
 
-    // Create and verify user
-    const signUpReq = new Request("http://localhost:3000/api/auth/sign-up/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password: initialPassword,
-        name: "Route Reset User",
-      }),
+    // Create and verify user (server-side: the HTTP sign-up route is switched off)
+    const signUpBody = await auth.api.signUpEmail({
+      body: { email, password: initialPassword, name: "Route Reset User" },
     });
-    const signUpRes = await POST(signUpReq);
-    const signUpBody = (await signUpRes.json()) as { user?: { id: string } };
-    if (signUpBody.user?.id) createdUserIds.push(signUpBody.user.id);
+    createdUserIds.push(signUpBody.user.id);
 
     const verifEmail = getLastSentEmail(email);
     await GET(

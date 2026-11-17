@@ -7,10 +7,12 @@ import {
   type EmailLocale,
   type ExamOpeningEmailParams,
   type GradeReleasedEmailParams,
+  type GuardianConsentEmailParams,
   getCourseAccessEmail,
   getDeviceRequestDecidedEmail,
   getExamOpeningEmail,
   getGradeReleasedEmail,
+  getGuardianConsentEmail,
   getInvitationEmail,
   getResetPasswordEmail,
   getVerificationEmail,
@@ -31,7 +33,10 @@ export interface SentEmailRecord {
     | "exam_opening"
     | "course_access"
     | "device_request_decided"
+    | "guardian_consent"
     | "other";
+  /** The Resend idempotency key the send used (10R.6), so tests can check it. */
+  idempotencyKey?: string;
   sentAt: Date;
 }
 
@@ -76,6 +81,11 @@ export async function sendEmail(options: {
   subject: string;
   html: string;
   text?: string;
+  /**
+   * Same key = Resend sends once (for 24 hours), so a retried request never mails twice. Use one
+   * key per logical message, e.g. `invitation:<id>:<token hash prefix>` (10R.6).
+   */
+  idempotencyKey?: string;
 }): Promise<{ id?: string; error?: string }> {
   // In automated test environments without explicit live dispatch flag, use the in-memory test mailbox
   if (process.env["NODE_ENV"] === "test" && process.env["RESEND_ENABLE_IN_TEST"] !== "true") {
@@ -89,13 +99,16 @@ export async function sendEmail(options: {
   }
 
   const from = getDefaultFromEmail();
-  const { data, error } = await resend.emails.send({
-    from,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-  });
+  const { data, error } = await resend.emails.send(
+    {
+      from,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    },
+    options.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : undefined,
+  );
 
   if (error) {
     return { error: error.message };
@@ -163,6 +176,8 @@ export async function sendInvitationEmail(options: {
   courseTitles?: string[];
   locale?: EmailLocale;
   token?: string;
+  role?: "teacher" | "assistant" | "student";
+  idempotencyKey?: string;
 }): Promise<{ id?: string; error?: string }> {
   const { subject, html, text } = getInvitationEmail(options);
   const token = options.token ?? extractTokenFromUrl(options.url);
@@ -176,11 +191,41 @@ export async function sendInvitationEmail(options: {
       url: options.url,
       token,
       type: "invitation",
+      idempotencyKey: options.idempotencyKey,
       sentAt: new Date(),
     });
   }
 
-  return sendEmail({ to: options.to, subject, html, text });
+  return sendEmail({
+    to: options.to,
+    subject,
+    html,
+    text,
+    idempotencyKey: options.idempotencyKey,
+  });
+}
+
+/** 10R.7: one Resend key per (consent, token), so a retried request mails once. */
+export async function sendGuardianConsentEmail(
+  options: GuardianConsentEmailParams & { to: string; idempotencyKey?: string },
+): Promise<{ id?: string; error?: string }> {
+  const { subject, html, text } = getGuardianConsentEmail(options);
+
+  if (process.env["NODE_ENV"] === "test") {
+    testMailbox.push({
+      to: options.to,
+      subject,
+      html,
+      text,
+      url: options.url,
+      token: extractTokenFromUrl(options.url),
+      type: "guardian_consent",
+      idempotencyKey: options.idempotencyKey,
+      sentAt: new Date(),
+    });
+  }
+
+  return sendEmail({ to: options.to, subject, html, text, idempotencyKey: options.idempotencyKey });
 }
 
 export async function sendGradeReleasedEmail(

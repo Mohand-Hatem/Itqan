@@ -37,6 +37,7 @@ import {
   type StoredAttemptSnapshot,
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
+import { assertGuardianConsent } from "../guardian-consent/consent-state.js";
 import { gradeReleasedNotification } from "../notifications/notification-inputs.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
@@ -379,10 +380,12 @@ export class AttemptsService {
 
   async getAttempt(
     attemptId: string,
-    _user: AuthUser,
+    user: AuthUser,
     session: AuthSession,
     membership: Membership,
   ): Promise<AttemptResponseDto> {
+    // 10R.7 (FR-A06): consent withdrawn mid-attempt closes the attempt routes too.
+    await assertGuardianConsent(user);
     const attempt = await this.db.attempt.findUnique({
       where: { id: attemptId },
       include: { quiz: true },
@@ -434,10 +437,12 @@ export class AttemptsService {
     attemptId: string,
     questionId: string,
     input: SaveAttemptAnswerDto,
-    _user: AuthUser,
+    user: AuthUser,
     session: AuthSession,
     membership: Membership,
   ): Promise<SavedAttemptAnswerDto> {
+    // 10R.7 (FR-A06): consent withdrawn mid-attempt closes the attempt routes too.
+    await assertGuardianConsent(user);
     const ctx = getRequestContext();
     if (ctx?.kind !== "tenant") {
       throw new ForbiddenException({
@@ -592,10 +597,12 @@ export class AttemptsService {
 
   async getAnswers(
     attemptId: string,
-    _user: AuthUser,
+    user: AuthUser,
     session: AuthSession,
     membership: Membership,
   ): Promise<AttemptAnswersResponseDto> {
+    // 10R.7 (FR-A06): consent withdrawn mid-attempt closes the attempt routes too.
+    await assertGuardianConsent(user);
     if (!membership || membership.status !== "active") {
       throw new ForbiddenException({
         statusCode: 403,
@@ -654,10 +661,12 @@ export class AttemptsService {
 
   async submit(
     attemptId: string,
-    _user: AuthUser,
+    user: AuthUser,
     session: AuthSession,
     membership: Membership,
   ): Promise<AttemptSubmitResponseDto> {
+    // 10R.7 (FR-A06): consent withdrawn mid-attempt closes the attempt routes too.
+    await assertGuardianConsent(user);
     const ctx = getRequestContext();
     if (ctx?.kind !== "tenant") {
       throw new ForbiddenException({
@@ -1038,10 +1047,12 @@ export class AttemptsService {
 
   async getReview(
     attemptId: string,
-    _user: AuthUser,
+    user: AuthUser,
     _session: AuthSession,
     membership: Membership,
   ): Promise<AttemptReviewResponseDto> {
+    // 10R.7 (FR-A06): consent withdrawn mid-attempt closes the attempt routes too.
+    await assertGuardianConsent(user);
     const ctx = getRequestContext();
     if (ctx?.kind !== "tenant") {
       throw new ForbiddenException({

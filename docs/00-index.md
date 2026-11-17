@@ -7,7 +7,7 @@
 | [03-system-design.md](03-system-design.md) | Architecture, tenancy, storage, notifications, deployment |
 | [04-database.md](04-database.md) | ERD and tables |
 | [05-auth-devices.md](05-auth-devices.md) | Login, device binding, one-session rule, pausing |
-| [06-flows.md](06-flows.md) | Invitations, access codes, enrollment, exams, grade release |
+| [06-flows.md](06-flows.md) | Account creation, invitations, access codes, enrollment, exams, grade release, guardian consent, tenant staff |
 | [07-api.md](07-api.md) | REST endpoints by module |
 | [08-frontend.md](08-frontend.md) | Routes, layouts, i18n/RTL |
 | [09-security.md](09-security.md) | Threat model and protection limits |
@@ -25,16 +25,18 @@
 | Term | Meaning |
 |---|---|
 | **Platform** | The whole product, run by us. |
-| **Super admin** | Us, the platform operator. Manages tenants. |
-| **Tenant** | One teacher's site: its subdomain, branding, courses, staff and students. |
-| **Teacher** | Owner of a tenant. |
+| **Super admin** | Us, the platform operator. Manages tenants and their staff. A platform flag, created only by the bootstrap command, never a tenant role. |
+| **Tenant** | One academy's site: its subdomain, branding, courses, staff and students. |
+| **Teacher** | Manager of a tenant. A tenant has one or more teachers and always keeps at least one active. |
 | **Assistant** | Staff member of a tenant, with fewer permissions than the teacher. |
 | **Student** | A learner. One global login; a separate membership in each tenant they join. |
 | **User** | A global identity (one per email), managed by Better Auth. |
 | **Membership** | A user's role and status inside one tenant. |
 | **Enrollment** | A student membership's lifetime access to one course. |
 | **Access code** | A single-use code sold offline that grants one course. |
-| **Invitation** | A single-use email link that registers a student and grants courses. |
+| **Invitation** | A single-use email link that adds a person to a tenant with a role (and, for students, courses). Accepting it proves the email. |
+| **Direct creation** | Staff create an account with a password they set; it is active at once and its email stays unverified. |
+| **Guardian consent** | A guardian's agreement for a student under 18, recorded once per person by email link or signed offline form. |
 | **Device** | A registered browser on one machine, identified by an HttpOnly cookie secret. |
 | **Content item** | A node in a course tree: folder, chapter, lecture, file, video or quiz link. |
 | **Media asset** | A file or video stored in R2, with its metadata in Postgres. |

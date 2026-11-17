@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { getRequestContext, systemPrisma } from "@itqan/database";
 import type { StudentListQueryInput } from "@itqan/shared";
+import { consentSummaryOf } from "../guardian-consent/consent-state.js";
 
 @Injectable()
 export class StudentsService {
@@ -94,7 +95,7 @@ export class StudentsService {
     };
   }
 
-  async getById(membershipId: string) {
+  async getById(membershipId: string, viewerIsSuperAdmin = false) {
     const context = getRequestContext();
     const tenantId = context?.kind === "tenant" ? context.tenantId : undefined;
     if (!tenantId) {
@@ -119,6 +120,7 @@ export class StudentsService {
             email: true,
             emailVerified: true,
             maxDevices: true,
+            isMinor: true,
           },
         },
         enrollments: {
@@ -178,6 +180,12 @@ export class StudentsService {
         status: membership.status,
         maxDevices: membership.user.maxDevices,
         guardianConsentAt: membership.guardianConsentAt,
+        // 10R.7 (FR-A06): guardian details only for the academy that recorded them and the super admin.
+        isMinor: membership.user.isMinor,
+        guardianConsent: await consentSummaryOf(membership.user.id, membership.user.isMinor, {
+          isSuperAdmin: viewerIsSuperAdmin,
+          tenantId,
+        }),
         createdAt: membership.createdAt,
       },
       courses: membership.enrollments.map((e) => ({

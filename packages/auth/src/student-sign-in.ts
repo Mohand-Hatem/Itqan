@@ -14,7 +14,7 @@ import {
   parseDeviceCookie,
   verifyDeviceSecret,
 } from "./device-cookie.js";
-import { isStaffOrSuperAdmin } from "./staff-mfa.js";
+import { isStaffOrSuperAdmin } from "./staff.js";
 import { checkStudentAccess, verifyCredentials } from "./student-access.js";
 
 type DeviceRow = { id: string; userId: string; status: string; secretHash: string };
@@ -66,14 +66,8 @@ export function studentSignInPlugin() {
               message: "Invalid email or password",
             });
           }
-          if (!user.emailVerified) {
-            throw new APIError("FORBIDDEN", {
-              code: "EMAIL_NOT_VERIFIED",
-              message: "Email not verified",
-            });
-          }
-
-          // 2–3. Account, membership and tenant checks; staff use the TOTP sign-in.
+          // 2–3. Account status (pending = email not verified yet), membership and tenant checks;
+          // staff use the stock email sign-in.
           const access = await checkStudentAccess(user.id, tenant.id);
           if (!access.ok) throw blocked(access.code, access.message);
 
@@ -175,10 +169,24 @@ export function studentSignInPlugin() {
 }
 
 /**
- * databaseHooks.session.create.before: only our endpoint creates sessions with a device,
- * so any other path (stock sign-in, /verify-email) must not create one for a student-only user.
+ * databaseHooks.session.create.before, for every new session (docs/05 §1a):
+ * - only an `active` account gets a session: `pending` (email not verified yet) and `suspended`
+ *   are refused on both sign-in routes, so the per-account rule replaces Better Auth's global
+ *   requireEmailVerification (ADR-013);
+ * - only our endpoint creates sessions with a device, so any other path (stock sign-in,
+ *   /verify-email) must not create one for a student-only user.
  */
-export async function guardStudentSession(session: { userId: string; deviceId?: unknown }) {
+export async function guardNewSession(session: { userId: string; deviceId?: unknown }) {
+  const user = await systemPrisma.user.findUnique({
+    where: { id: session.userId },
+    select: { status: true },
+  });
+  if (user?.status === "suspended") {
+    throw blocked(AccessReasonCode.USER_SUSPENDED, "Your account is not active.");
+  }
+  if (user?.status === "pending") {
+    throw blocked(AccessReasonCode.EMAIL_NOT_VERIFIED, "Email not verified");
+  }
   if (session.deviceId) return;
   if (await isStaffOrSuperAdmin(session.userId)) return;
   const studentMemberships = await systemPrisma.membership.count({

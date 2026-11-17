@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GuardianInfoSchema } from "./guardian-consent.js";
 
 export const CodeRegisterSchema = z
   .object({
@@ -11,12 +12,14 @@ export const CodeRegisterSchema = z
     email: z.string().trim().email("Invalid email address").toLowerCase(),
     password: z.string().min(8, "Password must be at least 8 characters").max(100),
     phone: z.string().trim().optional(),
+    // 10R.7 (FR-A06): a minor registers, then content waits for the guardian's consent.
     isMinor: z.boolean().default(false),
-    guardianConsent: z.boolean().default(false),
+    /** Optional: the guardian gets the consent email at once. */
+    guardian: GuardianInfoSchema.optional(),
   })
-  .refine((data) => !data.isMinor || data.guardianConsent, {
-    message: "Guardian consent is required for students under 18.",
-    path: ["guardianConsent"],
+  .refine((data) => data.isMinor || !data.guardian, {
+    message: "A guardian is named only for a student under 18.",
+    path: ["guardian"],
   });
 
 export type CodeRegisterInput = z.infer<typeof CodeRegisterSchema>;

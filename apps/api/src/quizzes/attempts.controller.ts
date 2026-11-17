@@ -110,7 +110,7 @@ export class AttemptsController {
     return this.service.getReview(attemptId, user, session, membership);
   }
 
-  @Post(["attempts/:id/extend", "attempts/:id/extend-time"])
+  @Post("attempts/:id/extend")
   @Roles("teacher", "assistant")
   @HttpCode(200)
   async extendTime(
@@ -130,7 +130,7 @@ export class AttemptsController {
     return this.service.extendTime(attemptId, parsed.data, user, membership);
   }
 
-  @Post(["attempts/:id/move-device", "attempts/:id/transfer-device"])
+  @Post("attempts/:id/move-device")
   @Roles("teacher", "assistant")
   @HttpCode(200)
   async moveDevice(

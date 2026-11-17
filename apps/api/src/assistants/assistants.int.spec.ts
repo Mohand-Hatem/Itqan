@@ -94,7 +94,8 @@ describe("Assistant Management API (Integration — Step 6.10a)", () => {
       expect(loginRes.cookie).toContain("better-auth.session_token");
     });
 
-    it("links an existing global user as assistant without overwriting their password", async () => {
+    // 10R.4 (D3): a teacher cannot attach someone's existing account; they send an invitation.
+    it("refuses an existing account with 409 USE_INVITATION and changes nothing", async () => {
       const tA = await fx.tenant();
       const tB = await fx.tenant();
       const teacherA = await fx.staffLogin(tA, "teacher");
@@ -108,15 +109,11 @@ describe("Assistant Management API (Integration — Step 6.10a)", () => {
         temporaryPassword: "DifferentTempPass999!",
       });
 
-      expect(res.status).toBe(201);
-      const body = res.body as { existingUserLinked: boolean; userId: string; role: string };
-      expect(body.existingUserLinked).toBe(true);
-      expect(body.userId).toBe(user.id);
-      expect(body.role).toBe("assistant");
-
-      // Verify original password is still intact and works
-      const loginRes = await staffSignIn(user.email, PASSWORD);
-      expect(loginRes.cookie).toContain("better-auth.session_token");
+      expect(res.status).toBe(409);
+      expect(reasonOf(res.body)).toBe("USE_INVITATION");
+      expect(await systemPrisma.membership.count({ where: { userId: user.id } })).toBe(1);
+      const unchanged = await systemPrisma.user.findUniqueOrThrow({ where: { id: user.id } });
+      expect(unchanged.mustChangePassword).toBe(false);
     });
 
     it("rejects duplicate assistant creation for a user already in tenant with 409", async () => {
@@ -137,7 +134,7 @@ describe("Assistant Management API (Integration — Step 6.10a)", () => {
       });
 
       expect(dupeRes.status).toBe(409);
-      expect((dupeRes.body as { code?: string }).code).toBe("MEMBERSHIP_ALREADY_EXISTS");
+      expect(reasonOf(dupeRes.body)).toBe("MEMBERSHIP_ALREADY_EXISTS");
     });
 
     it("rejects invalid payload with 400", async () => {
@@ -279,14 +276,11 @@ describe("Assistant Management API (Integration — Step 6.10a)", () => {
       const teacherB = await fx.staffLogin(tB, "teacher");
       expect((await as(tB, teacherB.cookie, "GET", "/me")).status).toBe(200);
 
-      // Teacher A links teacher B's account by email, then removes it again.
-      const linked = await as(tA, teacherA.cookie, "POST", "/assistants", {
-        name: "Linked",
-        email: teacherB.user.email,
-        temporaryPassword: "IgnoredForExisting123!",
+      // Teacher B is also an assistant on tenant A (since 10R.4 only an accepted invitation or the
+      // super admin links an existing account), then teacher A removes that membership.
+      const { id } = await systemPrisma.membership.create({
+        data: { tenantId: tA.id, userId: teacherB.user.id, role: "assistant" },
       });
-      expect(linked.status).toBe(201);
-      const id = (linked.body as { id: string }).id;
       expect((await as(tA, teacherA.cookie, "DELETE", `/assistants/${id}`)).status).toBe(200);
 
       // Teacher B's staff session (no tenant) survives and still works on tenant B.

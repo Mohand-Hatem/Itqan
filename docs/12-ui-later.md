@@ -8,7 +8,7 @@ Until the owner says the design is chosen, we build business logic only. Anythin
 
 ## The two tracks
 
-**Track A, now (business logic).** Every step in [`tasks/todo.md`](../tasks/todo.md) without ⏸, in order: Phase 4 → 9, then 10.1–10.5. Steps that mix an API and a page are split, and only the "a" part (API and tests) is done now.
+**Track A, now (business logic).** Every step in [`tasks/todo.md`](../tasks/todo.md) without ⏸, in order: Phase 4 → 9, then 10.1–10.6, then Phase 10R. Steps that mix an API and a page are split, and only the "a" part (API and tests) is done now.
 
 **Track B, after the design is chosen (UI).** In this order:
 1. Step 3.1, the design gate: the owner chooses the design and the method is written in `docs/11-design.md`.
@@ -46,13 +46,13 @@ Built in Phase 11, in this order. "API from" is the Track A step the page uses.
 | Step | UI to build | API from |
 |---|---|---|
 | 3.1–3.7 | Design gate, tokens, fonts and RTL, components, layouts, middleware and branding, states pages | — |
-| 4.5 | Login, forgot-password and reset-password pages. Login posts to `/sign-in/student` and switches to the staff sign-in (with TOTP) on `USE_STAFF_SIGN_IN`. | 4.2, 4.4, 5.3 |
+| 4.5 | Login, forgot-password and reset-password pages. Login posts to `/sign-in/student` and switches to the staff sign-in (email and password, no second factor) on `USE_STAFF_SIGN_IN`. | 4.2, 4.4, 5.3 |
 | 4.9b | Frontend auth context, signed-in user in layouts | 4.9a |
 | 5.5 | Blocked screens with reason messages, including `DEVICE_NOT_REGISTERED` on any API call. The `DEVICE_LIMIT` screen's "Request device change" asks for the password again and posts to `/device-requests`; it must show `REQUEST_ALREADY_OPEN` and `DEVICE_REQUEST_NOT_NEEDED`. The `SESSION_ON_OTHER_DEVICE` screen's "Request sign-out of other device" posts to `/signout-requests`; on `DEVICE_LIMIT` it offers the device change, and it shows `SIGN_OUT_REQUEST_NOT_NEEDED`. | 4.8, 5.3, 5.4, 5.6, 5.7 |
 | 5.8b | `/manage/requests` approve and reject page | 5.8a |
 | 5.10b | Student devices page | 5.10a |
 | 6.2 | Course list and course form | 6.1 |
-| 6.4 | `/join` page with guardian consent | 6.3 |
+| 6.4 | `/join` page: register (with minor status and the guardian's details instead of a consent checkbox, 10R.7) or accept, including accept with password for an account that cannot sign in yet (10R.6) | 6.3, 10R.6, 10R.7 |
 | 6.6b | Register-with-code and redeem pages | 6.6a |
 | 6.8b | Students list and detail | 6.8a |
 | 6.9b | Payments page | 6.9a |
@@ -76,9 +76,13 @@ Built in Phase 11, in this order. "API from" is the Track A step the page uses.
 | 9.8b | Support requests | 9.8a |
 | 9.9b | Analytics overview | 9.9a |
 | 9.10b | Audit log page with filters | 9.10a |
-| 10.3 | On 403 `MFA_ENROLMENT_REQUIRED`, send staff and super admins to the TOTP enrolment screen (Better Auth `/two-factor/*`); `GET /me` still works there | 4.5, 4.6 |
+| 10R.3 | Change-password screen: shown on 403 `PASSWORD_CHANGE_REQUIRED` or when `GET /me` says `mustChangePassword`; posts to Better Auth `/change-password` (12+ characters for staff) | 10R.3 |
+| 10R.4 | "Create student" form for teachers and assistants (direct creation, minor status, courses, "ask to change password" on by default), and the direct-creation form on the assistant page | 10R.4 |
+| 10R.5 | Super admin tenant staff page: members list with filters, add (direct, link or invite), change role, suspend, remove, with the `LAST_TEACHER` message; tenant list and detail show all teachers and counts; set-password action on a user | 10R.3, 10R.5, 10R.6 |
+| 10R.6 | Invitation form with a role choice (teacher only: assistant or student) | 10R.6 |
+| 10R.7 | Guardian consent: the guardian's confirm page (public, from the email link), the student's "ask my guardian" screen and the `GUARDIAN_CONSENT_REQUIRED` message, and the staff panel to record offline consent, send the email or record a withdrawal | 10R.7 |
 | 11.3 | Content-Security-Policy for the web pages: nonce-based, allowing self, R2, Firebase and Sentry plus the design's font and script sources | 10.2a, 9.4, 12.5 |
-| 10.5 | Privacy policy and terms pages (Arabic and English) from `docs/legal/`, linked in the footer and accepted at registration (with guardian consent for students under 18) | 10.5, 6.4, 6.6b, 7.12 |
+| 10.5 | Privacy policy and terms pages (Arabic and English) from `docs/legal/`, linked in the footer and accepted at registration; for students under 18 the guardian accepts through the consent flow (10R.7) | 10.5, 6.4, 6.6b, 7.12, 10R.7 |
 | 3.8 | Accessibility and responsive audit of everything above | — |
 
 ### Found during Track A

@@ -73,7 +73,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-1",
       status: "suspended",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     try {
@@ -102,7 +101,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-1",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     try {
@@ -131,7 +129,6 @@ describe("AccessGuard (unit)", () => {
       id: "sa-1",
       status: "active",
       isSuperAdmin: true,
-      twoFactorEnabled: true,
     });
 
     const allowed = await guard.canActivate(context);
@@ -155,7 +152,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-1",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     await runWithContext(
@@ -190,7 +186,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-2",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     await runWithContext(
@@ -225,7 +220,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-3",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     await runWithContext(
@@ -260,7 +254,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-4",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     await runWithContext(
@@ -295,7 +288,6 @@ describe("AccessGuard (unit)", () => {
       id: "u-5",
       status: "active",
       isSuperAdmin: false,
-      twoFactorEnabled: true,
     });
 
     await runWithContext(

@@ -3,7 +3,8 @@ import { z } from "zod";
 export const AssistantCreateSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().toLowerCase().email(),
-  temporaryPassword: z.string().min(8).max(100),
+  // Staff password (FR-A09); the assistant changes it at first sign-in (FR-A08).
+  temporaryPassword: z.string().min(12).max(128),
 });
 export type AssistantCreateDto = z.infer<typeof AssistantCreateSchema>;
 

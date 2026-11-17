@@ -7,6 +7,7 @@ import { CoursesModule } from "./courses/courses.module.js";
 import { CodeBatchesModule } from "./code-batches/code-batches.module.js";
 import { EnrollmentsModule } from "./enrollments/enrollments.module.js";
 import { DatabaseModule } from "./database/database.module.js";
+import { GuardianConsentModule } from "./guardian-consent/guardian-consent.module.js";
 import { HealthController } from "./health/health.controller.js";
 import { InvitationsModule } from "./invitations/invitations.module.js";
 import { MeModule } from "./me/me.module.js";
@@ -38,6 +39,7 @@ import { JobsModule } from "./jobs/jobs.module.js";
     CoursesModule,
     InvitationsModule,
     CodeBatchesModule,
+    GuardianConsentModule,
     EnrollmentsModule,
     AssistantsModule,
     AdminTenantsModule,

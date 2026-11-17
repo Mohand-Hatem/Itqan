@@ -231,7 +231,7 @@ describe("API Checkpoint 8: Full End-to-End Exam Lifecycle (Track A Milestone)",
     // -------------------------------------------------------------
     // 7. Staff Rescue Action: Extend Time (FR-X09)
     // -------------------------------------------------------------
-    const extendRes = await as(t, teacher.cookie, "POST", `/attempts/${attemptId}/extend-time`, {
+    const extendRes = await as(t, teacher.cookie, "POST", `/attempts/${attemptId}/extend`, {
       extraMinutes: 15,
       reason: "Compensating for classroom connectivity disruption",
     });

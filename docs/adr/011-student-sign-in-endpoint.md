@@ -1,6 +1,6 @@
 # ADR-011: Students sign in through our own endpoint inside Better Auth
 
-**Status:** Accepted · 2026-11-12
+**Status:** Accepted · 2026-11-12 · The staff TOTP flow named in decision 3 was removed by [ADR-012](012-no-two-factor.md); staff now sign in with email and password only.
 
 **Context:** The student login rules ([05-auth-devices.md §3](../05-auth-devices.md)) must lock the user row, check devices and open sessions, and create the session in **one transaction**, so two parallel logins cannot both pass. The doc left open whether this fits in a Better Auth hook or needs a custom sign-in endpoint. Step 5.1 tested both against Docker Postgres with Better Auth 1.7.20 (`packages/auth/src/spike-device-login.int.spec.ts`).
 

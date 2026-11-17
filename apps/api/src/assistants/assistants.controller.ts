@@ -12,9 +12,10 @@ import {
   Query,
 } from "@nestjs/common";
 import type { AuthUser } from "@itqan/auth";
+import type { Membership } from "@itqan/database";
 import { AssistantCreateSchema, AssistantListQuerySchema } from "@itqan/shared";
 import { CurrentUser } from "../auth/current-user.decorator.js";
-import { Roles } from "../auth/roles.decorator.js";
+import { CurrentMembership, Roles } from "../auth/roles.decorator.js";
 import { AssistantsService } from "./assistants.service.js";
 
 @Controller("assistants")
@@ -24,7 +25,11 @@ export class AssistantsController {
   @Post()
   @Roles("teacher")
   @HttpCode(201)
-  create(@Body() raw: unknown, @CurrentUser() user: AuthUser) {
+  create(
+    @Body() raw: unknown,
+    @CurrentUser() user: AuthUser,
+    @CurrentMembership() membership?: Membership,
+  ) {
     const parsed = AssistantCreateSchema.safeParse(raw);
     if (!parsed.success) {
       throw new BadRequestException({
@@ -34,7 +39,10 @@ export class AssistantsController {
         errors: parsed.error.issues,
       });
     }
-    return this.service.create(user.id, parsed.data);
+    return this.service.create(
+      { userId: user.id, isSuperAdmin: Boolean(user.isSuperAdmin), role: membership?.role },
+      parsed.data,
+    );
   }
 
   @Get()

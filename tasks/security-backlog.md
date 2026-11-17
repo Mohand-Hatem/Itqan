@@ -7,9 +7,13 @@ Some notes overlap with what 10.3 already fixed (secret fallbacks, compose env, 
 
 ## Not reviewed yet (first work for the full audit, step 11.8)
 
-- [ ] Better Auth account and two-factor endpoints: change-password, update-session, update-user, list and revoke sessions, two-factor disable and backup codes, unverified sign-up squatting.
+- [ ] Better Auth account endpoints: change-password, update-user, list and revoke sessions. Two-factor routes are removed and `update-session` and public sign-up are switched off in 10R.2 ([ADR-012](../docs/adr/012-no-two-factor.md)), which also ends sign-up squatting through `/sign-up/email`.
 - [ ] Attempt routes after access ends: answering, submitting and reviewing after an enrollment is terminated or the course or quiz is deleted.
 - [ ] Pre-auth email cost: sign-up, verification and reset emails and register-with-code emails, versus the shared Resend quota.
+- [ ] Nginx error log (10R.9): access logs no longer contain tokens (`no_tokens` format), but nginx's error log always writes the full request line, so an upstream failure on a link route (`/join?token=`, `/guardian-consent/check?token=`, `/api/auth/reset-password/{token}`) still records the token there. Options: keep error logs short-lived and access-restricted, or move tokens out of URLs (POST the token from the page). Tokens are single use and expire (72 h invitations, 7 days consent).
+- [ ] Guardian consent across academies (10R.9 review): consent is per person (ADR-014), so staff of academy B can record offline consent or a withdrawal that opens or closes content in academy A. Every such action is audited with the acting academy. Owner to confirm this is acceptable or limit withdrawal/offline records to academies that already recorded consent.
+- [ ] Guardian consent personal data (10R.9 review): `guardian_consents` keeps guardian name, email, IP and browser with no retention limit, and it is not yet in the export/delete path. Add both before launch; the privacy policy draft must say how long it is kept.
+- [ ] Docker build context: `.dockerignore` does not exclude `.env`, so `COPY . .` puts the local secrets file into the builder stage of both images (found in 10R.8). The final images copy only build output, but the builder layer and any cache or registry push of it hold the file. Add `.env*` (keeping `.env.example`) to `.dockerignore`.
 
 ## Accepted by the owner (10.3)
 
@@ -57,7 +61,7 @@ Some notes overlap with what 10.3 already fixed (secret fallbacks, compose env, 
 
 - [ ] apps/api/src/audit/audit.service.ts list() returns ip, userAgent and actorUser email; tenant.create/update/delete audit rows are written with the tenant's id (apps/api/src/tenants-admin/admin-tenants.service.ts tenant.create and tenant.update/delete audit calls), so a teacher sees the super admin's email, IP and user agent. Consider omitting ip/userAgent for super-admin actors in tenant audit reads.
 - [ ] apps/api/src/quizzes/attempts.service.ts moveDevice deletes the student's sessions on the previous (global) device without a tenantId filter, so a staff member of tenant A also signs the student out of other tenants on that device. Add tenantId: ctx.tenantId to that session.deleteMany.
-- [ ] apps/api/src/assistants/assistants.service.ts create() for a new email creates a global account with emailVerified:true and a teacher-chosen password. Mitigated by revokeSessionsOnPasswordReset:true and DeviceGuard (a staff session cannot act as student elsewhere), but sending a set-password link instead of a teacher-known password would remove the pre-account risk.
+- [ ] apps/api/src/assistants/assistants.service.ts create() for a new email creates a global account with emailVerified:true and a teacher-chosen password. Mitigated by revokeSessionsOnPasswordReset:true and DeviceGuard (a staff session cannot act as student elsewhere), but sending a set-password link instead of a teacher-known password would remove the pre-account risk. Addressed by 10R.3 and 10R.4 ([ADR-013](../docs/adr/013-account-provisioning.md)): direct accounts stay unverified, must change the password at first sign-in, and invitations remain the way to avoid a staff-known password.
 - [ ] apps/api/src/quizzes/quizzes.service.ts publish/unpublish/delete/getById/list/releaseGrades do not require ctx.kind==='tenant'; on the admin host a super admin acts unscoped across tenants (peer-owned admin-host unit).
 
 ## Rate limits and resource use (hunter-w1-12)
@@ -143,7 +147,7 @@ Some notes overlap with what 10.3 already fixed (secret fallbacks, compose env, 
 
 - [ ] Add a top-level `permissions: contents: read` to .github/workflows/ci.yml, and pin the actions and the service and base images (actions/*, docker/*, postgres:18-alpine, node:22-alpine, nginx:alpine) by digest.
 - [ ] Add .env, .env.*, nginx/certs, .claude, .mcp.json, .playwright-mcp, .impeccable and screens to .dockerignore. Today the builder stage of both images receives the root .env and any Cloudflare origin key; they are not shipped in the runner stage but stay in the local build cache.
-- [ ] The nginx /api/sse and /api/notifications/stream locations also lose the server-level headers. Host becomes api_upstream, so TenantMiddleware returns 404 for SSE through the gateway (functional break, fail-closed), and locally req.ip there comes from the client's X-Forwarded-For.
+- [ ] The nginx /api/sse location (its alias /api/notifications/stream was removed after 10R) also loses the server-level headers. Host becomes api_upstream, so TenantMiddleware returns 404 for SSE through the gateway (functional break, fail-closed), and locally req.ip there comes from the client's X-Forwarded-For.
 - [ ] Behind Cloudflare, nginx appends the Cloudflare edge address as the last X-Forwarded-For hop, so Express req.ip (and the Nest throttler on device and sign-out requests) is keyed on Cloudflare edge IPs that many users share. Add real_ip handling for the Cloudflare ranges.
 - [ ] docker-compose.yml does not pass PLATFORM_ROOT_DOMAIN to the web service, so getRootDomain() throws under NODE_ENV=production on the /sign-in/student path (functional break). Better Auth trustedOrigins and BETTER_AUTH_URL default to localhost values for staging.
 - [ ] The local gateway publishes ${GATEWAY_PORT:-8080} on all interfaces; bind it to 127.0.0.1 for local development.

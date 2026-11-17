@@ -1,16 +1,38 @@
 import process from "node:process";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { openAPI, twoFactor } from "better-auth/plugins";
+import { openAPI } from "better-auth/plugins";
 import { systemPrisma } from "@itqan/database";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email/client.js";
+import { accountPolicyPlugin } from "./account-policy.js";
 import { resolveAuthSecret } from "./secrets.js";
-import { staffMfaPlugin } from "./staff-mfa.js";
-import { guardStudentSession, studentSignInPlugin } from "./student-sign-in.js";
+import { guardNewSession, studentSignInPlugin } from "./student-sign-in.js";
+
+/**
+ * Better Auth routes the LMS does not use (ADR-012, docs/05 §1d). The HTTP router answers 404 and
+ * the OpenAPI generator leaves them out; server-side `auth.api.*` calls (test fixtures) still work.
+ * Sign-up is closed because accounts come only from invitations, codes, staff or bootstrap (FR-A05).
+ */
+export const DISABLED_AUTH_PATHS = [
+  "/sign-up/email",
+  "/sign-in/social",
+  "/link-social",
+  "/unlink-account",
+  "/list-accounts",
+  "/account-info",
+  "/refresh-token",
+  "/get-access-token",
+  "/delete-user",
+  "/delete-user/callback",
+  "/change-email",
+  "/update-session",
+  "/verify-password",
+];
 
 export const auth = betterAuth({
   appName: "Itqan",
   secret: resolveAuthSecret(),
+  disabledPaths: DISABLED_AUTH_PATHS,
   baseURL: process.env["BETTER_AUTH_URL"] || "http://localhost:3000",
   trustedOrigins: [
     "http://localhost:3000",
@@ -25,10 +47,19 @@ export const auth = betterAuth({
     transaction: true,
   }),
   databaseHooks: {
+    user: {
+      create: {
+        // Only Better Auth's own sign-up creates users through this hook (our code writes users
+        // directly), and that is self-registration: it waits for the verification link (10R.3).
+        before: async (user) => ({
+          data: user.emailVerified ? user : { ...user, status: "pending" },
+        }),
+      },
+    },
     session: {
       create: {
         before: async (session) => {
-          await guardStudentSession(session);
+          await guardNewSession(session);
           return { data: session };
         },
       },
@@ -56,18 +87,42 @@ export const auth = betterAuth({
     // Off: students must sign in through /sign-in/student so the device rules run (ADR-011).
     autoSignInAfterVerification: false,
     expiresIn: 3600,
+    // A self-registered account becomes usable once its mailbox is proven (10R.3). Never wakes
+    // a suspended account.
+    afterEmailVerification: async (user) => {
+      await systemPrisma.user.updateMany({
+        where: { id: user.id, status: "pending" },
+        data: { status: "active" },
+      });
+    },
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    // Off: it is one switch for everyone, but accounts created directly by staff may sign in
+    // unverified. guardNewSession refuses `pending` accounts instead (ADR-013, docs/05 §1a).
+    requireEmailVerification: false,
+    // Sign-up (server-side only; the HTTP route is off) never opens a session: the new account is
+    // `pending` until its email is verified.
+    autoSignIn: false,
     resetPasswordTokenExpiresIn: 3600,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url, token }) => {
+      // FR-A02: an unproven address is not trusted with a reset link. The API answers the same
+      // either way; such users ask the super admin (FR-A07).
+      if (!user.emailVerified) return;
       await sendResetPasswordEmail({
         to: user.email,
         url,
         token,
         name: user.name,
+      });
+    },
+    // The user chose this password, so the first-login change is done (FR-A08). Sessions are
+    // already ended by revokeSessionsOnPasswordReset.
+    onPasswordReset: async ({ user }) => {
+      await systemPrisma.user.update({
+        where: { id: user.id },
+        data: { mustChangePassword: false },
       });
     },
   },
@@ -116,10 +171,6 @@ export const auth = betterAuth({
         window: 15 * 60,
         max: 3,
       },
-      "/two-factor/*": {
-        window: 60,
-        max: 5,
-      },
     },
   },
   user: {
@@ -142,14 +193,25 @@ export const auth = betterAuth({
         defaultValue: false,
         input: false,
       },
+      // Read by AccessGuard from the session user (FR-A08); never set from client input.
+      mustChangePassword: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: false,
+      },
+      // Read by the guardian-consent gate (10R.7, FR-A06); set by our routes only.
+      isMinor: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: false,
+      },
     },
   },
   plugins: [
-    twoFactor({
-      issuer: "Itqan",
-    }),
-    staffMfaPlugin(),
     studentSignInPlugin(),
+    accountPolicyPlugin(),
     // Route description for `npm run openapi:export` (step 10.6). Development only: it adds a
     // public GET /open-api/generate-schema route, which production must not expose.
     ...(process.env["NODE_ENV"] === "production" ? [] : [openAPI({ disableDefaultReference: true })]),

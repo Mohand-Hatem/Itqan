@@ -37,7 +37,9 @@ export const AdminTenantCreateSchema = z.object({
   slug: AdminTenantSlugSchema,
   teacherEmail: z.string().trim().toLowerCase().email(),
   teacherName: z.string().trim().min(2).max(100).optional(),
-  temporaryPassword: z.string().min(8).max(100),
+  // Only used when the email has no account yet (staff password, FR-A09); ignored when the super
+  // admin links an existing account (ADR-013).
+  temporaryPassword: z.string().min(12).max(128).optional(),
 });
 export type AdminTenantCreateDto = z.infer<typeof AdminTenantCreateSchema>;
 
@@ -54,13 +56,18 @@ export const AdminTenantListItemSchema = z.object({
   name: z.string(),
   status: z.enum(["active", "deleted"]),
   pausedRoles: z.array(z.enum(["teacher", "assistant", "student"])).default([]),
-  teacher: z
-    .object({
+  // D8 (10R.5): every teacher of the tenant (a tenant can have several), oldest first, with the
+  // membership status; the full staff list is GET /admin/tenants/:id/members.
+  teachers: z.array(
+    z.object({
       id: z.string().uuid(),
       name: z.string(),
       email: z.string().email(),
-    })
-    .nullable(),
+      status: z.enum(["active", "suspended"]),
+    }),
+  ),
+  assistantCount: z.number().int().nonnegative(),
+  studentCount: z.number().int().nonnegative(),
   usage: AdminTenantUsageSchema,
   createdAt: z.string().datetime(),
   existingUserLinked: z.boolean().optional(),
@@ -101,16 +108,22 @@ export const AdminTenantSoftDeleteResponseSchema = z.object({
 });
 export type AdminTenantSoftDeleteResponse = z.infer<typeof AdminTenantSoftDeleteResponseSchema>;
 
-export const AdminUserUpdateSchema = z.object({
-  status: z.enum(["active", "suspended"]),
-});
+/** 10R.7 (FR-A06): `isMinor` is a person-level flag; only the super admin changes it after creation. */
+export const AdminUserUpdateSchema = z
+  .object({
+    status: z.enum(["active", "suspended"]).optional(),
+    isMinor: z.boolean().optional(),
+  })
+  .strict()
+  .refine((d) => d.status !== undefined || d.isMinor !== undefined, { message: "Nothing to update." });
 export type AdminUserUpdateDto = z.infer<typeof AdminUserUpdateSchema>;
 
 export const AdminUserUpdateResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   email: z.string().email(),
-  status: z.enum(["active", "suspended"]),
+  status: z.enum(["active", "suspended", "pending"]),
+  isMinor: z.boolean(),
   sessionsEvicted: z.number().int().nonnegative(),
 });
 export type AdminUserUpdateResponse = z.infer<typeof AdminUserUpdateResponseSchema>;

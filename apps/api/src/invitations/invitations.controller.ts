@@ -12,11 +12,15 @@ import {
   Post,
   Query,
   UnauthorizedException,
+  UseGuards,
 } from "@nestjs/common";
+import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import type { AuthUser } from "@itqan/auth";
+import type { Membership } from "@itqan/database";
 import {
   AccessReasonCode,
   InvitationAcceptSchema,
+  InvitationAcceptWithPasswordSchema,
   InvitationCheckQuerySchema,
   InvitationCreateSchema,
   InvitationListQuerySchema,
@@ -24,7 +28,7 @@ import {
 } from "@itqan/shared";
 import { CurrentUser } from "../auth/current-user.decorator.js";
 import { Public } from "../auth/public.decorator.js";
-import { Roles } from "../auth/roles.decorator.js";
+import { CurrentMembership, Roles, SuperAdminOnly } from "../auth/roles.decorator.js";
 import { InvitationsService } from "./invitations.service.js";
 
 @Controller("invitations")
@@ -37,6 +41,7 @@ export class InvitationsController {
   create(
     @Body() raw: unknown,
     @CurrentUser() user: AuthUser,
+    @CurrentMembership() membership?: Membership,
     @Headers("host") host: string = "localhost",
   ) {
     const parsed = InvitationCreateSchema.safeParse(raw);
@@ -47,7 +52,12 @@ export class InvitationsController {
         message: "Invalid invitation payload.",
       });
     }
-    return this.service.create(parsed.data, user.id, host);
+    const actor = {
+      userId: user.id,
+      isSuperAdmin: Boolean(user.isSuperAdmin),
+      role: membership?.role,
+    };
+    return this.service.create(parsed.data, actor, host);
   }
 
   @Get()
@@ -124,6 +134,63 @@ export class InvitationsController {
     }
     return this.service.accept(parsed.data, user);
   }
+
+  /**
+   * POST /api/invitations/accept-with-password (10R.6): for an account that cannot sign in yet
+   * (pending). Public; 10 tries per hour per IP, and every try needs the emailed token.
+   */
+  @Post("accept-with-password")
+  @Public()
+  @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
+  @SkipThrottle({ email: true, code: true })
+  @Throttle({ ip: { limit: 10, ttl: 60 * 60 * 1000 } })
+  acceptWithPassword(@Body() raw: unknown) {
+    const parsed = InvitationAcceptWithPasswordSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: "INVALID_BODY",
+        message: "Invalid invitation acceptance payload.",
+      });
+    }
+    return this.service.acceptWithPassword(parsed.data);
+  }
+}
+
+/**
+ * POST /api/admin/tenants/:tenantId/invitations (10R.6, FR-E01): the super admin invites any role.
+ * The link points at the academy's own address, built from the admin host.
+ */
+@Controller("admin/tenants/:tenantId/invitations")
+@SuperAdminOnly()
+export class AdminInvitationsController {
+  constructor(@Inject(InvitationsService) private readonly service: InvitationsService) {}
+
+  @Post()
+  @HttpCode(201)
+  async create(
+    @Param("tenantId", new ParseUUIDPipe()) tenantId: string,
+    @Body() raw: unknown,
+    @CurrentUser() user: AuthUser,
+    @Headers("host") host: string = "admin.localhost",
+  ) {
+    const parsed = InvitationCreateSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: "INVALID_BODY",
+        message: "Invalid invitation payload.",
+      });
+    }
+    const tenantHost = await this.service.tenantHostFor(tenantId, host);
+    return this.service.createIn(
+      tenantId,
+      parsed.data,
+      { userId: user.id, isSuperAdmin: true },
+      tenantHost,
+    );
+  }
 }
 
 @Controller("register")
@@ -133,7 +200,7 @@ export class RegisterController {
   @Post()
   @Public()
   @HttpCode(201)
-  register(@Body() raw: unknown) {
+  register(@Body() raw: unknown, @Headers("host") host: string = "localhost") {
     const parsed = InvitationRegisterSchema.safeParse(raw);
     if (!parsed.success) {
       throw new BadRequestException({
@@ -143,6 +210,6 @@ export class RegisterController {
         errors: parsed.error.issues,
       });
     }
-    return this.service.register(parsed.data);
+    return this.service.register(parsed.data, host);
   }
 }

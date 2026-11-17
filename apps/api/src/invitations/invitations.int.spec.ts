@@ -376,23 +376,21 @@ describe("Invitations API (Integration)", () => {
       const { id: invId } = created.body as { id: string };
       const token = sentToken(created);
 
-      // Minor registration without guardian consent fails validation (400)
+      // 10R.7: a guardian is named only for a minor (400), and no consent prompt is needed (201)
       const minorFail = await anon(t, "POST", "/register", {
         token,
         name: "Young Student",
         password: "ValidPassword123!",
-        isMinor: true,
-        guardianConsent: false,
+        isMinor: false,
+        guardian: { name: "Parent Person", relationship: "parent", email: "parent@example.com" },
       });
       expect(minorFail.status).toBe(400);
 
-      // Minor registration WITH guardian consent succeeds (201)
       const registerRes = await anon(t, "POST", "/register", {
         token,
         name: "Young Student",
         password: "ValidPassword123!",
         isMinor: true,
-        guardianConsent: true,
       });
       expect(registerRes.status).toBe(201);
       const regBody = registerRes.body as { userId: string; membershipId: string; email: string };
@@ -401,13 +399,14 @@ describe("Invitations API (Integration)", () => {
       // Verify user created with emailVerified: true (implicit verification)
       const user = await systemPrisma.user.findUniqueOrThrow({ where: { id: regBody.userId } });
       expect(user.emailVerified).toBe(true);
+      expect(user.isMinor).toBe(true);
 
-      // Verify membership with guardianConsentAt
+      // The old checkbox column is no longer written (10R.7)
       const membership = await systemPrisma.membership.findUniqueOrThrow({
         where: { id: regBody.membershipId },
       });
       expect(membership.role).toBe("student");
-      expect(membership.guardianConsentAt).not.toBeNull();
+      expect(membership.guardianConsentAt).toBeNull();
 
       // Verify enrollments created
       const enrollments = await systemPrisma.enrollment.findMany({

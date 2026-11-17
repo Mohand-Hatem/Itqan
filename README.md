@@ -61,6 +61,15 @@ Requirements: Node.js 22, npm, Docker Desktop.
    ```bash
    npm run db:seed
    ```
+5. Optional, for manual testing: four test accounts in the seeded academy (`superadmin@`, `teacher@`, `assistant@`, `student@itqan.test`), with the passwords you put in `SEED_STAFF_PASSWORD` and `SEED_STUDENT_PASSWORD` in `.env`. Refused in production.
+   ```bash
+   npm run db:seed:dev
+   ```
+
+**First super admin** (any environment, from the server shell; there is no API route for it, [docs/05 §1c](docs/05-auth-devices.md)): set `SUPER_ADMIN_EMAIL`, then type the password at the prompt. It refuses when a super admin already exists. `-- --recover <email>` sets a new password for an existing super admin. In the production image: `docker compose exec api node packages/auth/dist/bootstrap-cli.js`.
+```bash
+npm run admin:bootstrap
+```
 
 ## Run the stack
 
@@ -97,8 +106,21 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build, Docker build
 ## API documentation and manual testing
 
 - **Reference:** [docs/07-api.md](docs/07-api.md) lists every endpoint, its roles and its rules.
-- **OpenAPI file:** [docs/api/openapi.json](docs/api/openapi.json) describes every route (NestJS and Better Auth) with request bodies. A test fails if it falls behind the code; run `npm run openapi:export` after changing routes.
+- **OpenAPI file:** [docs/api/openapi.json](docs/api/openapi.json) describes every route (NestJS and Better Auth) in 15 groups, with request bodies, query parameters, response schemas, examples and error reasons. A test fails if it falls behind the code; run `npm run openapi:export` after changing routes.
+- **Where the docs come from:** [apps/api/src/openapi/operations.ts](apps/api/src/openapi/operations.ts) holds one entry per route (summary, rules, schemas, errors, example). The "Who", authentication, tenant-scope and rate-limit lines are generated from the guards, and a role-sweep test checks the guards really behave that way. Every 2xx JSON response in the integration tests is checked against its documented schema.
 - **Swagger UI:** `/api/docs` when the API runs outside production (development only; it does not exist in production).
+
+### Swagger "Try it out" (dev gateway)
+
+The docs must be opened on the same origin as the API and the sign-in routes, so the session cookie works. The dev gateway is Nginx in Docker with the production routing, pointed at the dev servers on your machine:
+
+1. Stop the full stack's Nginx if it runs (port 8080): `docker compose stop nginx`.
+2. Start Postgres (`docker compose --profile local up -d postgres`) and seed test accounts once (`npm run db:seed:dev`).
+3. Run `npm run dev -w @itqan/api` and `npm run dev -w @itqan/web` in two terminals.
+4. Start the gateway: `docker compose -f docker-compose.dev.yml up -d`.
+5. Open `http://demo.localhost:8080/api/docs` for academy routes, or `http://admin.localhost:8080/api/docs` for platform (super admin) routes. Sign in with `POST /api/auth/sign-in/email` (or `/sign-in/student`) in the "Authentication & Accounts" group; the other calls then carry the cookie.
+
+Stop it with `docker compose -f docker-compose.dev.yml down` (then `docker compose up -d nginx` brings the full stack's Nginx back).
 
 ### Import into Apidog or Postman
 
@@ -106,9 +128,9 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build, Docker build
 2. Import `docs/api/openapi.json`:
    - **Apidog:** Project → Import → OpenAPI/Swagger → choose the file.
    - **Postman:** Import → choose the file → "OpenAPI 3.0" → create a collection.
-3. Base URL: `http://demo.localhost:8080` (already set as the server). The academy comes from the host name, so `demo` is the seeded academy.
+3. Base URL: set it to `http://demo.localhost:8080` (the file's server is relative, `/`). The academy comes from the host name, so `demo` is the seeded academy; platform routes use `http://admin.localhost:8080`.
 4. **Sign in first.** The API uses cookies, not bearer tokens:
-   - Staff: `POST /api/auth/sign-in/email` with `{ "email", "password" }`. Staff must have TOTP set up; without it, staff routes answer `403 MFA_ENROLMENT_REQUIRED` (enrol through the `/api/auth/two-factor/*` routes).
+   - Staff and super admins: `POST /api/auth/sign-in/email` with `{ "email", "password" }`. There is no second factor ([ADR-012](docs/adr/012-no-two-factor.md)); staff routes work right after sign-in. Public sign-up and other unused Better Auth routes answer 404 ([docs/05 §1d](docs/05-auth-devices.md)).
    - Students: `POST /api/auth/sign-in/student` with `{ "email", "password" }`. This also sets the device cookie.
    The tool keeps the cookies and sends them on the next requests. The device cookie is marked `Secure`; if your tool does not send it over plain `http`, copy its value from the sign-in response into a `Cookie` header.
 5. Call any route. Errors carry a `reason` code (for example `ROLE_FORBIDDEN`, `DEVICE_LIMIT`) explained in [docs/07-api.md](docs/07-api.md).

@@ -35,6 +35,11 @@ describe("Notifications Email Integration", () => {
     });
     studentUserId = signUp.user.id;
     createdUserIds.push(studentUserId);
+    // Notification emails go only to verified addresses (FR-N03, 10R.3).
+    await systemPrisma.user.update({
+      where: { id: studentUserId },
+      data: { emailVerified: true, status: "active" },
+    });
 
     await systemPrisma.membership.create({
       data: { tenantId, userId: studentUserId, role: "student" },
@@ -316,6 +321,27 @@ describe("Notifications Email Integration", () => {
           expect(dispatchRes.error).toBeDefined();
         },
       );
+    });
+  });
+
+  describe("unverified addresses (FR-N03, 10R.3)", () => {
+    it("sends no email to an address nobody has proven", async () => {
+      const unverified = await systemPrisma.user.create({
+        data: { email: `unverified-${randomUUID().slice(0, 8)}@example.com`, name: "Unverified" },
+      });
+      createdUserIds.push(unverified.id);
+      auth.clearTestMailbox();
+
+      const res = await runWithContext({ kind: "tenant", tenantId, tenantSlug }, () =>
+        notificationsService.dispatchEmail({
+          userId: unverified.id,
+          type: "grade_released",
+          title: "Quiz results",
+        }),
+      );
+
+      expect(res).toEqual({ skipped: true });
+      expect(auth.getLastSentEmail(unverified.email)).toBeUndefined();
     });
   });
 });

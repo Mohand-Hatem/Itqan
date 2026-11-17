@@ -8,13 +8,13 @@ Last updated: [TO CONFIRM: date of publication]
 
 Itqan is an online learning platform where teachers run their own academies. These terms apply to everyone who uses it: students, parents and guardians, teachers, assistants and administrators. The operator is [TO CONFIRM: legal name]. By creating an account or using the platform, you accept these terms and the [privacy policy](privacy-policy.en.md).
 
-**Students under 18** may use Itqan only with the consent of a parent or guardian, given at registration. The parent or guardian accepts these terms on the student's behalf.
+**Students under 18** may use Itqan's course content only with the consent of a parent or guardian, given through an email confirmation or a signed form that the academy records. Until consent is recorded, the student can sign in but cannot open course content. The parent or guardian accepts these terms on the student's behalf.
 
 ## 2. Your account
 
 - One account belongs to one person. Give your real name and an email address you control.
 - Keep your password private. You are responsible for what happens under your account.
-- Teachers, assistants and administrators must turn on two-factor authentication (TOTP) before they can manage an academy.
+- Teachers, assistants and administrators must use a password of at least 12 characters. If academy staff created your account, you may be asked to choose a new password at your first sign-in.
 - Tell the academy staff at once if you think someone else has used your account.
 
 ## 3. Devices and sign-in

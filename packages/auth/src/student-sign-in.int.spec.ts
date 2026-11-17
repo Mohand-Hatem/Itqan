@@ -30,7 +30,13 @@ async function makeTenant(pausedRoles: Role[] = []) {
 }
 
 async function makeUser(
-  opts: { maxDevices?: number; suspended?: boolean; verified?: boolean; superAdmin?: boolean } = {},
+  opts: {
+    maxDevices?: number;
+    suspended?: boolean;
+    verified?: boolean;
+    pending?: boolean;
+    superAdmin?: boolean;
+  } = {},
 ) {
   const ctx = await auth.$context;
   const user = await systemPrisma.user.create({
@@ -39,7 +45,7 @@ async function makeUser(
       name: "Student",
       emailVerified: opts.verified ?? true,
       maxDevices: opts.maxDevices ?? 1,
-      status: opts.suspended ? "suspended" : "active",
+      status: opts.suspended ? "suspended" : opts.pending ? "pending" : "active",
       isSuperAdmin: opts.superAdmin ?? false,
     },
   });
@@ -256,13 +262,20 @@ describe("student sign-in: access checks", () => {
     expect(await sessions(user.id)).toHaveLength(0);
   });
 
-  it("unverified email is refused", async () => {
+  // 10R.3 (ADR-013): the account status decides, not the email flag.
+  it("a pending (self-registered, not verified) account is refused", async () => {
     const tenant = await makeTenant();
-    const user = await student(tenant.id, { verified: false });
+    const user = await student(tenant.id, { verified: false, pending: true });
     expect(await signIn(user.email, tenant.slug)).toMatchObject({
       status: 403,
       code: "EMAIL_NOT_VERIFIED",
     });
+  });
+
+  it("an active account created directly by staff signs in while unverified", async () => {
+    const tenant = await makeTenant();
+    const user = await student(tenant.id, { verified: false });
+    expect(await signIn(user.email, tenant.slug)).toMatchObject({ status: 200 });
   });
 
   it("USER_SUSPENDED, NO_ACCESS and TENANT_PAUSED", async () => {

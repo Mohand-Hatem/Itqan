@@ -26,11 +26,11 @@ We collect only what the platform needs.
 - Phone number, only if you choose to give it.
 - Password: stored only as a one-way hash. Nobody can read it, including us.
 - Whether your email is verified.
-- For teachers, assistants and administrators: two-factor authentication (TOTP) settings.
+- If academy staff created your account, the password they set is stored the same way, and you may be asked to change it at your first sign-in.
+- For students under 18 (stored once per person): that the student is under 18, and the guardian's consent: the guardian's name, relationship to the student and email address, how and when consent was given (a confirmation link sent by email, or a signed form recorded by academy staff with a document reference), who recorded it, and for email confirmations the IP address and browser used.
 
 **Your place in an academy**
 - Your role (student, assistant or teacher) and whether your access is active.
-- For students under 18: the date and time a parent or guardian gave consent at registration.
 
 **Devices and sign-ins** (to stop account sharing, see section 5)
 - The devices you sign in from: a name for the device, your browser and operating system as your browser reports them, and when the device was last used.
@@ -47,6 +47,7 @@ We collect only what the platform needs.
 
 **Security records**
 - When staff or administrators change something (for example add a student, release grades or revoke a device), we record who did it, what changed, when, their IP address and their browser.
+- Every sign-in attempt by a teacher, assistant or administrator, successful or not: when it happened, the IP address, the browser and the reason for a failure. The password is never recorded.
 
 **Files**
 - Files and videos that teachers and assistants upload, with their names and sizes. Students do not upload files.
@@ -62,7 +63,8 @@ We do **not** collect payment card details. Students pay their teacher directly,
 | Run and grade exams fairly | Exam attempts, devices |
 | Stop one account being shared by several people | Devices, sessions |
 | Keep the platform and your data secure | Sessions, security records |
-| Send you emails you need (verification, password reset, invitations, grade releases, exam openings, course access, device-request decisions) | Name, email |
+| Send you emails you need (verification, password reset, invitations, guardian consent requests, grade releases, exam openings, course access, device-request decisions) | Name, email |
+| Record a guardian's consent for a student under 18 | Guardian consent records |
 | Answer your questions and support requests | Questions, support requests |
 
 [TO CONFIRM: the lawyer assigns the legal basis under the Personal Data Protection Law for each purpose, for example consent or providing the service you asked for.]
@@ -75,15 +77,19 @@ Teachers' courses are paid content. To protect it:
 
 ## 6. Students under 18
 
-- A student under 18 can register only after a parent or guardian gives consent. We record when that consent was given.
+- A student under 18 can have an account, but cannot open course content or start exams until a parent or guardian's consent is recorded. Consent is recorded once and applies in every academy the student joins.
+- The guardian gives consent by opening a confirmation link we email to them, or academy staff record it after seeing a signed form. We keep only the form's reference number, not a copy; the academy keeps the form. [TO CONFIRM: how long academies must keep signed forms.]
+- A box ticked by the student is not a guardian's consent.
+- A guardian can withdraw consent through the academy staff or the contact in section 1. Access to course content then closes in every academy.
 - For students, we ask only for a name and an email address, plus a phone number if they choose to give one.
 - A parent or guardian can ask to see, correct or delete the student's data using the contact in section 1.
-- [TO CONFIRM: the lawyer confirms how guardian consent must be given and checked under Saudi law, and what proof is needed.]
+- [TO CONFIRM: the lawyer confirms how guardian consent must be given and checked under Saudi law, and what proof is needed. An email confirmation shows that the owner of that mailbox agreed; it does not prove they are the parent.]
 
 ## 7. Who can see your data
 
 - **Your academy's teacher and assistants** see their students' names, emails, devices, sessions, progress, exam results, questions and support requests. They do not see students of other academies.
 - **The platform's administrators** can see data across academies to run and protect the platform.
+- **Guardian details** (name, relationship, email) are seen only by the platform's administrators and the academy that recorded the consent. Other academies the student belongs to see only that consent exists and its date.
 - **Other students** see your name next to questions you post under a lesson.
 - **Service providers** process data for us only to run the platform:
 
@@ -107,6 +113,7 @@ Some providers above may store or process data outside the Kingdom. [TO CONFIRM:
 - **Unused invitations:** deleted 30 days after they expire.
 - **Uploads that were never finished:** marked failed after a day and the file removed.
 - **When an academy is closed:** all of its data and files are deleted 30 days after it is closed.
+- **Guardian consent records:** kept while the student's account exists. [TO CONFIRM: retention after the account is deleted or the student turns 18.]
 - **Your account:** kept while you use the platform, or until you ask us to delete it. [TO CONFIRM: retention for exam results and security records after an account is deleted, if the law or the teacher needs them kept.]
 
 ## 10. How we protect data
@@ -114,7 +121,7 @@ Some providers above may store or process data outside the Kingdom. [TO CONFIRM:
 - Passwords, device secrets, invitation links and access codes are stored only as hashes.
 - Connections use HTTPS.
 - Each academy's data is kept apart from every other academy's.
-- Teachers, assistants and administrators must use two-factor authentication.
+- Teachers, assistants and administrators use passwords of at least 12 characters, and every one of their sign-in attempts is recorded.
 - Files are reached only through short-lived links given after the platform checks access.
 - If a breach puts your data at risk, we will tell the authority and the people affected as the law requires. [TO CONFIRM: timelines.]
 

@@ -31,6 +31,7 @@ enum MembershipStatus {
 enum UserStatus {
   active
   suspended
+  pending
 }
 
 enum DeviceStatus {
@@ -135,6 +136,25 @@ enum QuestionDifficulty {
   hard
 }
 
+// 10R.7 (FR-A06, ADR-014): guardian consent, once per person.
+enum ConsentStatus {
+  pending
+  given
+  withdrawn
+}
+
+enum ConsentMethod {
+  electronic_email
+  offline
+  legacy_checkbox
+}
+
+enum GuardianRelationship {
+  parent
+  legal_guardian
+  other
+}
+
 model Tenant {
   id          String       @id @default(uuid(7)) @db.Uuid
   slug        String       @unique
@@ -146,45 +166,50 @@ model Tenant {
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt   DateTime?    @map("deleted_at") @db.Timestamptz
 
-  memberships     Membership[]
-  auditLogs       AuditLog[]
-  sessions        Session[]
-  supportRequests SupportRequest[]
-  courses         Course[]
-  invitations     Invitation[]
-  enrollments     Enrollment[]
-  codeBatches     AccessCodeBatch[]
-  accessCodes     AccessCode[]
-  mediaAssets     MediaAsset[]
-  contentItems    ContentItem[]
-  lessonProgress  LessonProgress[]
-  questionBanks   QuestionBank[]
-  questions       Question[]
-  questionOptions QuestionOption[]
-  quizzes         Quiz[]
-  quizTargets     QuizTarget[]
-  quizQuestions   QuizQuestion[]
-  attempts        Attempt[]
-  attemptAnswers  AttemptAnswer[]
-  notifications   Notification[]
-  announcements   Announcement[]
-  comments        Comment[]
+  memberships      Membership[]
+  auditLogs        AuditLog[]
+  sessions         Session[]
+  supportRequests  SupportRequest[]
+  courses          Course[]
+  invitations      Invitation[]
+  enrollments      Enrollment[]
+  codeBatches      AccessCodeBatch[]
+  accessCodes      AccessCode[]
+  mediaAssets      MediaAsset[]
+  contentItems     ContentItem[]
+  lessonProgress   LessonProgress[]
+  questionBanks    QuestionBank[]
+  questions        Question[]
+  questionOptions  QuestionOption[]
+  quizzes          Quiz[]
+  quizTargets      QuizTarget[]
+  quizQuestions    QuizQuestion[]
+  attempts         Attempt[]
+  attemptAnswers   AttemptAnswer[]
+  notifications    Notification[]
+  announcements    Announcement[]
+  comments         Comment[]
+  guardianConsents GuardianConsent[]
 
   @@map("tenants")
 }
 
 model User {
-  id               String     @id @default(uuid(7)) @db.Uuid
-  name             String
-  email            String     @unique
-  emailVerified    Boolean    @default(false) @map("email_verified")
-  image            String?
-  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz
-  twoFactorEnabled Boolean?   @default(false) @map("two_factor_enabled")
-  maxDevices       Int        @default(1) @map("max_devices")
-  status           UserStatus @default(active)
-  isSuperAdmin     Boolean    @default(false) @map("is_super_admin")
+  id                 String     @id @default(uuid(7)) @db.Uuid
+  name               String
+  email              String     @unique
+  emailVerified      Boolean    @default(false) @map("email_verified")
+  image              String?
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  twoFactorEnabled   Boolean?   @default(false) @map("two_factor_enabled")
+  maxDevices         Int        @default(1) @map("max_devices")
+  status             UserStatus @default(active)
+  isSuperAdmin       Boolean    @default(false) @map("is_super_admin")
+  // 10R.3 (FR-A08): until set back to false, the API answers only GET /me.
+  mustChangePassword Boolean    @default(false) @map("must_change_password")
+  // 10R.7 (FR-A06): set when the account is created; afterwards only the super admin changes it.
+  isMinor            Boolean    @default(false) @map("is_minor")
 
   sessions               Session[]
   accounts               Account[]
@@ -203,6 +228,8 @@ model User {
   redeemedAccessCodes    AccessCode[]      @relation("CodeRedeemedBy")
   uploadedMediaAssets    MediaAsset[]      @relation("MediaUploadedBy")
   createdAnnouncements   Announcement[]    @relation("AnnouncementCreatedBy")
+  guardianConsents       GuardianConsent[] @relation("ConsentFor")
+  recordedConsents       GuardianConsent[] @relation("ConsentRecordedBy")
 
   @@map("users")
 }
@@ -403,6 +430,8 @@ model Invitation {
   id         String    @id @default(uuid(7)) @db.Uuid
   tenantId   String    @map("tenant_id") @db.Uuid
   email      String
+  // 10R.6 (FR-E01): the role the person gets on accepting; course_ids only for students.
+  role       Role      @default(student)
   tokenHash  String    @unique @map("token_hash")
   courseIds  String[]  @map("course_ids") @db.Uuid
   expiresAt  DateTime  @map("expires_at") @db.Timestamptz
@@ -840,4 +869,36 @@ model Comment {
   @@index([tenantId, contentItemId, createdAt])
   @@index([tenantId, parentId])
   @@map("comments")
+}
+
+/// Guardian consent for a student under 18 (10R.7, FR-A06, ADR-014). Global, one live row per
+/// person: at most one `pending` or `given` row that is not `legacy_checkbox`, kept by a
+/// user-row lock in GuardianConsentService. `legacy_checkbox` rows are history and never count.
+model GuardianConsent {
+  id                   String                @id @default(uuid(7)) @db.Uuid
+  userId               String                @map("user_id") @db.Uuid
+  status               ConsentStatus
+  method               ConsentMethod
+  guardianName         String?               @map("guardian_name")
+  guardianRelationship GuardianRelationship? @map("guardian_relationship")
+  guardianEmail        String?               @map("guardian_email")
+  tokenHash            String?               @unique @map("token_hash")
+  expiresAt            DateTime?             @map("expires_at") @db.Timestamptz
+  obtainedAt           DateTime?             @map("obtained_at") @db.Timestamptz
+  recordedByUserId     String?               @map("recorded_by_user_id") @db.Uuid
+  recordedTenantId     String?               @map("recorded_tenant_id") @db.Uuid
+  evidenceReference    String?               @map("evidence_reference")
+  notes                String?
+  policyVersion        String?               @map("policy_version")
+  ip                   String?
+  userAgent            String?               @map("user_agent")
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  user           User    @relation("ConsentFor", fields: [userId], references: [id], onDelete: Cascade)
+  recordedBy     User?   @relation("ConsentRecordedBy", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  recordedTenant Tenant? @relation(fields: [recordedTenantId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@map("guardian_consents")
 }

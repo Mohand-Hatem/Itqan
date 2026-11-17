@@ -93,7 +93,7 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       const dbUser = await systemPrisma.user.findUniqueOrThrow({ where: { id: body.userId } });
       expect(dbUser.emailVerified).toBe(false); // FR-A01 invariant
       expect(dbUser.name).toBe("Youssef Ahmed");
-      expect(dbUser.status).toBe("active");
+      expect(dbUser.status).toBe("pending"); // 10R.3: usable once the email is verified
       expect(dbUser.maxDevices).toBe(1);
 
       // Verify Membership record
@@ -172,7 +172,8 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       expect(dbBatch.redeemedCount).toBe(1);
     });
 
-    it("enforces minor guardian consent: rejects if isMinor=true and guardianConsent=false with 400", async () => {
+    // 10R.7 (FR-A06): a minor registers without a consent prompt; the guardian is asked by email.
+    it("refuses a guardian email equal to the student's and leaves the code unused", async () => {
       const t = await fx.tenant();
       const teacher = await fx.staffLogin(t, "teacher");
 
@@ -190,11 +191,11 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
         email,
         password: "StudentPassword123!",
         isMinor: true,
-        guardianConsent: false,
+        guardian: { name: "Same Person", relationship: "parent", email },
       });
 
       expect(res.status).toBe(400);
-      expect(reasonOf(res.body)).toBe("GUARDIAN_CONSENT_REQUIRED");
+      expect(reasonOf(res.body)).toBe("GUARDIAN_EMAIL_SAME_AS_STUDENT");
 
       // Verify code was NOT redeemed
       const dbCode = await systemPrisma.accessCode.findFirstOrThrow({
@@ -203,7 +204,7 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       expect(dbCode.redeemedAt).toBeNull();
     });
 
-    it("accepts minor when guardianConsent=true and records guardianConsentAt", async () => {
+    it("registers a minor, keeps the old checkbox column empty and emails the named guardian", async () => {
       const t = await fx.tenant();
       const teacher = await fx.staffLogin(t, "teacher");
 
@@ -217,19 +218,25 @@ describe("Access Code Redemption API (Integration — Step 6.6a)", () => {
       const email = `minor-ok-${randomUUID().slice(0, 8)}@example.com`;
       const res = await anon(t, "POST", "/register-with-code", {
         code,
-        name: "Consented Minor",
+        name: "Young Minor",
         email,
         password: "StudentPassword123!",
         isMinor: true,
-        guardianConsent: true,
+        guardianConsent: true, // an old client's field: ignored, never counted as consent
+        guardian: { name: "Parent Person", relationship: "parent", email: `g-${email}` },
       });
 
       expect(res.status).toBe(201);
-      const body = res.body as { membershipId: string };
+      const body = res.body as { membershipId: string; userId: string };
       const dbMem = await systemPrisma.membership.findUniqueOrThrow({
         where: { id: body.membershipId },
+        include: { user: true },
       });
-      expect(dbMem.guardianConsentAt).not.toBeNull();
+      expect(dbMem.guardianConsentAt).toBeNull();
+      expect(dbMem.user.isMinor).toBe(true);
+      const consent = await systemPrisma.guardianConsent.findFirstOrThrow({ where: { userId: body.userId } });
+      expect(consent).toMatchObject({ status: "pending", method: "electronic_email", recordedTenantId: t.id });
+      expect(getLastSentEmail(`g-${email}`)?.type).toBe("guardian_consent");
     });
 
     // Step 10.3 (audit lead registerWithCode:user-exists-oracle; owner kept the 409, added a limit).

@@ -10,7 +10,7 @@ import { SseService } from "./sse.service.js";
 export class SseController {
   constructor(@Inject(SseService) private readonly sseService: SseService) {}
 
-  @Get(["sse", "notifications/stream"])
+  @Get("sse")
   stream(
     @CurrentUser() user: AuthUser,
     @CurrentSession() session: AuthSession,

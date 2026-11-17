@@ -1,0 +1,19 @@
+# Dev gateway (10R.8): Nginx in Docker in front of the host's dev servers (api on 4000, web on
+# 3000), with the same routing as production. Start the database with
+# `docker compose --profile local up -d postgres`, run `npm run dev` in apps/api and apps/web,
+# then `docker compose -f docker-compose.dev.yml up -d`. Swagger: http://demo.localhost:8080/api/docs
+# (academy routes) and http://admin.localhost:8080/api/docs (platform routes). Port 8080 must be
+# free: stop the full stack's nginx first. Never used in staging or production.
+name: teacher-lms-dev
+
+services:
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "${GATEWAY_PORT:-8080}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/upstreams.dev.conf:/etc/nginx/upstreams.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

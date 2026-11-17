@@ -1,6 +1,7 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { getRequestContext, type Membership, PrismaClient } from "@itqan/database";
 import { computePermissions, type MeResponse, type MyDevicesResponse } from "@itqan/shared";
+import { consentStateOf } from "../guardian-consent/consent-state.js";
 
 @Injectable()
 export class MeService {
@@ -16,8 +17,9 @@ export class MeService {
         image: true,
         emailVerified: true,
         isSuperAdmin: true,
-        twoFactorEnabled: true,
+        mustChangePassword: true,
         status: true,
+        isMinor: true,
         createdAt: true,
       },
     });
@@ -104,8 +106,9 @@ export class MeService {
         image: user.image ?? null,
         emailVerified: user.emailVerified,
         isSuperAdmin: user.isSuperAdmin,
-        twoFactorEnabled: Boolean(user.twoFactorEnabled),
+        mustChangePassword: user.mustChangePassword,
         status: user.status,
+        guardianConsent: await consentStateOf(user.id, user.isMinor),
         createdAt: user.createdAt.toISOString(),
       },
       tenant: tenantPayload,

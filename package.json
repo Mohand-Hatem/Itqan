@@ -22,6 +22,8 @@
     "db:generate": "npm run generate -w @itqan/database",
     "db:migrate": "npm run migrate -w @itqan/database",
     "db:seed": "npm run seed -w @itqan/database",
+    "db:seed:dev": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run build -w @itqan/auth && node packages/auth/dist/dev-seed-cli.js",
+    "admin:bootstrap": "npm run build -w @itqan/shared && npm run build -w @itqan/database && npm run build -w @itqan/auth && node packages/auth/dist/bootstrap-cli.js",
     "db:promote:dev": "npm run promote -w @itqan/database -- dev",
     "r2:check": "tsx apps/api/src/storage/r2-check.ts",
     "headers:check": "node scripts/check-headers.mjs",

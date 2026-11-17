@@ -45,7 +45,9 @@ describe("Better Auth with Prisma adapter (integration)", () => {
     expect(dbUser).not.toBeNull();
     expect(dbUser!.email).toBe(email);
     expect(dbUser!.maxDevices).toBe(1);
-    expect(dbUser!.status).toBe("active");
+    // Self-registration waits for the verification link (10R.3, ADR-013).
+    expect(dbUser!.status).toBe("pending");
+    expect(dbUser!.mustChangePassword).toBe(false);
     expect(dbUser!.isSuperAdmin).toBe(false);
     expect(dbUser!.accounts.length).toBe(1);
     expect(dbUser!.accounts[0].providerId).toBe("credential");

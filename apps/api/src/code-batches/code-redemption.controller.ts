@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Headers,
   HttpCode,
   Inject,
   Post,
@@ -25,16 +26,10 @@ export class RegisterWithCodeController {
   @Post()
   @Public()
   @HttpCode(201)
-  register(@Body() raw: unknown) {
+  register(@Body() raw: unknown, @Headers("host") host: string = "localhost") {
+    // 10R.7: no consent prompt here; a minor's content waits for the guardian (FR-A06).
     const parsed = CodeRegisterSchema.safeParse(raw);
     if (!parsed.success) {
-      if (parsed.error.issues.some((i) => i.path.includes("guardianConsent"))) {
-        throw new BadRequestException({
-          statusCode: 400,
-          reason: "GUARDIAN_CONSENT_REQUIRED",
-          message: "Guardian consent is required for students under 18.",
-        });
-      }
       throw new BadRequestException({
         statusCode: 400,
         reason: "INVALID_BODY",
@@ -42,7 +37,7 @@ export class RegisterWithCodeController {
         errors: parsed.error.issues,
       });
     }
-    return this.service.registerWithCode(parsed.data);
+    return this.service.registerWithCode(parsed.data, host);
   }
 }
 

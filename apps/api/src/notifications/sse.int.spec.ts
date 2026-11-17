@@ -105,8 +105,6 @@ async function createAuthenticatedTeacher(opts: {
     body: { email, password },
     asResponse: true,
   });
-  // Staff need TOTP (FR-A03, step 10.3); turned on after sign-in.
-  await systemPrisma.user.update({ where: { email: email }, data: { twoFactorEnabled: true } });
 
   const cookie = toCookieHeader(signIn.headers);
   return { userId: signUp.user.id, email, cookie };
@@ -387,25 +385,6 @@ describe("SSE Real-Time Stream (FR-N02, Step 9.2)", () => {
       expect(await httpTestApp.app.get(SseService).sweepEndedSessions()).toBeGreaterThanOrEqual(1);
       await sse.waitForEvent("session_terminated");
       await expect(withTimeout(sse.ended, 3000)).resolves.toBe("done");
-    } finally {
-      sse.close();
-    }
-  });
-
-  it("supports /api/notifications/stream as an endpoint alias", async () => {
-    const student = await createAuthenticatedStudent({ name: "Alias Student" });
-    const sse = await connectSse(
-      httpTestApp.app.getHttpServer(),
-      tenantHost,
-      "/api/notifications/stream",
-      student.cookie,
-    );
-
-    try {
-      expect(sse.statusCode).toBe(200);
-      expect(sse.headers["content-type"]).toBe("text/event-stream");
-      const event = await sse.waitForEvent("connected");
-      expect(event).toContain("event: connected");
     } finally {
       sse.close();
     }

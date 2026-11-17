@@ -191,15 +191,13 @@ describe("DeviceGuard: students", () => {
     expect(reasonOf(res.body)).toBe(AccessReasonCode.NO_ACCESS);
   });
 
-  // Security audit, Phase 5: a password-only student session must not open staff routes
-  // (which need TOTP) on another tenant where the same user is staff.
+  // Security audit, Phase 5: a student session is bound to the tenant it was opened on, so it
+  // must not open staff routes on another tenant where the same user is staff.
   it("a student session is refused on another tenant where the user is staff", async () => {
     const s = await signedInStudent();
     await systemPrisma.membership.create({
       data: { userId: s.user.id, tenantId: tenantB.id, role: "assistant" },
     });
-    // With TOTP, so the refusal below comes from the device rule under test (step 10.3).
-    await systemPrisma.user.update({ where: { id: s.user.id }, data: { twoFactorEnabled: true } });
     const res = await get(tenantB.slug, "protected", s.both);
     expect(res.status).toBe(403);
     expect(reasonOf(res.body)).toBe(AccessReasonCode.NO_ACCESS);
@@ -227,8 +225,6 @@ describe("DeviceGuard: staff and super admins have no device rules", () => {
       body: { email: teacher.email, password: PASSWORD },
       returnHeaders: true,
     });
-    // Staff need TOTP (FR-A03, step 10.3); turned on after sign-in.
-    await systemPrisma.user.update({ where: { email: teacher.email }, data: { twoFactorEnabled: true } });
     expect((await get(tenantA.slug, "protected", cookiesOf(res.headers).join("; "))).status).toBe(
       200,
     );
@@ -240,8 +236,6 @@ describe("DeviceGuard: staff and super admins have no device rules", () => {
       body: { email: admin.email, password: PASSWORD },
       returnHeaders: true,
     });
-    // Staff need TOTP (FR-A03, step 10.3); turned on after sign-in.
-    await systemPrisma.user.update({ where: { email: admin.email }, data: { twoFactorEnabled: true } });
     expect((await get(tenantA.slug, "protected", cookiesOf(res.headers).join("; "))).status).toBe(
       200,
     );

@@ -8,13 +8,19 @@ import {
 } from "@nestjs/common";
 import type { Auth, AuthUser } from "@itqan/auth";
 import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
-import { AccessReasonCode, type CodeRedeemInput, type CodeRegisterInput } from "@itqan/shared";
+import {
+  AccessReasonCode,
+  type CodeRedeemInput,
+  type CodeRegisterInput,
+  GuardianConsentReason,
+} from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
 import { courseAccessNotification } from "../notifications/notification-inputs.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
 import { hashAccessCode, normalizeAccessCode } from "./crypto.js";
+import { GuardianConsentService } from "../guardian-consent/guardian-consent.service.js";
 import { defaultMaxDevices } from "../settings/default-max-devices.js";
 
 @Injectable()
@@ -24,9 +30,10 @@ export class CodeRedemptionService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(AUTH_INSTANCE) private readonly auth: Auth,
+    @Inject(GuardianConsentService) private readonly consent: GuardianConsentService,
   ) {}
 
-  async registerWithCode(input: CodeRegisterInput) {
+  async registerWithCode(input: CodeRegisterInput, host: string) {
     const context = getRequestContext();
     const tenantId = context?.kind === "tenant" ? context.tenantId : undefined;
     if (!tenantId) {
@@ -81,6 +88,14 @@ export class CodeRedemptionService {
     }
 
     const email = input.email.toLowerCase().trim();
+    if (input.guardian && input.guardian.email === email) {
+      throw new BadRequestException({
+        statusCode: 400,
+        reason: GuardianConsentReason.GUARDIAN_EMAIL_SAME_AS_STUDENT,
+        message: "The guardian's email must be different from the student's.",
+      });
+    }
+
     const existingUser = await systemPrisma.user.findUnique({
       where: { email },
     });
@@ -135,7 +150,10 @@ export class CodeRedemptionService {
           email,
           name: input.name,
           emailVerified: false,
-          status: "active",
+          // Self-registration: usable once the verification link is used (10R.3, ADR-013).
+          status: "pending",
+          // 10R.7 (FR-A06): content waits for the guardian; redemption never asks for consent.
+          isMinor: input.isMinor,
           maxDevices: await defaultMaxDevices(tx, code.tenantId),
         },
       });
@@ -165,7 +183,6 @@ export class CodeRedemptionService {
           userId: user.id,
           role: "student",
           phone: input.phone ?? null,
-          guardianConsentAt: input.guardianConsent ? new Date() : null,
         },
       });
 
@@ -212,6 +229,9 @@ export class CodeRedemptionService {
       // Never send a link with a made-up token (security audit, Phase 6).
     }
 
+    if (input.isMinor && input.guardian) {
+      await this.consent.requestAfterRegistration(result.userId, input.guardian, tenantId, host);
+    }
     return result;
   }
 

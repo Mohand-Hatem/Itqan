@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getLastSentEmail } from "@itqan/auth";
+import { auth, getLastSentEmail } from "@itqan/auth";
 import { systemPrisma } from "@itqan/database";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../app.module.js";
@@ -165,16 +165,13 @@ describe("API Checkpoint 6: End-to-End People & Access Lifecycle", () => {
       email: studentBEmail,
       password: PASSWORD,
       phone: "+201100000002",
-      isMinor: true,
-      guardianConsent: true,
     });
     expect(regCodeRes.status).toBe(201);
 
-    // Registration with code marks emailVerified: false until verified; mark verified for test sign-in
-    await systemPrisma.user.update({
-      where: { email: studentBEmail },
-      data: { emailVerified: true },
-    });
+    // A code registration is `pending` until the emailed link is used (10R.3): use it.
+    const verification = getLastSentEmail(studentBEmail);
+    expect(verification?.type).toBe("verification");
+    await auth.api.verifyEmail({ query: { token: verification!.token! } });
 
     // Student B signs in on Device 2
     const studentBLogin = await fx.studentLogin(tenant, studentBEmail);

@@ -1,11 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
-import type { Auth } from "@itqan/auth";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { getRequestContext, type ScopedPrismaClient, systemPrisma } from "@itqan/database";
 import type {
   AssistantCreateDto,
@@ -15,15 +8,15 @@ import type {
   AssistantListResponse,
 } from "@itqan/shared";
 import { AuditService } from "../audit/audit.service.js";
-import { AUTH_INSTANCE } from "../auth/session.guard.js";
 import { SCOPED_PRISMA } from "../database/database.module.js";
+import { type ProvisionActor, ProvisioningService } from "../provisioning/provisioning.service.js";
 
 @Injectable()
 export class AssistantsService {
   constructor(
     @Inject(SCOPED_PRISMA) private readonly db: ScopedPrismaClient,
-    @Inject(AUTH_INSTANCE) private readonly auth: Auth,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(ProvisioningService) private readonly provisioning: ProvisioningService,
   ) {}
 
   private getTenantId(): string {
@@ -39,105 +32,33 @@ export class AssistantsService {
     return context.tenantId;
   }
 
-  /** Provisions a new assistant or links an existing user as assistant. */
-  async create(actorUserId: string, dto: AssistantCreateDto): Promise<AssistantListItem> {
-    const tenantId = this.getTenantId();
-    const email = dto.email.trim().toLowerCase();
-
-    return this.db.$transaction(async (tx) => {
-      // 1. Check if user already exists globally
-      const existingUser = await tx.user.findUnique({
-        where: { email },
-      });
-
-      let userId: string;
-      let existingUserLinked = false;
-
-      if (existingUser) {
-        // 2. Check if user already has a membership on this tenant
-        const existingMembership = await tx.membership.findFirst({
-          where: { tenantId, userId: existingUser.id },
-        });
-        if (existingMembership) {
-          throw new ConflictException({
-            statusCode: 409,
-            reason: "MEMBERSHIP_ALREADY_EXISTS",
-            code: "MEMBERSHIP_ALREADY_EXISTS",
-            message: "User already has a membership on this tenant",
-          });
-        }
-
-        userId = existingUser.id;
-        existingUserLinked = true;
-      } else {
-        // 3. User does not exist: create user and credential account
-        const ctx = await this.auth.$context;
-        const hashedPassword = await ctx.password.hash(dto.temporaryPassword);
-
-        const newUser = await tx.user.create({
-          data: {
-            name: dto.name,
-            email,
-            emailVerified: true,
-          },
-        });
-
-        await tx.account.create({
-          data: {
-            userId: newUser.id,
-            accountId: newUser.id,
-            providerId: "credential",
-            password: hashedPassword,
-          },
-        });
-
-        userId = newUser.id;
-      }
-
-      // 4. Create assistant membership
-      const membership = await tx.membership.create({
-        data: {
-          tenantId,
-          userId,
-          role: "assistant",
-          status: "active",
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-
-      // 5. Transactional audit log
-      await this.audit.record(
-        {
-          action: "assistant.create",
-          targetType: "membership",
-          targetId: membership.id,
-          actorUserId,
-          meta: {
-            userId,
-            existingUserLinked,
-          },
-        },
-        tx,
-      );
-
-      return {
-        id: membership.id,
-        userId: membership.user.id,
-        name: membership.user.name,
-        email: membership.user.email,
-        role: "assistant",
-        createdAt: membership.createdAt.toISOString(),
-        existingUserLinked,
-      };
+  /**
+   * Creates a new assistant account directly (10R.4, ADR-013): unverified, 12+ character password,
+   * changed at first sign-in. An email that already has an account gets 409 USE_INVITATION.
+   */
+  async create(actor: ProvisionActor, dto: AssistantCreateDto): Promise<AssistantListItem> {
+    const result = await this.provisioning.provision({
+      tenantId: this.getTenantId(),
+      actor,
+      role: "assistant",
+      email: dto.email,
+      name: dto.name,
+      password: dto.temporaryPassword,
+      auditAction: "assistant.create",
     });
+    const membership = await this.db.membership.findUniqueOrThrow({
+      where: { id: result.membershipId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+    return {
+      id: membership.id,
+      userId: membership.user.id,
+      name: membership.user.name,
+      email: membership.user.email,
+      role: "assistant",
+      createdAt: membership.createdAt.toISOString(),
+      existingUserLinked: result.existingUserLinked,
+    };
   }
 
   /** Lists assistants on this tenant with cursor pagination. */
