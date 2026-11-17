@@ -76,6 +76,20 @@ export function getDefaultFromEmail(): string {
   return process.env["RESEND_FROM_EMAIL"] || "onboarding@resend.dev";
 }
 
+/**
+ * Development only: when TEST_EMAIL_RECIPIENT is set and NODE_ENV is not "production", every
+ * email goes to that address and the subject names the real recipient. Resend's test sender
+ * delivers only to the account owner, so this lets every flow be tried with any address.
+ * Production never redirects.
+ */
+export function deliveryTarget(to: string, subject: string, env: NodeJS.ProcessEnv = process.env) {
+  const testRecipient = env["TEST_EMAIL_RECIPIENT"]?.trim();
+  if (!testRecipient || env["NODE_ENV"] === "production" || to === testRecipient) {
+    return { to, subject };
+  }
+  return { to: testRecipient, subject: `[to: ${to}] ${subject}` };
+}
+
 export async function sendEmail(options: {
   to: string;
   subject: string;
@@ -99,11 +113,12 @@ export async function sendEmail(options: {
   }
 
   const from = getDefaultFromEmail();
+  const target = deliveryTarget(options.to, options.subject);
   const { data, error } = await resend.emails.send(
     {
       from,
-      to: options.to,
-      subject: options.subject,
+      to: target.to,
+      subject: target.subject,
       html: options.html,
       text: options.text,
     },

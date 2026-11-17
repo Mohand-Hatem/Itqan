@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   clearTestMailbox,
+  deliveryTarget,
   getLastSentEmail,
   sendCourseAccessEmail,
   sendDeviceRequestDecidedEmail,
@@ -8,6 +9,25 @@ import {
   sendGradeReleasedEmail,
   testMailbox,
 } from "./client.js";
+
+describe("development email redirect (TEST_EMAIL_RECIPIENT)", () => {
+  const dev = { NODE_ENV: "development", TEST_EMAIL_RECIPIENT: "me@example.com" };
+
+  it("sends to the test address outside production and names the real recipient", () => {
+    expect(deliveryTarget("teacher@alnoor.example", "Verify your email", dev)).toEqual({
+      to: "me@example.com",
+      subject: "[to: teacher@alnoor.example] Verify your email",
+    });
+  });
+
+  it("never redirects in production, without the variable, or to the same address", () => {
+    const original = { to: "teacher@alnoor.example", subject: "Verify" };
+    expect(deliveryTarget(original.to, original.subject, { ...dev, NODE_ENV: "production" })).toEqual(original);
+    expect(deliveryTarget(original.to, original.subject, { NODE_ENV: "development" })).toEqual(original);
+    expect(deliveryTarget(original.to, original.subject, { ...dev, TEST_EMAIL_RECIPIENT: "  " })).toEqual(original);
+    expect(deliveryTarget("me@example.com", "Hi", dev)).toEqual({ to: "me@example.com", subject: "Hi" });
+  });
+});
 
 describe("Email Client Handlers (Gate G2)", () => {
   beforeEach(() => {

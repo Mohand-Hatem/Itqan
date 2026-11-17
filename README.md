@@ -50,6 +50,7 @@ Requirements: Node.js 22, npm, Docker Desktop.
    - `BETTER_AUTH_SECRET`, `ACCESS_CODE_HMAC_SECRET`: two different random 32-byte values. In production the app refuses to start without them.
    - `BETTER_AUTH_URL`, `PLATFORM_ROOT_DOMAIN` (`localhost` locally).
    - `RESEND_API_KEY`, `RESEND_FROM_EMAIL` for real emails (tests capture emails in memory instead).
+   - `TEST_EMAIL_RECIPIENT` (your own email): outside production, every email goes there instead, with the real recipient in the subject (`[to: …]`). Resend's test sender only delivers to its account owner, so this lets you try invitations, verification and consent emails with any address. Leave it empty to send to real recipients.
    - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_BUCKET`, `R2_PUBLIC_URL` for file uploads.
 3. Start Postgres, apply migrations and seed the demo academy (`demo`):
    ```bash
