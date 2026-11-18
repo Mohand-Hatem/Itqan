@@ -27,6 +27,15 @@
     'user-round': '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
     'users-round': '<path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>',
     'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    'zoom-in': '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/>',
+    'zoom-out': '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>',
+    'circle-x': '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+    'inbox': '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    'megaphone': '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+    'reply': '<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>',
+    'send': '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+    'pause': '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+    'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
     'check-check': '<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>',
     'log-in': '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>',
     'message-square': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
@@ -86,6 +95,9 @@
     ['analytics', 'layout-dashboard', 'نظرة عامة', 'Overview'],
     ['courses', 'library-big', 'الكورسات والمحتوى', 'Courses & content'],
     ['quizzes', 'clipboard-check', 'الاختبارات', 'Quizzes'],
+    ['requests', 'inbox', 'الطلبات', 'Requests', '8'],
+    ['questions', 'message-square', 'أسئلة الطلاب', 'Students’ questions', '4'],
+    ['announcements', 'megaphone', 'الإعلانات', 'Announcements'],
     ['accounts', 'users-round', 'الحسابات', 'Accounts'],
     ['notifications', 'bell', 'الإشعارات والسجل', 'Notifications & log'],
     ['profile', 'user-round-cog', 'الملف والإعدادات', 'Profile & settings'],
@@ -98,23 +110,28 @@
     <a class="brand" href="analytics.html">${capMark}
       <span><span class="brand-name" data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span class="brand-sub" data-en="Staff dashboard">لوحة الإدارة</span></span>
     </a>
-    <button class="collapse" type="button" aria-controls="side" aria-expanded="true" aria-label="تصغير القائمة" data-en-aria-label="Collapse menu">${icon('chevron-left')}</button>
-    <a class="new-student" href="create-student.html"${current === 'create-student' ? ' aria-current="page"' : ''}><span class="plus">${icon('user-round-plus')}</span><span class="label" data-en="New student">طالب جديد</span></a>
+    <button class="collapse" type="button" aria-controls="side" aria-expanded="true" aria-label="القائمة الجانبية" data-en-aria-label="Side menu">${icon('chevron-left')}</button>
+    <a class="new-student" href="create-student.html" title="طالب جديد" data-en-title="New student"${current === 'create-student' ? ' aria-current="page"' : ''}><span class="plus">${icon('user-round-plus')}</span><span class="label" data-en="New student">طالب جديد</span></a>
     <nav aria-label="أقسام اللوحة" data-en-aria-label="Dashboard sections">
-      <ul class="nav">${pages.map(([id, ic, a, e]) => `
+      <ul class="nav">${pages.map(([id, ic, a, e, n]) => { const c = id === 'notifications' ? unread : n; return `
         <li><a href="${id}.html"${id === current ? ' aria-current="page"' : ''} title="${a}" data-en-title="${e}">${icon(ic)}<span class="label" data-en="${e}">${a}</span>${
-          id === 'notifications' && unread ? `<span class="count num" data-en="${unread}">${ar(unread)}</span>` : ''}</a></li>`).join('')}
+          c ? `<span class="count num" data-count="${id}" data-en="${c}">${ar(c)}</span>` : ''}</a></li>`; }).join('')}
       </ul>
     </nav>
     <div class="side-foot nav">
       <a href="guide.html"${current === 'guide' ? ' aria-current="page"' : ''} title="كيف تعمل اللوحة" data-en-title="How the dashboard works">${icon('info')}<span class="label" data-en="How it works">كيف تعمل اللوحة</span></a>
-      <a href="../test/login.html" title="تسجيل الخروج" data-en-title="Sign out">${icon('log-out')}<span class="label" data-en="Sign out">تسجيل الخروج</span></a>
+      <a href="login.html" title="تسجيل الخروج" data-en-title="Sign out">${icon('log-out')}<span class="label" data-en="Sign out">تسجيل الخروج</span></a>
     </div>
   </aside>
   <div class="scrim" data-close></div>`;
 
   const app = document.querySelector('.app');
   document.body.insertAdjacentHTML('afterbegin', sprite);
+  window.itqanCapMark = capMark;
+  if (!app) { // pages without the dashboard shell (sign-in): icons only
+    document.querySelectorAll('i[data-i]').forEach((el) => { el.outerHTML = icon(el.dataset.i); });
+    return;
+  }
   app.insertAdjacentHTML('afterbegin', side);
 
   // the signed-in person's avatar: teacher by default, assistant in the "as assistant" preview
@@ -130,9 +147,13 @@
   // collapse to icons on desktop, remembered per browser
   const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
   const collapse = app.querySelector('.collapse');
-  const setMini = (on) => { app.classList.toggle('mini', on); collapse.setAttribute('aria-expanded', String(!on)); store.set('itqan-dash-mini', on ? '1' : '0'); };
-  collapse.addEventListener('click', () => setMini(!app.classList.contains('mini')));
-  if (store.get('itqan-dash-mini') === '1') setMini(true);
+  // 'is-collapsed', not 'mini': pages use .mini for their own small rows (guide.html)
+  const setMini = (on) => { app.classList.toggle('is-collapsed', on); collapse.setAttribute('aria-expanded', String(!on)); store.set('itqan-dash-mini', on ? '1' : '0'); };
+  collapse.addEventListener('click', () => setMini(!app.classList.contains('is-collapsed')));
+  if (store.get('itqan-dash-mini') === '1') { // start collapsed without replaying the animation
+    app.classList.add('no-anim'); setMini(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => app.classList.remove('no-anim')));
+  }
 
   // phone and tablet: the side nav becomes a drawer
   const menuBtn = document.querySelector('.menu-btn');
@@ -167,7 +188,7 @@
     </div>`;
     document.querySelector('[data-bell-read]').addEventListener('click', () => {
       document.querySelectorAll('.bell-item.unread').forEach((x) => { x.classList.remove('unread'); x.querySelector('.sr-only')?.remove(); });
-      document.querySelectorAll('.bell-dd .dot, .nav .count').forEach((x) => { x.hidden = true; });
+      document.querySelectorAll('.bell-dd .dot, [data-count="notifications"]').forEach((x) => { x.hidden = true; });
       const b = document.querySelector('.bell-dd .dd-trigger');
       b.setAttribute('aria-label', 'الإشعارات: لا جديد'); b.setAttribute('data-en-aria-label', 'Notifications: nothing new');
       if (document.documentElement.lang === 'en') b.setAttribute('aria-label', 'Notifications: nothing new');

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإعلانات · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: send an announcement to the whole academy or one course, see the notification students get, and the history of sent announcements.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .an-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .compose { display: grid; gap: 18px; }
+  .compose h3 { font-size: 17px; font-weight: 800; }
+  .field + .field { margin-top: 0; }
+  .label .cnt { font-weight: 500; font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .compose textarea.input { font: inherit; font-size: 15.5px; min-height: 150px; padding: 12px 16px; resize: vertical; line-height: 1.75; }
+  .picks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pick { position: relative; display: grid; gap: 4px; padding: 14px 16px; padding-inline-start: 46px; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; background: var(--paper); }
+  .pick:hover { border-color: #D9C69A; }
+  .pick input { position: absolute; inset-inline-start: 14px; top: 16px; width: 20px; height: 20px; accent-color: var(--ink); margin: 0; }
+  .pick b { font-size: 15px; }
+  .pick small { font-size: 13px; color: var(--ink-2); }
+  .pick:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .pick:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .courses { display: grid; gap: 8px; }
+  .courses[hidden] { display: none; }
+  .course { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 2px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .course:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .course:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+  .course input { width: 18px; height: 18px; accent-color: var(--ink); margin: 0; }
+  .course span { flex: 1; font-size: 14.5px; }
+  .course small { font-size: 12.5px; color: var(--ink-2); }
+
+  /* what the student gets */
+  .phone { justify-self: center; width: min(330px, 100%); border: 3px solid var(--ink); border-radius: 30px; padding: 14px 12px 18px; background: #F3EBDA; display: grid; gap: 10px; }
+  .phone .bar { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; padding: 0 8px; direction: ltr; }
+  .phone .sig { display: inline-flex; gap: 3px; align-items: flex-end; } .phone .sig i { width: 4px; border-radius: 1px; background: var(--ink); } .phone .sig i:nth-child(1) { height: 5px; } .phone .sig i:nth-child(2) { height: 8px; } .phone .sig i:nth-child(3) { height: 11px; }
+  .push { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; padding: 12px; border-radius: 16px; background: var(--paper); box-shadow: var(--shadow); }
+  .push .p-logo { width: 34px; height: 34px; grid-row: span 3; }
+  .push .p-logo svg { width: 34px; height: 34px; }
+  .push .top { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--ink-2); }
+  .push b { font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+  .push p { font-size: 13px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
+  .push.empty-p b, .push.empty-p p { color: var(--ink-3); }
+  .cut-note { font-size: 12.5px; color: var(--ink-2); text-align: center; }
+  .final { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--sun-tint); font-size: 13.5px; }
+  .final svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .send-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .send-row .btn { min-height: 50px; }
+  .confirm { display: grid; gap: 10px; padding: 14px; border-radius: 14px; border: 2px solid var(--ink); background: #FFFBF0; }
+  .confirm[hidden] { display: none; }
+  .confirm b { font-size: 15px; }
+  .confirm .send-row .btn { min-height: 44px; }
+
+  /* history */
+  .hist { display: grid; gap: 14px; }
+  .hist-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hist-head h3 { font-size: 17px; font-weight: 800; margin-inline-end: auto; }
+  .ann { display: grid; gap: 8px; padding: 16px 18px; border-radius: var(--r-card); background: var(--paper); box-shadow: var(--shadow); }
+  .ann.fresh { animation: pop .4s var(--ease-out); box-shadow: inset 0 0 0 2px var(--ink), var(--shadow); }
+  .ann .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
+  .ann .meta .avatar { width: 26px; height: 26px; border-width: 1.5px; }
+  .ann .meta .chip { font-size: 11.5px; min-height: 22px; }
+  .ann .meta .chip::before { display: none; }
+  .ann h4 { font-size: 16.5px; font-weight: 700; margin: 0; }
+  .ann p { font-size: 14.5px; color: var(--ink-2); line-height: 1.7; white-space: pre-wrap; }
+  .ann .reach { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #22694F; font-weight: 600; }
+  .ann .reach svg { width: 15px; height: 15px; }
+
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .hist-list { display: none; }
+  .empty { justify-items: center; text-align: center; gap: 8px; padding: 32px 12px; }
+  .empty .bub { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); }
+  .empty .bub svg { width: 26px; height: 26px; }
+  .empty b { font-family: var(--f-display); font-size: 18px; }
+  .empty p { color: var(--ink-2); font-size: 14px; max-width: 40ch; }
+
+  @media (max-width: 1100px) { .an-grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) { .picks { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-page="announcements" data-unread="3" data-state="compose" data-title-en="Announcements · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Announcements">الإعلانات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true" data-who-av>ك</span>
+          <span><b data-who-name data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-who-role data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="head">
+      <div><h2 data-en="Tell your students something">أخبر طلابك بشيء</h2><p data-en="A change of time, a reminder before a quiz, a new chapter: it reaches them as a notification">تغيير موعد، تذكير قبل اختبار، فصل جديد: يصلهم كإشعار</p></div>
+    </div>
+
+    <div class="an-grid">
+      <!-- POST /announcements {title, body, courseId?} -->
+      <form class="panel compose" id="form" novalidate aria-labelledby="h-new">
+        <h3 id="h-new" data-en="New announcement">إعلان جديد</h3>
+
+        <div class="field"><span class="label" data-en="Who gets it">لمن الإعلان</span>
+          <div class="picks" role="radiogroup" aria-label="الجمهور" data-en-aria-label="Audience">
+            <label class="pick"><input type="radio" name="aud" value="all" checked><b data-en="The whole academy">كل الأكاديمية</b><small data-en="Every active student · 312">كل طالب نشط · ٣١٢</small></label>
+            <label class="pick"><input type="radio" name="aud" value="course"><b data-en="One course">كورس واحد</b><small data-en="Only its enrolled students">طلابه المسجلون فقط</small></label>
+          </div>
+          <div class="courses" id="courses" hidden>
+            <label class="course"><input type="radio" name="course" value="t1" data-n="214" checked><span data-en="Physics, term 1">الفيزياء · الترم الأول</span><small data-en="214 students">٢١٤ طالبًا</small></label>
+            <label class="course"><input type="radio" name="course" value="t2" data-n="188"><span data-en="Physics, term 2">الفيزياء · الترم الثاني</span><small data-en="188 students">١٨٨ طالبًا</small></label>
+            <label class="course"><input type="radio" name="course" value="rev" data-n="0" disabled><span data-en="Night-before-exam review">مراجعة ليلة الامتحان</span><small data-en="Draft · no students yet">مسودة · لا طلاب بعد</small></label>
+          </div>
+        </div>
+
+        <div class="field"><label class="label" for="title"><span data-en="Title">العنوان</span><span class="cnt" id="c-title"></span></label>
+          <input class="input" id="title" maxlength="255" required aria-describedby="err-title" placeholder="مثال: تغيير موعد اختبار المغناطيسية" data-en-placeholder="e.g. The magnetism test moves to Sunday">
+          <span class="err" id="err-title"><i data-i="triangle-alert"></i><span data-en="Write a short title.">اكتب عنوانًا قصيرًا.</span></span></div>
+        <div class="field"><label class="label" for="body"><span data-en="Message">الرسالة</span><span class="cnt" id="c-body"></span></label>
+          <textarea class="input" id="body" required aria-describedby="hint-body err-body" placeholder="اكتب ما يحتاج الطالب أن يعرفه، والأهم في أول سطر." data-en-placeholder="Write what the student needs to know, the key part first."></textarea>
+          <span class="hint" id="hint-body" data-en="The notification shows the first 120 characters; the full text opens inside the app.">الإشعار يعرض أول ١٢٠ حرفًا، والنص كاملًا يفتح داخل المنصة.</span>
+          <span class="err" id="err-body"><i data-i="triangle-alert"></i><span data-en="Write the message.">اكتب الرسالة.</span></span></div>
+
+        <p class="final"><i data-i="lock"></i><span data-en="It goes out at once and cannot be edited or deleted afterwards. Read it in the preview first.">يُرسل فورًا ولا يمكن تعديله أو حذفه بعد ذلك. راجعه في المعاينة أولًا.</span></p>
+        <div class="send-row"><button class="btn" type="submit"><i data-i="send"></i><span id="send-label"></span></button></div>
+        <div class="confirm" id="confirm" hidden role="alert">
+          <b id="confirm-text"></b>
+          <div class="send-row"><button class="btn" type="button" id="send-yes"><span class="spin" aria-hidden="true"></span><i data-i="megaphone"></i><span data-en="Yes, send it">نعم، أرسله</span></button><button class="btn btn-ghost" type="button" id="send-no" data-en="Go back and edit">ارجع وعدّل</button></div>
+        </div>
+      </form>
+
+      <div class="hist">
+        <section aria-labelledby="h-prev" style="display:grid;gap:12px">
+          <div class="hist-head"><h3 id="h-prev" data-en="What students will get">ما سيصل الطالب</h3></div>
+          <div class="phone" aria-hidden="true">
+            <div class="bar"><span>9:41</span><span class="sig" aria-hidden="true"><i></i><i></i><i></i></span></div>
+            <div class="push" id="push">
+              <span class="p-logo" id="push-logo"></span>
+              <span class="top"><span data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span><span data-en="now">الآن</span></span>
+              <b id="p-title"></b>
+              <p id="p-body"></p>
+            </div>
+          </div>
+          <p class="cut-note" id="cut-note"></p>
+        </section>
+
+        <!-- GET /announcements -->
+        <section aria-labelledby="h-hist" class="hist">
+          <div class="hist-head"><h3 id="h-hist" data-en="Sent before">أُرسل من قبل</h3>
+            <div class="seg" role="group" aria-label="تصفية" data-en-aria-label="Filter" id="f-aud">
+              <button type="button" data-f="all" aria-pressed="true" data-en="All">الكل</button>
+              <button type="button" data-f="academy" aria-pressed="false" data-en="Whole academy">الأكاديمية</button>
+              <button type="button" data-f="course" aria-pressed="false" data-en="One course">كورس</button>
+            </div>
+          </div>
+          <div class="hist hist-list" id="hist"></div>
+          <div class="panel empty when-empty"><span class="bub"><i data-i="megaphone"></i></span><b data-en="Nothing sent yet">لم يُرسل شيء بعد</b><p data-en="Your first announcement will show here with how many students it reached.">سيظهر أول إعلان هنا مع عدد الطلاب الذين وصلهم.</p></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="compose" aria-pressed="true" data-en="Write">اكتب</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="As assistant">كمساعد</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="Nothing sent yet">لا إعلانات</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e.replace(/"/g, '&quot;')}" data-ar="${a.replace(/"/g, '&quot;')}">${isEn() ? e : a}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const PEOPLE = { karim: ['أ. كريم سامي', 'Mr. Karim Samy', 'av-teacher'], nour: ['نور عادل', 'Nour Adel', 'av-assistant'] };
+  const COURSE = { t1: ['الترم الأول', 'Term 1'], t2: ['الترم الثاني', 'Term 2'] };
+  let hist = [
+    { by: 'karim', c: 't2', at: ['أمس ٨:٠٠ م', 'Yesterday 8:00 pm'], n: 188, ti: ['اختبار المغناطيسية يوم السبت', 'The magnetism test is on Saturday'], b: ['الاختبار يفتح السبت ٧:٠٠ م ويغلق ١١:٠٠ م. مدته ٤٠ دقيقة ومحاولة واحدة. راجعوا الفصل الأول كاملًا.', 'It opens Saturday at 7:00 pm and closes at 11:00 pm: 40 minutes, one attempt. Review all of chapter 1.'] },
+    { by: 'nour', c: null, at: ['الأحد ٣:١٥ م', 'Sunday 3:15 pm'], n: 312, ti: ['ملزمة نوفمبر وصلت السنتر', 'The November booklet is at the centre'], b: ['تقدروا تستلموا الملزمة والكود من السنتر من النهارده. الكود يفتح الترم الأول.', 'Pick up the booklet and its code at the centre from today. The code opens term 1.'] },
+    { by: 'karim', c: 't1', at: ['الأسبوع الماضي', 'Last week'], n: 214, ti: ['محاضرة المراجعة اتنقلت', 'The review lecture moved'], b: ['محاضرة مراجعة الفصل الثاني بقت متاحة يوم الخميس بدل الأربعاء.', 'The chapter 2 review lecture is now out on Thursday instead of Wednesday.'] },
+  ];
+  let fAud = 'all';
+  const me = () => document.body.dataset.state === 'assistant' ? 'nour' : 'karim';
+
+  function renderHist() {
+    const list = hist.filter((h) => fAud === 'all' || (fAud === 'academy') === !h.c);
+    document.getElementById('hist').innerHTML = list.map((h) => `
+      <article class="ann${h.fresh ? ' fresh' : ''}">
+        <div class="meta"><span class="avatar ${PEOPLE[h.by][2]}" aria-hidden="true">${PEOPLE[h.by][0][0]}</span>${t(PEOPLE[h.by][0], PEOPLE[h.by][1])} · ${t(...h.at)}
+          <span class="chip ${h.c ? 'info' : 'warn'}">${h.c ? t(COURSE[h.c][0], COURSE[h.c][1]) : t('كل الأكاديمية', 'Whole academy')}</span></div>
+        <h4>${t(esc(h.ti[0]), esc(h.ti[1]))}</h4>
+        <p>${t(esc(h.b[0]), esc(h.b[1]))}</p>
+        <span class="reach">${ic('check-check')}${t(`وصل إلى ${ar(h.n)} طالبًا`, `Reached ${h.n} students`)}</span>
+      </article>`).join('') || `<p style="color:var(--ink-2);padding:8px">${t('لا شيء بهذا الاختيار.', 'Nothing matches.')}</p>`;
+  }
+  renderHist();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  renderHist();
+  $('push-logo').innerHTML = window.itqanCapMark || '';
+  const toast = (a, e) => { const el = $('toast'); $('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2800); };
+  const audience = () => {
+    if (document.querySelector('input[name="aud"]:checked').value === 'all') return { n: 312, c: null };
+    const c = document.querySelector('input[name="course"]:checked'); return { n: +c.dataset.n, c: c.value };
+  };
+
+  // live preview: what lands on the student's phone (body cut at 120 characters, as the API does)
+  function sync() {
+    const ti = $('title').value.trim(), bo = $('body').value.trim(), a = audience();
+    $('c-title').textContent = isEn() ? `${$('title').value.length} / 255` : `${ar($('title').value.length)} / ٢٥٥`;
+    $('c-body').textContent = isEn() ? `${$('body').value.length} characters` : `${ar($('body').value.length)} حرفًا`;
+    const cut = bo.length > 120 ? bo.slice(0, 117) + '...' : bo;
+    $('push').classList.toggle('empty-p', !ti && !bo);
+    $('p-title').textContent = ti || (isEn() ? 'Your title shows here' : 'يظهر عنوانك هنا');
+    $('p-body').textContent = cut || (isEn() ? 'And the first lines of your message here.' : 'وأول سطور رسالتك هنا.');
+    $('cut-note').innerHTML = bo.length > 120 ? t(`النص أطول من ١٢٠ حرفًا، فيُقص في الإشعار ويظهر كاملًا داخل المنصة.`, 'Longer than 120 characters: cut in the notification, shown in full in the app.') : t('هكذا يظهر على موبايل الطالب.', 'This is how it shows on a student’s phone.');
+    $('send-label').innerHTML = t(`أرسل إلى ${ar(a.n)} طالبًا`, `Send to ${a.n} students`);
+  }
+  document.querySelectorAll('input[name="aud"]').forEach((r) => r.addEventListener('change', () => { $('courses').hidden = document.querySelector('input[name="aud"]:checked').value === 'all'; sync(); }));
+  document.querySelectorAll('input[name="course"]').forEach((r) => r.addEventListener('change', sync));
+  ['title', 'body'].forEach((id) => $(id).addEventListener('input', sync));
+  sync();
+
+  // send: fields first, then one clear confirmation because it cannot be undone
+  const check = (el, ok) => { el.setAttribute('aria-invalid', String(!ok)); $('err-' + el.id).classList.toggle('show', !ok); return ok; };
+  $('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const res = [check($('title'), !!$('title').value.trim()), check($('body'), !!$('body').value.trim())];
+    if (res.includes(false)) { [$('title'), $('body')][res.indexOf(false)].focus(); return; }
+    const a = audience();
+    $('confirm-text').innerHTML = t(`سيصل «${esc($('title').value.trim())}» إلى ${ar(a.n)} طالبًا الآن، ولا يمكن تعديله بعد الإرسال.`, `“${esc($('title').value.trim())}” goes to ${a.n} students now and cannot be edited afterwards.`);
+    $('confirm').hidden = false; $('send-yes').focus();
+  });
+  $('send-no').addEventListener('click', () => { $('confirm').hidden = true; $('title').focus(); });
+  $('send-yes').addEventListener('click', (e) => {
+    const b = e.currentTarget; b.setAttribute('aria-busy', 'true');
+    setTimeout(() => {
+      b.removeAttribute('aria-busy');
+      const a = audience(), ti = $('title').value.trim(), bo = $('body').value.trim();
+      hist.forEach((h) => { h.fresh = false; });
+      hist.unshift({ by: me(), c: a.c, at: ['الآن', 'Just now'], n: a.n, ti: [ti, ti], b: [bo, bo], fresh: true });
+      $('form').reset(); $('courses').hidden = true; $('confirm').hidden = true; sync(); renderHist();
+      if (document.body.dataset.state === 'empty') window.itqanSetState('compose');
+      toast(`وصل الإعلان إلى ${ar(a.n)} طالبًا`, `The announcement reached ${a.n} students`);
+    }, 900);
+  });
+  document.getElementById('f-aud').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; fAud = b.dataset.f; e.currentTarget.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); renderHist(); });
+  document.addEventListener('itqan:state', (e) => {
+    const asA = e.detail === 'assistant';
+    document.querySelectorAll('[data-who-name]').forEach((el) => { el.dataset.ar = asA ? 'نور عادل' : 'أ. كريم سامي'; el.dataset.en = asA ? 'Nour Adel' : 'Mr. Karim Samy'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    document.querySelectorAll('[data-who-role]').forEach((el) => { el.dataset.ar = asA ? 'مساعدة' : 'مدرس'; el.dataset.en = asA ? 'Assistant' : 'Teacher'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(() => { sync(); renderHist(); })));
+</script>
+</body>
+</html>

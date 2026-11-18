@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مراجعة الملف · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: open an uploaded PDF, image or PowerPoint the way students will get it, set who can download it, and tick a short checklist before publishing.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .fr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .fr-head h2 { font-size: 26px; font-weight: 800; }
+  .fr-head p { color: var(--ink-2); font-size: 14.5px; margin-top: 4px; }
+  .fr-head .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .fr-grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(310px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+
+  /* viewer: pdf.js / <img> in production; here a stand-in that behaves like it */
+  .viewer { border-radius: var(--r-card); overflow: hidden; background: var(--ink); box-shadow: var(--shadow-lift); }
+  .tools { display: flex; align-items: center; gap: 4px; padding: 8px 10px; color: var(--paper); flex-wrap: wrap; }
+  .ctl { width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--paper); display: grid; place-items: center; cursor: pointer; flex: none; }
+  .ctl:hover { background: rgba(255, 253, 248, .12); }
+  .ctl:disabled { opacity: .35; cursor: default; background: none; }
+  .ctl svg { width: 20px; height: 20px; }
+  [dir="rtl"] .ctl.flip svg { transform: scaleX(-1); }
+  .ctl-txt { width: auto; padding: 0 10px; font: inherit; font-size: 13.5px; font-weight: 600; }
+  .pg { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .pg input { width: 46px; height: 32px; border-radius: 8px; border: 1px solid rgba(255, 253, 248, .3); background: rgba(255, 253, 248, .08); color: var(--paper); font: inherit; text-align: center; }
+  .pg input:focus-visible { outline: 2px solid var(--sun); outline-offset: 1px; }
+  .zoom-val { min-width: 52px; text-align: center; font-size: 13.5px; font-variant-numeric: tabular-nums; direction: ltr; }
+  .tools .sep { width: 1px; height: 22px; background: rgba(255, 253, 248, .2); margin: 0 6px; }
+  .spacer-c { flex: 1; }
+  .fname { font-size: 13px; color: #E9E1CF; direction: ltr; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+
+  .vbody { display: grid; grid-template-columns: 112px minmax(0, 1fr); background: #E7DFCC; height: var(--vh); position: relative; }
+  .thumbs { overflow-y: auto; padding: 12px 10px; display: grid; gap: 10px; align-content: start; background: #DDD3BD; }
+  .thumb { padding: 0; border: 2px solid transparent; border-radius: 6px; background: none; cursor: pointer; display: grid; gap: 4px; justify-items: center; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .thumb svg { width: 100%; display: block; border-radius: 3px; background: #FFFDF8; box-shadow: 0 1px 3px rgba(26, 23, 18, .25); }
+  .thumb[aria-current="true"] { border-color: var(--ink); background: rgba(255, 253, 248, .5); }
+  .thumb:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+  .stage { overflow: auto; padding: 22px; display: grid; justify-items: safe center; align-content: start; }
+  .stage:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+  .page { width: calc(min(500px, 100%) * var(--z, 1)); max-width: none; background: #FFFDF8; box-shadow: 0 2px 10px rgba(26, 23, 18, .2); display: block; transition: width .18s var(--ease-out); }
+  .page svg { display: block; width: 100%; height: auto; }
+  .pic { width: calc(100% * var(--z, 1)); max-width: none; display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(26, 23, 18, .2); transition: width .18s var(--ease-out); }
+
+  .wait { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 12px; text-align: center; padding: 20px; background: rgba(26, 23, 18, .82); color: var(--paper); }
+  .wait[hidden] { display: none; }
+  .wait b { font-family: var(--f-display); font-size: 20px; }
+  .wait p { font-size: 14px; color: #E9E1CF; max-width: 46ch; }
+  .wait .prog { width: min(360px, 80%); height: 8px; border-radius: 999px; background: rgba(255, 253, 248, .2); overflow: hidden; }
+  .wait .prog i { display: block; height: 100%; width: 41%; background: var(--sun); }
+
+  /* PowerPoint / Word: browsers can't show them, so there is no inline view */
+  .noview { display: none; border-radius: var(--r-card); border: 2px dashed #CDBF9F; background: var(--paper); padding: 34px 28px; text-align: center; justify-items: center; gap: 14px; }
+  .noview .big { width: 76px; height: 76px; border-radius: 20px; background: var(--sun); border: 2.5px solid var(--ink); display: grid; place-items: center; box-shadow: 0 5px 0 var(--ink); margin-bottom: 6px; }
+  .noview .big svg { width: 36px; height: 36px; }
+  .noview h3 { font-size: 21px; }
+  .noview > p { color: var(--ink-2); font-size: 14.5px; max-width: 54ch; line-height: 1.7; }
+  .noview .acts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .noview .acts .btn { min-height: 48px; }
+  .noview .link-note { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+  .noview .link-note svg { width: 16px; height: 16px; }
+  .tip { display: flex; gap: 12px; text-align: start; align-items: flex-start; margin-top: 10px; padding: 14px 16px; border-radius: 14px; background: var(--blue-tint); max-width: 560px; font-size: 14px; line-height: 1.65; }
+  .tip > svg { width: 20px; height: 20px; flex: none; color: var(--blue); margin-top: 2px; }
+  .tip b { display: block; }
+
+  /* side */
+  .side-col { display: grid; gap: 18px; }
+  /* the file stays in view, as tall as the screen, while you scroll the checklist */
+  .fr-grid { --vh: max(560px, calc(100dvh - 88px)); }
+  .view-col { position: sticky; top: 16px; }
+  .facts { display: grid; gap: 0; }
+  .facts div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .facts div:last-child { border-bottom: 0; }
+  .facts dt { color: var(--ink-2); flex: none; }
+  .facts dd { margin: 0; font-weight: 600; text-align: end; min-width: 0; overflow-wrap: anywhere; }
+  .facts dd.ltr { direction: ltr; }
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .checks label { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 14.5px; line-height: 1.55; }
+  .checks label:hover { background: #FFF8E8; }
+  .checks input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: #22694F; }
+  .checks small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .checks .jump { all: unset; color: var(--blue); font-weight: 600; font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .checks .jump:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .tally { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink-2); }
+  .tally .meter { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .tally .meter i { display: block; height: 100%; width: 0; background: var(--mint); border-radius: inherit; transition: width .25s var(--ease-out); }
+  .perm { display: grid; gap: 10px; }
+  .perm .seg { justify-self: start; }
+  .perm .seg button:disabled { cursor: not-allowed; opacity: .55; }
+  .perm p { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .perm .shared { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--ink-2); padding-top: 10px; border-top: 1px solid var(--line); }
+  .perm .shared svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+  .pub-acts { display: grid; gap: 10px; }
+  .pub-acts .btn { min-height: 50px; }
+  .pub-acts .btn[disabled] { opacity: .5; cursor: not-allowed; box-shadow: 0 3px 0 var(--ink); transform: none; }
+  .pub-acts p { font-size: 13px; color: var(--ink-2); }
+  .path { display: flex; flex-wrap: wrap; gap: 6px; }
+  .path .chip { font-size: 12px; }
+
+  /* kinds: pdf has pages; image has zoom only; slides has no inline view */
+  [data-kind="image"] .pdf-only, [data-kind="slides"] .pdf-only, [data-kind="slides"] .viewer, [data-kind="slides"] .zoom-jump { display: none; }
+  [data-kind="image"] .vbody { grid-template-columns: minmax(0, 1fr); height: auto; max-height: var(--vh); }
+  [data-kind="slides"] .noview { display: grid; }
+  .k-slides-only { display: none; }
+  [data-kind="slides"] .k-slides-only { display: inline; }
+  [data-kind="slides"] .k-doc-only { display: none; }
+
+  /* states */
+  .st-note { display: none; }
+  [data-state="published"] .st-note.pub, [data-state="failed"] .st-note.fail { display: flex; }
+  [data-state="failed"] .viewer, [data-state="failed"] .noview, [data-state="failed"] .review-only, [data-state="failed"] .perm-panel { display: none; }
+  [data-state="processing"] .review-only, [data-state="processing"] .noview, [data-state="processing"] .tools .ctl, [data-state="processing"] .tools .pg, [data-state="processing"] .tools .zoom-val, [data-state="processing"] .tools .sep { display: none; }
+  [data-state="processing"] .viewer { display: block; }
+  [data-state="processing"] .vbody { height: 380px; }
+  [data-state="published"] .review-only { display: none; }
+  .when-pub { display: none; }
+  [data-state="published"] .when-pub { display: inline-flex; }
+
+  @media (max-width: 1150px) { .fr-grid { grid-template-columns: minmax(0, 1fr); } .view-col { position: static; } .fr-grid { --vh: min(78dvh, 820px); } }
+  @media (max-width: 680px) {
+    .vbody { grid-template-columns: minmax(0, 1fr); }
+    .fr-grid { --vh: 72dvh; }
+    .thumbs { display: none; }
+    .stage { padding: 12px; }
+    .fname, .tools .sep, .ctl-hide-sm { display: none; }
+    .noview { padding: 26px 18px; }
+  }
+</style>
+</head>
+<body data-page="courses" data-unread="3" data-state="pdf" data-kind="pdf" data-title-en="File review · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Courses & content">الكورسات والمحتوى</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb">
+      <a href="courses.html" data-en="Courses">الكورسات</a><i data-i="chevron-right"></i>
+      <a href="courses.html" data-en="Physics, term 1">الفيزياء · الترم الأول</a><i data-i="chevron-right"></i>
+      <span aria-current="page" data-en="File review">مراجعة الملف</span>
+    </nav>
+
+    <div class="fr-head">
+      <div>
+        <h2 data-en="Check the file before students see it">راجع الملف قبل أن يراه الطلاب</h2>
+        <p id="sub"></p>
+      </div>
+      <div class="chips">
+        <span class="chip ok review-only" data-en="Uploaded and checked">رُفع وتم التحقق منه</span>
+        <span class="chip warn review-only" data-en="Not published yet">لم يُنشر بعد</span>
+        <span class="chip ok when-pub" data-en="Published">منشور</span>
+      </div>
+    </div>
+
+    <div class="banner ok st-note pub" role="status" style="margin-top:16px;background:var(--mint-tint);border-color:var(--mint)"><i data-i="check"></i><div><strong data-en="Published: enrolled students can open it now">نُشر: يستطيع الطلاب المسجلون فتحه الآن</strong><p data-en="It shows inside Lecture 3. You can hide it again, or change who can download it, at any time.">يظهر داخل المحاضرة ٣، ويمكنك إخفاؤه أو تغيير صلاحية التحميل في أي وقت.</p><a class="btn btn-sm" href="courses.html" data-en="Back to the course">ارجع للكورس</a></div></div>
+    <div class="banner danger st-note fail" role="alert" style="margin-top:16px"><i data-i="triangle-alert"></i><div><strong data-en="This upload could not be checked">تعذّر التحقق من هذا الملف</strong><p data-en="The stored file did not match the size or type that was declared, so it was removed. Nothing reached students. Upload the file again.">الملف المحفوظ لم يطابق الحجم أو النوع المعلن، فحُذف ولم يصل لأي طالب. ارفع الملف مرة أخرى.</p><a class="btn btn-sm" href="courses.html" data-en="Upload again">ارفع مرة أخرى</a></div></div>
+
+    <div class="fr-grid">
+      <section class="view-col" aria-label="الملف كما يراه الطالب" data-en-aria-label="The file as a student sees it">
+        <!-- GET /content-items/:id/access → signed viewUrl (5 min). Staff may open unpublished items. -->
+        <div class="viewer" id="viewer">
+          <div class="tools">
+            <button class="ctl flip pdf-only" type="button" id="prev" aria-label="الصفحة السابقة" data-en-aria-label="Previous page"><i data-i="chevron-left"></i></button>
+            <label class="pg pdf-only"><span class="sr-only" data-en="Page">الصفحة</span><input id="pg" inputmode="numeric" value="1" aria-describedby="pg-of"><span id="pg-of"></span></label>
+            <button class="ctl flip pdf-only" type="button" id="next" aria-label="الصفحة التالية" data-en-aria-label="Next page"><i data-i="chevron-right"></i></button>
+            <span class="sep pdf-only"></span>
+            <button class="ctl" type="button" data-zoom="-1" aria-label="تصغير" data-en-aria-label="Zoom out"><i data-i="zoom-out"></i></button>
+            <span class="zoom-val" id="zoom-val" aria-live="polite">100%</span>
+            <button class="ctl" type="button" data-zoom="1" aria-label="تكبير" data-en-aria-label="Zoom in"><i data-i="zoom-in"></i></button>
+            <button class="ctl ctl-txt ctl-hide-sm" type="button" data-zoom="0" data-en="Fit">ملاءمة</button>
+            <span class="spacer-c"></span>
+            <span class="fname" id="fname"></span>
+            <a class="ctl ctl-hide-sm" id="newtab" href="#" aria-label="افتح في نافذة جديدة" data-en-aria-label="Open in a new tab"><i data-i="monitor"></i></a>
+          </div>
+          <div class="vbody">
+            <nav class="thumbs pdf-only" id="thumbs" aria-label="الصفحات" data-en-aria-label="Pages"></nav>
+            <div class="stage" id="stage" tabindex="0" aria-label="المعاينة" data-en-aria-label="Preview"></div>
+            <div class="wait" id="wait" hidden><b data-en="Still uploading: 41%">ما زال يُرفع: ٤١٪</b><span class="prog"><i></i></span><p data-en="The preview opens once the upload finishes and the server checks the file’s size and type.">تفتح المعاينة بعد اكتمال الرفع وتحقق الخادم من حجم الملف ونوعه.</p></div>
+          </div>
+        </div>
+
+        <div class="noview" role="region" aria-labelledby="h-noview">
+          <span class="big"><i data-i="presentation"></i></span>
+          <h3 id="h-noview" data-en="Browsers can’t show PowerPoint files">المتصفح لا يعرض ملفات PowerPoint</h3>
+          <p data-en="So there is no preview here, and students won’t get one either: they download the file and open it on their device. Download it yourself and check it the same way.">لذلك لا توجد معاينة هنا، ولن يجدها الطالب أيضًا: سيحمّل الملف ويفتحه على جهازه. حمّله أنت وراجعه بنفس الطريقة.</p>
+          <div class="acts">
+            <a class="btn" href="#" id="dl"><i data-i="download"></i><span data-en="Download to check">حمّل الملف لتراجعه</span></a>
+          </div>
+          <span class="link-note"><i data-i="clock-3"></i><span data-en="The download link works for 5 minutes. Click again for a new one.">رابط التحميل يعمل ٥ دقائق، اضغط مرة أخرى لرابط جديد.</span></span>
+          <div class="tip"><i data-i="info"></i><div><b data-en="Want students to read it inside the platform?">تريد أن يقرأه الطلاب داخل المنصة؟</b><span data-en="Save it as a PDF from PowerPoint and upload that instead. A PDF opens in place, and you can block downloading.">احفظه PDF من PowerPoint وارفعه بدلًا منه. ملف PDF يفتح داخل المنصة، وتستطيع منع تحميله.</span></div></div>
+        </div>
+      </section>
+
+      <aside class="side-col">
+        <section class="panel review-only" aria-labelledby="h-check">
+          <div class="panel-head" style="margin-bottom:6px"><h3 id="h-check" data-en="Before you publish">قبل النشر تأكد أن</h3></div>
+          <ul class="checks" id="checks">
+            <li><label><input type="checkbox"><span><span class="k-doc-only" data-en="It opens fully, nothing is missing">يفتح كاملًا ولا ينقصه شيء</span><span class="k-slides-only" data-en="You downloaded it and it opens">حمّلته وهو يفتح بشكل سليم</span><small class="pdf-only" id="pg-check"></small></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="The text is readable on a phone screen">النص مقروء على شاشة الموبايل</span><small class="zoom-jump"><button class="jump" type="button" data-zoom-to="150" data-en="Zoom to 150%">كبّر إلى ١٥٠٪</button></small></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="It is the right file for this lecture">هو الملف الصحيح لهذه المحاضرة</span></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="Downloading is set the way you want">صلاحية التحميل مضبوطة كما تريد</span><small><button class="jump" type="button" data-goto="h-perm" data-en="Check it">راجعها</button></small></span></label></li>
+          </ul>
+          <div class="tally"><span class="meter"><i id="tally-bar"></i></span><span class="num" id="tally">٠ / ٤</span></div>
+        </section>
+
+        <section class="panel perm perm-panel" aria-labelledby="h-perm">
+          <div class="panel-head" style="margin-bottom:0"><h3 id="h-perm" tabindex="-1" data-en="What students can do">ماذا يستطيع الطالب</h3></div>
+          <div class="seg" role="group" aria-label="صلاحية الملف" data-en-aria-label="File permission">
+            <button type="button" data-policy="view_only" aria-pressed="true"><i data-i="eye"></i><span data-en="View only">عرض فقط</span></button>
+            <button type="button" data-policy="downloadable" aria-pressed="false"><i data-i="download"></i><span data-en="Downloadable">قابل للتحميل</span></button>
+          </div>
+          <p id="perm-note"></p>
+          <p class="shared"><i data-i="link"></i><span data-en="This setting belongs to the file, so it changes everywhere the file is used: 2 places in this course.">هذه الصلاحية تخص الملف نفسه، فتتغير في كل مكان يُستخدم فيه: مكانان في هذا الكورس.</span></p>
+        </section>
+
+        <section class="panel pub-acts review-only" aria-label="النشر" data-en-aria-label="Publishing">
+          <button class="btn" type="button" id="publish" disabled><i data-i="check"></i><span data-en="Publish the file">انشر الملف</span></button>
+          <p id="pub-hint" data-en="Tick all four checks to publish.">علّم البنود الأربعة لتنشره.</p>
+          <div class="path"><span class="chip ok" data-en="Chapter 2">الفصل الثاني</span><span class="chip ok" data-en="Lecture 3">المحاضرة ٣</span><span class="chip warn" data-en="This file">هذا الملف</span></div>
+          <p data-en="Students see it once it and everything above it are published; both parents already are.">يراه الطلاب عندما يكون هو وكل ما فوقه منشورًا، وما فوقه منشور بالفعل.</p>
+          <a class="btn btn-light" href="courses.html"><i data-i="cloud-upload"></i><span data-en="Replace the file">استبدل الملف</span></a>
+        </section>
+
+        <section class="panel" aria-labelledby="h-file">
+          <div class="panel-head" style="margin-bottom:4px"><h3 id="h-file" data-en="The file">الملف</h3></div>
+          <dl class="facts" id="facts"></dl>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="pdf" aria-pressed="true">PDF</button>
+  <button type="button" data-state="image" aria-pressed="false" data-en="Image">صورة</button>
+  <button type="button" data-state="slides" aria-pressed="false">PowerPoint</button>
+  <button type="button" data-state="processing" aria-pressed="false" data-en="Still uploading">ما زال يُرفع</button>
+  <button type="button" data-state="failed" aria-pressed="false" data-en="Check failed">فشل التحقق</button>
+  <button type="button" data-state="published" aria-pressed="false" data-en="Published">منشور</button>
+  <a href="courses.html" data-en="Course content">محتوى الكورس</a>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => isEn() ? e : a;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const num = (n) => isEn() ? String(n) : ar(n);
+
+  // what GET /content-items/:id/access + the upload record give us for each kind
+  const FILES = {
+    pdf: { name: 'summary-03.pdf', title: ['ملخص المحاضرة ٣', 'Lecture 3 summary'], type: 'PDF', size: ['٢٫٤ م.ب', '2.4 MB'], pages: 6, policy: 'view_only' },
+    image: { name: 'junction-diagram.png', title: ['رسم نقطة التفرع', 'Junction diagram'], type: 'PNG', size: ['٦٤٠ ك.ب', '640 KB'], dims: '1600 × 900', policy: 'downloadable' },
+    slides: { name: 'kirchhoff-slides.pptx', title: ['عرض المحاضرة ٣', 'Lecture 3 slides'], type: 'PowerPoint', size: ['١٨ م.ب', '18 MB'], policy: 'downloadable' },
+  };
+  let kind = 'pdf', page = 1, zoom = 100;
+  const ZOOMS = [50, 75, 100, 125, 150, 200];
+
+  // a stand-in A4 page (pdf.js renders the real one to a canvas)
+  const line = (y, w, c = '#D9D0BD') => `<rect x="${380 - w}" y="${y}" width="${w}" height="7" rx="3.5" fill="${c}"/>`;
+  const lines = (y0, n, step = 18) => Array.from({ length: n }, (_, i) => line(y0 + i * step, i % 4 === 3 ? 190 : 340)).join('');
+  const pageBody = (k) => [
+    `<rect x="40" y="40" width="340" height="58" rx="8" fill="#FFC22E" opacity=".35"/><text x="366" y="78" text-anchor="start" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="800" font-size="24" fill="#1A1712">ملخص المحاضرة ٣</text>${line(120, 220, '#1A1712')}${lines(150, 8)}${lines(320, 9)}`,
+    `${line(46, 160, '#1A1712')}${lines(72, 4)}<g fill="none" stroke="#1A1712" stroke-width="3" stroke-linecap="round"><circle cx="210" cy="250" r="6" fill="#1A1712"/><path d="M90 250h114M216 250h114M210 256v70"/><path d="M140 240l12 10-12 10" stroke="#E9502E"/><path d="M280 240l12 10-12 10" stroke="#3F9D7B"/></g>${lines(370, 9)}`,
+    `${line(46, 200, '#1A1712')}${lines(72, 5)}<rect x="70" y="178" width="280" height="70" rx="10" fill="none" stroke="#2B5FE3" stroke-width="2.5"/><text x="210" y="222" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="22" fill="#2B5FE3" direction="ltr">ΣI in = ΣI out</text>${lines(280, 13)}`,
+    `${line(46, 140, '#1A1712')}${lines(72, 3)}<g stroke="#1A1712" stroke-width="1.5" fill="none"><rect x="40" y="140" width="340" height="180"/><path d="M40 176h340M40 212h340M40 248h340M40 284h340M153 140v180M267 140v180"/></g><rect x="40" y="140" width="340" height="36" fill="#E2EAFC"/>${lines(350, 11)}`,
+    `${line(46, 180, '#1A1712')}${Array.from({ length: 7 }, (_, i) => `<circle cx="374" cy="${82 + i * 30}" r="5" fill="#3F9D7B"/>${line(78 + i * 30, 250)}`).join('')}${lines(310, 13)}`,
+    `<text x="380" y="62" text-anchor="start" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="800" font-size="20" fill="#1A1712">تمارين</text>${Array.from({ length: 5 }, (_, i) => `<text x="380" y="${108 + i * 90}" text-anchor="start" font-family="Readex Pro, sans-serif" font-weight="700" font-size="15" fill="#E9502E">${'١٢٣٤٥'[i]}</text>${line(100 + i * 90, 300)}${line(118 + i * 90, 330)}${line(136 + i * 90, 210)}`).join('')}`,
+  ][k];
+  const pageSvg = (k) => `<svg viewBox="0 0 420 594" aria-hidden="true" style="direction:rtl"><rect width="420" height="594" fill="#FFFDF8"/>${pageBody(k)}<text x="210" y="574" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="11" fill="#8A8170">${'١٢٣٤٥٦'[k]}</text></svg>`;
+  const imageSvg = `<svg class="pic" viewBox="0 0 800 450" role="img" aria-label="${'رسم نقطة التفرع'}"><rect width="800" height="450" fill="#FFFDF8"/>
+    <g fill="none" stroke="#1A1712" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="400" cy="210" r="12" fill="#1A1712"/><path d="M130 210h258M412 210h258M400 222v150"/><path d="M230 190l22 20-22 20" stroke="#E9502E"/><path d="M540 190l22 20-22 20" stroke="#3F9D7B"/><path d="M380 300l20 22 20-22" stroke="#3F9D7B"/></g>
+    <g font-family="Readex Pro, sans-serif" font-size="30" fill="#1A1712" direction="ltr"><text x="200" y="170">I₁ = 5 A</text><text x="520" y="170">I₂ = 3 A</text><text x="430" y="352">I₃ = 2 A</text></g>
+    <text x="400" y="80" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="32" fill="#2B5FE3" direction="ltr">ΣI in = ΣI out</text></svg>`;
+
+  function renderStage() {
+    const f = FILES[kind];
+    $('stage').style.setProperty('--z', zoom / 100);
+    $('zoom-val').textContent = zoom + '%';
+    if (kind === 'image') { $('stage').innerHTML = imageSvg; return; }
+    if (kind !== 'pdf') return;
+    $('stage').innerHTML = `<div class="page">${pageSvg(page - 1)}</div>`;
+    $('pg').value = num(page);
+    $('pg-of').textContent = t(`من ${ar(f.pages)}`, `of ${f.pages}`);
+    $('prev').disabled = page === 1; $('next').disabled = page === f.pages;
+    document.querySelectorAll('.thumb').forEach((b, i) => b.setAttribute('aria-current', String(i + 1 === page)));
+  }
+  function renderThumbs() {
+    $('thumbs').innerHTML = Array.from({ length: FILES.pdf.pages }, (_, i) =>
+      `<button class="thumb" type="button" data-page="${i + 1}" aria-label="${t('الصفحة ' + ar(i + 1), 'Page ' + (i + 1))}">${pageSvg(i)}<span>${num(i + 1)}</span></button>`).join('');
+  }
+  function renderSide() {
+    const f = FILES[kind];
+    $('sub').textContent = t(`المحاضرة ٣: قانون كيرشوف الأول · ${f.title[0]}`, `Lecture 3: Kirchhoff’s first law · ${f.title[1]}`);
+    $('fname').textContent = f.name;
+    $('pg-check').textContent = t(`المفروض ${ar(f.pages || 0)} صفحات`, `It should have ${f.pages} pages`);
+    const can = kind === 'slides' || f.policy === 'downloadable' ? t('فتحه وتحميل نسخة', 'Open it and save a copy') : t('فتحه داخل المنصة فقط', 'Open it inside the platform only');
+    const rows = [
+      [t('الاسم', 'Name'), f.name, 'ltr'],
+      [t('النوع', 'Type'), f.type],
+      [t('الحجم', 'Size'), t(...f.size), 'num'],
+      kind === 'pdf' ? [t('الصفحات', 'Pages'), num(f.pages), 'num'] : kind === 'image' ? [t('الأبعاد', 'Dimensions'), f.dims, 'ltr'] : null,
+      [t('رفعه', 'Uploaded by'), t('نور عادل · منذ ١٠ دقائق', 'Nour Adel · 10 min ago')],
+      [t('الطالب يستطيع', 'Students can'), can],
+      [t('رابط الفتح', 'Open link'), t('موقّع، صالح ٥ دقائق', 'Signed, valid 5 minutes')],
+      [t('علامة مائية', 'Watermark'), t('لا، للفيديو فقط', 'No, videos only')],
+    ].filter(Boolean);
+    $('facts').innerHTML = rows.map(([k, v, c]) => `<div><dt>${k}</dt><dd${c ? ` class="${c}"` : ''}>${v}</dd></div>`).join('');
+    // permission: Word and PowerPoint are always downloadable (no inline view)
+    const locked = kind === 'slides';
+    document.querySelectorAll('[data-policy]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(locked ? b.dataset.policy === 'downloadable' : b.dataset.policy === f.policy));
+      b.disabled = locked;
+    });
+    $('perm-note').textContent = locked
+      ? t('ملفات Word وPowerPoint تُحمَّل دائمًا، لأن المتصفح لا يعرضها. لمنع التحميل ارفعها PDF.', 'Word and PowerPoint files are always downloaded, since browsers can’t show them. To block downloading, upload a PDF instead.')
+      : f.policy === 'view_only'
+        ? t('يفتح داخل المنصة فقط، بدون زر تحميل.', 'Opens inside the platform only, with no download button.')
+        : t('يفتحه الطالب داخل المنصة، ويستطيع تحميل نسخة على جهازه.', 'Students open it inside the platform and can save a copy to their device.');
+  }
+  const render = () => {
+    renderThumbs(); renderStage(); renderSide(); tally();
+    if (document.body.dataset.state === 'processing') { $('thumbs').innerHTML = ''; $('stage').innerHTML = ''; } // nothing to show until the upload is checked
+  };
+
+  const go = (p) => { page = Math.max(1, Math.min(FILES.pdf.pages, p)); renderStage(); };
+  const setZoom = (z) => { zoom = z; renderStage(); };
+  $('prev').addEventListener('click', () => go(page - 1));
+  $('next').addEventListener('click', () => go(page + 1));
+  $('pg').addEventListener('change', (e) => { const n = parseInt(e.target.value.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)), 10); go(isNaN(n) ? page : n); });
+  $('thumbs').addEventListener('click', (e) => { const b = e.target.closest('.thumb'); if (b) go(+b.dataset.page); });
+  $('stage').addEventListener('keydown', (e) => {
+    if (kind !== 'pdf') return;
+    if (e.key === 'PageDown') { e.preventDefault(); go(page + 1); }
+    if (e.key === 'PageUp') { e.preventDefault(); go(page - 1); }
+  });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.zoom != null) {
+      const d = +b.dataset.zoom, i = ZOOMS.indexOf(zoom);
+      setZoom(d === 0 ? 100 : ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i + d))]);
+    }
+    if (b.dataset.zoomTo) { e.preventDefault(); setZoom(+b.dataset.zoomTo); $('stage').focus({ preventScroll: true }); }
+    if (b.dataset.goto) { e.preventDefault(); const h = $(b.dataset.goto); h.scrollIntoView({ behavior: 'smooth', block: 'center' }); h.focus({ preventScroll: true }); }
+  });
+  ['newtab', 'dl'].forEach((id) => $(id).addEventListener('click', (e) => { e.preventDefault(); toast('طلبنا رابطًا جديدًا صالحًا ٥ دقائق', 'Asked for a fresh link, valid 5 minutes'); }));
+
+  // PATCH /uploads/:id {downloadPolicy}, audited as media.update
+  document.querySelectorAll('[data-policy]').forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled || b.getAttribute('aria-pressed') === 'true') return;
+    FILES[kind].policy = b.dataset.policy; renderSide();
+    toast('حُفظ. تغيرت الصلاحية في المكانين اللذين يُستخدم فيهما الملف', 'Saved. The setting changed in both places that use this file');
+  }));
+
+  const toast = (a, e) => { $('toast-text').textContent = t(a, e); $('toast').hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { $('toast').hidden = true; }, 2600); };
+
+  // checklist gates the publish button
+  const boxes = [...document.querySelectorAll('#checks input')];
+  function tally() {
+    const n = boxes.filter((b) => b.checked).length;
+    $('tally').textContent = isEn() ? `${n} / 4` : `${ar(n)} / ٤`;
+    $('tally-bar').style.width = n / 4 * 100 + '%';
+    $('publish').disabled = n < 4;
+    $('pub-hint').hidden = n === 4;
+  }
+  boxes.forEach((b) => b.addEventListener('change', tally));
+  $('publish').addEventListener('click', () => { window.itqanSetState('published'); scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  document.addEventListener('itqan:state', (e) => {
+    const s = e.detail;
+    if (FILES[s]) { kind = s; page = 1; zoom = 100; boxes.forEach((b) => { b.checked = false; }); }
+    if (s === 'processing' && kind === 'slides') kind = 'pdf';
+    document.body.dataset.kind = kind;
+    $('wait').hidden = s !== 'processing';
+    render();
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(render)));
+
+  // the course editor links here with ?k=pdf|image|slides
+  const k0 = new URLSearchParams(location.search).get('k');
+  if (FILES[k0] && k0 !== 'pdf') window.itqanSetState(k0); else render();
+</script>
+</body>
+</html>

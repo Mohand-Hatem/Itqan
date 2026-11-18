@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الصفحة غير موجودة · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: what a teacher or assistant sees on a missing page (404), a page their role can't open (403), or a server error (500).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .err-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 40px; align-items: center; max-width: 1080px; margin: 48px auto 0; padding: 36px 40px; border-radius: var(--r-card); background: var(--paper); box-shadow: var(--shadow-lift); }
+  .err-copy .code { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: var(--sun-tint); font-size: 13px; font-weight: 700; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .err-copy .code svg { width: 15px; height: 15px; }
+  .err-copy h2 { font-size: 32px; font-weight: 800; line-height: 1.35; margin-top: 14px; }
+  .err-copy > p { color: var(--ink-2); font-size: 16px; line-height: 1.75; margin-top: 10px; max-width: 46ch; }
+  .err-copy .acts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+  .err-copy .acts .btn { min-height: 50px; }
+  .help { margin-top: 26px; padding-top: 18px; border-top: 2px dashed var(--line); display: grid; gap: 8px; font-size: 14.5px; color: var(--ink-2); }
+  .help b { color: var(--ink); }
+  .help ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+  [dir="ltr"] [data-back] svg { transform: scaleX(-1); }
+  .who { display: inline-flex; align-items: center; gap: 10px; margin-top: 14px; padding: 8px 14px 8px 8px; border-radius: 999px; background: #FBF5E8; font-size: 14px; }
+  [dir="rtl"] .who { padding: 8px 8px 8px 14px; }
+  .who .avatar { width: 34px; height: 34px; border-width: 1.5px; }
+
+  .board { width: 100%; max-width: 520px; justify-self: center; }
+  .board .k { stroke: #1a1712; stroke-linecap: round; stroke-linejoin: round; } /* width and fill stay on each shape */
+  .board path.k { fill: none; }
+  .board .ln, .board .blue { fill: none; stroke-linecap: round; stroke: #D9D0BD; }
+  .board .blue { stroke: #2B5FE3; }
+  .board .chalk { stroke-dasharray: 100; animation: chalk 6s var(--ease-out) infinite; }
+  @keyframes chalk { 0% { stroke-dashoffset: 100; } 30%, 100% { stroke-dashoffset: 0; } }
+  .board .bob { transform-box: fill-box; transform-origin: center; animation: bob 2.6s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(6deg); } }
+  @media (prefers-reduced-motion: reduce) { .board .chalk, .board .bob { animation: none; } }
+
+  .st { display: none; }
+  [data-state="404"] .st-404, [data-state="403"] .st-403, [data-state="500"] .st-500 { display: block; }
+  .board .st { display: none; }
+  [data-state="404"] .board .st-404, [data-state="403"] .board .st-403, [data-state="500"] .board .st-500 { display: inline; }
+
+  @media (max-width: 980px) { .err-wrap { grid-template-columns: minmax(0, 1fr); margin-top: 24px; padding: 26px 22px; gap: 18px; } .board { max-width: 380px; order: -1; } .err-copy h2 { font-size: 26px; } }
+  @media (max-width: 560px) { .err-copy .acts .btn { flex: 1 1 100%; } }
+</style>
+</head>
+<body data-page="" data-unread="3" data-state="404" data-title-en="Page not found · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Itqan dashboard">لوحة إتقان</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b id="me-name"></b><small id="me-role"></small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <section class="err-wrap" aria-labelledby="h-err">
+      <div class="err-copy">
+        <!-- 404: unknown route, or an id from another academy (the API answers 404 so it never confirms the record exists) -->
+        <div class="st st-404">
+          <span class="code" data-en="Error 404">خطأ ٤٠٤</span>
+          <h2 id="h-err" data-en="This page isn’t here">هذه الصفحة غير موجودة</h2>
+          <p data-en="The link may be old, the item may have been deleted, or the address was typed wrong.">ربما الرابط قديم، أو حُذف ما كان فيه، أو كُتب العنوان بشكل خاطئ.</p>
+          <div class="acts">
+            <a class="btn" href="analytics.html"><i data-i="layout-dashboard"></i><span data-en="Go to the overview">اذهب للنظرة العامة</span></a>
+            <button class="btn btn-light" type="button" data-back><i data-i="arrow-right"></i><span data-en="Go back">ارجع للخلف</span></button>
+          </div>
+          <div class="help"><b data-en="Looking for something?">تبحث عن شيء؟</b><span data-en="Use the search at the top for a student, or the side menu for courses, quizzes and requests.">استخدم البحث في الأعلى للوصول لطالب، والقائمة الجانبية للكورسات والاختبارات والطلبات.</span></div>
+        </div>
+
+        <!-- 403: the role can't do this (teacher-only: academy settings, assistants, code batches) -->
+        <div class="st st-403">
+          <span class="code"><i data-i="lock"></i><span data-en="Teacher only">للمدرس فقط</span></span>
+          <h2 data-en="Only the teacher can open this page">هذه الصفحة يفتحها المدرس فقط</h2>
+          <p data-en="Academy settings, assistants and code batches are managed by the academy’s teacher. You are signed in as an assistant.">إعدادات الأكاديمية والمساعدون ودفعات الأكواد يديرها مدرس الأكاديمية. وأنت داخل بحساب مساعد.</p>
+          <span class="who"><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Nour Adel · Assistant at Physics with Mr. Karim">نور عادل · مساعدة في الفيزياء مع أ. كريم</span></span>
+          <div class="acts">
+            <a class="btn" href="analytics.html"><i data-i="layout-dashboard"></i><span data-en="Go to the overview">اذهب للنظرة العامة</span></a>
+            <button class="btn btn-light" type="button" data-back><i data-i="arrow-right"></i><span data-en="Go back">ارجع للخلف</span></button>
+          </div>
+          <div class="help"><b data-en="Need something from here?">تحتاج شيئًا من هنا؟</b><span data-en="Ask Mr. Karim to do it, for example to print new codes or change the academy’s page.">اطلب من أ. كريم أن يقوم به، مثل طباعة أكواد جديدة أو تعديل صفحة الأكاديمية.</span></div>
+        </div>
+
+        <!-- 500: our fault -->
+        <div class="st st-500">
+          <span class="code" data-en="Error 500">خطأ ٥٠٠</span>
+          <h2 data-en="Something went wrong on our side">حدث خطأ عندنا</h2>
+          <p data-en="It isn’t something you did, and nothing you saved before was lost. Try again in a moment.">ليس بسببك، ولم يضع شيء حفظته من قبل. حاول مرة أخرى بعد لحظات.</p>
+          <div class="acts">
+            <button class="btn" type="button" data-reload><i data-i="refresh-cw"></i><span data-en="Try again">حاول مرة أخرى</span></button>
+            <a class="btn btn-light" href="analytics.html"><i data-i="layout-dashboard"></i><span data-en="Go to the overview">اذهب للنظرة العامة</span></a>
+          </div>
+          <div class="help"><b data-en="Still happening?">ما زال يحدث؟</b>
+            <ul>
+              <li data-en="If you were filling a form, keep the tab open so you don’t lose what you wrote.">إن كنت تملأ نموذجًا، اترك الصفحة مفتوحة حتى لا تفقد ما كتبته.</li>
+              <li><span data-en="Tell the platform team what you were doing and when:">أخبر فريق المنصة بما كنت تفعله ومتى:</span> <b class="num" id="when"></b></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <svg class="board" viewBox="0 0 520 400" aria-hidden="true" stroke-width="3.2">
+        <rect x="40" y="40" width="440" height="270" rx="14" fill="#FFFDF8" class="k"/>
+        <path d="M30 310h460" class="k" stroke-width="10"/>
+        <path d="M110 316l-26 74M410 316l26 74" class="k"/>
+        <rect x="380" y="298" width="46" height="10" rx="3" fill="#E9502E"/>
+        <!-- 404: the lesson map with one pill missing -->
+        <g class="st st-404">
+          <circle cx="260" cy="175" r="42" fill="#FFC22E" class="k"/>
+          <path d="M228 150l-60-42M292 150l60-42M228 200l-60 42" class="k chalk" pathLength="100"/>
+          <rect x="88" y="84" width="110" height="44" rx="22" fill="#FFFDF8" class="k"/>
+          <rect x="322" y="84" width="110" height="44" rx="22" fill="#FFFDF8" class="k"/>
+          <rect x="88" y="222" width="110" height="44" rx="22" fill="#FFFDF8" class="k"/>
+          <rect x="322" y="222" width="110" height="44" rx="22" fill="none" class="k" stroke-dasharray="8 9"/>
+          <path d="M292 200l30 22" class="k" stroke-dasharray="6 8"/>
+          <text x="377" y="255" text-anchor="middle" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="800" font-size="30" fill="#E9502E" class="bob">?</text>
+          <path d="M112 106h62M346 106h62M112 244h62" class="ln" stroke-width="5"/>
+        </g>
+        <!-- 403: a padlock on the board -->
+        <g class="st st-403">
+          <path d="M214 160v-28a46 46 0 0 1 92 0v28" class="k" stroke-width="8"/>
+          <rect x="190" y="158" width="140" height="110" rx="18" fill="#FFC22E" class="k"/>
+          <circle cx="260" cy="203" r="12" fill="#1A1712"/>
+          <path d="M260 210v28" class="k" stroke-width="8"/>
+          <path d="M100 90h60M100 112h40M360 230h60M380 252h40" class="ln chalk" pathLength="100" stroke-width="5"/>
+        </g>
+        <!-- 500: a snapped piece of chalk and a scribble -->
+        <g class="st st-500">
+          <path d="M110 200c30-60 60 40 90-10s60 30 90-20 60 40 110-10" class="blue chalk" pathLength="100"/>
+          <g class="bob"><rect x="190" y="236" width="52" height="18" rx="5" fill="#FFFDF8" class="k" transform="rotate(-14 216 245)"/></g>
+          <rect x="262" y="236" width="40" height="18" rx="5" fill="#FFFDF8" class="k" transform="rotate(12 282 245)"/>
+          <path d="M248 226l6-14M256 236l14-6M240 222l-4-14" class="k" stroke-width="2.6"/>
+          <path d="M100 90h80M100 112h50" class="ln" stroke-width="5"/>
+        </g>
+      </svg>
+    </section>
+  </main>
+</div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="404" aria-pressed="true" data-en="Not found (404)">غير موجودة (٤٠٤)</button>
+  <button type="button" data-state="403" aria-pressed="false" data-en="Not allowed (403)">غير مسموح (٤٠٣)</button>
+  <button type="button" data-state="500" aria-pressed="false" data-en="Server error (500)">خطأ في الخادم (٥٠٠)</button>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => isEn() ? e : a;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const at = new Date();
+  const TITLES = { 404: ['الصفحة غير موجودة', 'Page not found'], 403: ['غير مسموح', 'Not allowed'], 500: ['حدث خطأ', 'Something went wrong'] };
+
+  // who is signed in: the 403 case is an assistant; the others show the teacher
+  function render() {
+    const s = document.body.dataset.state, asst = s === '403';
+    $('me-name').textContent = asst ? t('نور عادل', 'Nour Adel') : t('أ. كريم سامي', 'Mr. Karim Samy');
+    $('me-role').textContent = asst ? t('مساعدة', 'Assistant') : t('مدرس', 'Teacher');
+    document.querySelectorAll('.me .avatar').forEach((a) => { a.classList.toggle('av-assistant', asst); a.classList.toggle('av-teacher', !asst); });
+    const hh = String(at.getHours()).padStart(2, '0'), mm = String(at.getMinutes()).padStart(2, '0');
+    $('when').textContent = isEn() ? `today at ${hh}:${mm}` : `اليوم الساعة ${ar(hh)}:${ar(mm)}`;
+    document.title = `${t(...TITLES[s])} · ${t('لوحة الإدارة', 'Staff dashboard')}`;
+    document.querySelectorAll('.st-' + s + ' h2, .err-copy h2').forEach((h) => h.removeAttribute('id'));
+    document.querySelector('.st-' + s + ' h2').id = 'h-err';
+  }
+  document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => history.length > 1 ? history.back() : (location.href = 'analytics.html')));
+  document.querySelectorAll('[data-reload]').forEach((b) => b.addEventListener('click', () => location.reload()));
+  document.addEventListener('itqan:state', render);
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(render)));
+  const s0 = new URLSearchParams(location.search).get('code');
+  if (TITLES[s0] && s0 !== '404') window.itqanSetState(s0); else render();
+</script>
+</body>
+</html>

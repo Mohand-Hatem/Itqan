@@ -125,7 +125,7 @@
           <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
           <a class="dd-item t-only" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
           <div class="dd-sep"></div>
-          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
         </div>
       </div>
     </header>
@@ -247,7 +247,7 @@
     const u = notes.filter((n) => n.unread).length;
     document.getElementById('unread-n').innerHTML = t(`(${ar(u)})`, `(${u})`);
     const bell = document.getElementById('bell-n'); bell.hidden = !u; bell.dataset.ar = ar(u); bell.dataset.en = String(u); bell.textContent = isEn() ? u : ar(u);
-    const side = document.querySelector('.nav .count'); if (side) { side.hidden = !u; side.dataset.ar = ar(u); side.dataset.en = String(u); side.textContent = isEn() ? u : ar(u); }
+    const side = document.querySelector('[data-count="notifications"]'); if (side) { side.hidden = !u; side.dataset.ar = ar(u); side.dataset.en = String(u); side.textContent = isEn() ? u : ar(u); }
     document.getElementById('bell').setAttribute('aria-label', isEn() ? `Notifications: ${u} unread` : `الإشعارات: ${ar(u)} غير مقروءة`);
   }
 

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مراجعة الفيديو · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: watch an uploaded video exactly as students will (signed link + watermark) and tick a short checklist before publishing it.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .vr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .vr-head h2 { font-size: 26px; font-weight: 800; }
+  .vr-head p { color: var(--ink-2); font-size: 14.5px; margin-top: 4px; }
+  .vr-head .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .vr-grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(310px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+
+  /* player: the native <video> in production; here a stand-in that behaves like it */
+  .player { position: relative; border-radius: var(--r-card); overflow: hidden; background: var(--ink); box-shadow: var(--shadow-lift); }
+  .screen { position: relative; aspect-ratio: 16 / 9; background: #F7F3EA; overflow: hidden; }
+  .screen svg.board { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wm { position: absolute; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; color: rgba(26, 23, 18, .32); white-space: nowrap; pointer-events: none; transition: top 1.2s linear, left 1.2s linear; direction: ltr; }
+  .wm[hidden] { display: none; }
+  .big-play { position: absolute; inset: 0; margin: auto; width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--ink); background: var(--sun); display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 0 var(--ink); transition: transform .18s var(--ease-out); }
+  .big-play:hover { transform: scale(1.05); }
+  .big-play svg { width: 34px; height: 34px; }
+  .big-play svg { margin-inline-start: 4px; } /* play keeps the media convention (points right) in both languages */
+  .playing .big-play, [data-state="processing"] .big-play, [data-state="processing"] .controls { display: none; }
+  .wait { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 12px; text-align: center; padding: 20px; background: rgba(26, 23, 18, .82); color: var(--paper); }
+  .wait[hidden] { display: none; }
+  .wait b { font-family: var(--f-display); font-size: 20px; }
+  .wait p { font-size: 14px; color: #E9E1CF; max-width: 46ch; }
+  .wait .prog { width: min(360px, 80%); height: 8px; border-radius: 999px; background: rgba(255, 253, 248, .2); overflow: hidden; }
+  .wait .prog i { display: block; height: 100%; width: 64%; background: var(--sun); }
+
+  .controls { display: flex; align-items: center; gap: 6px; padding: 10px 12px; color: var(--paper); flex-wrap: wrap; }
+  .ctl { width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--paper); display: grid; place-items: center; cursor: pointer; flex: none; }
+  .ctl:hover { background: rgba(255, 253, 248, .12); }
+  .ctl svg { width: 20px; height: 20px; }
+  .ctl-txt { width: auto; padding: 0 10px; font: inherit; font-size: 13.5px; font-weight: 600; direction: ltr; unicode-bidi: isolate; } /* −10, +10, 1× read the same in both languages */
+  .time { font-size: 13.5px; font-variant-numeric: tabular-nums; direction: ltr; min-width: 112px; text-align: center; }
+  .seek { flex: 1 1 200px; height: 30px; position: relative; cursor: pointer; display: flex; align-items: center; }
+  .seek .rail { position: relative; width: 100%; height: 6px; border-radius: 999px; background: rgba(255, 253, 248, .22); }
+  .seek .buf { position: absolute; inset-block: 0; inset-inline-start: 0; width: 38%; border-radius: inherit; background: rgba(255, 253, 248, .35); }
+  .seek .done { position: absolute; inset-block: 0; inset-inline-start: 0; width: 0; border-radius: inherit; background: var(--sun); }
+  .seek .knob { position: absolute; top: 50%; inset-inline-start: 0; width: 16px; height: 16px; margin-inline-start: -8px; translate: 0 -50%; border-radius: 50%; background: var(--sun); border: 2px solid var(--ink); }
+  [dir="rtl"] .seek .knob { margin-inline-start: -8px; }
+  .seek:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; border-radius: 6px; }
+  .spacer-c { flex: 1; }
+  .ctl[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
+
+  .frames { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .frame { border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); cursor: pointer; padding: 0; text-align: start; }
+  .frame:hover, .frame:focus-visible { border-color: var(--ink); outline: none; }
+  .frame svg { display: block; width: 100%; aspect-ratio: 16 / 9; background: #F7F3EA; }
+  .frame span { display: block; padding: 4px 8px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .frames-cap { display: flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 13.5px; color: var(--ink-2); }
+  .frames-cap svg { width: 16px; height: 16px; }
+
+  /* side */
+  .side-col { display: grid; gap: 18px; position: sticky; top: 16px; }
+  .facts { display: grid; gap: 0; }
+  .facts div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .facts div:last-child { border-bottom: 0; }
+  .facts dt { color: var(--ink-2); }
+  .facts dd { margin: 0; font-weight: 600; text-align: end; }
+  .facts dd.ltr { direction: ltr; }
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .checks label { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 14.5px; line-height: 1.55; }
+  .checks label:hover { background: #FFF8E8; }
+  .checks input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: #22694F; }
+  .checks small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .checks .jump { all: unset; color: var(--blue); font-weight: 600; font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .checks .jump:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .tally { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink-2); }
+  .tally .meter { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .tally .meter i { display: block; height: 100%; width: 0; background: var(--mint); border-radius: inherit; transition: width .25s var(--ease-out); }
+  .pub-acts { display: grid; gap: 10px; }
+  .pub-acts .btn { min-height: 50px; }
+  .pub-acts .btn[disabled] { opacity: .5; cursor: not-allowed; box-shadow: 0 3px 0 var(--ink); transform: none; }
+  .pub-acts p { font-size: 13px; color: var(--ink-2); }
+  .path { display: flex; flex-wrap: wrap; gap: 6px; }
+  .path .chip { font-size: 12px; }
+
+  .st-note { display: none; }
+  [data-state="published"] .st-note.pub, [data-state="failed"] .st-note.fail { display: flex; }
+  [data-state="failed"] .player, [data-state="failed"] .frames, [data-state="failed"] .frames-cap, [data-state="failed"] .review-only { display: none; }
+  [data-state="processing"] .frames, [data-state="processing"] .frames-cap, [data-state="processing"] .review-only { display: none; }
+  [data-state="published"] .review-only { display: none; }
+  .when-pub { display: none; }
+  [data-state="published"] .when-pub { display: grid; }
+
+  @media (max-width: 1150px) { .vr-grid { grid-template-columns: minmax(0, 1fr); } .side-col { position: static; } }
+  @media (max-width: 680px) { .frames { grid-template-columns: repeat(3, minmax(0, 1fr)); } .frames .frame:nth-child(n+4) { display: none; } .time { min-width: 0; } .ctl-hide-sm { display: none; } }
+</style>
+</head>
+<body data-page="courses" data-unread="3" data-state="ready" data-title-en="Video review · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Courses & content">الكورسات والمحتوى</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb">
+      <a href="courses.html" data-en="Courses">الكورسات</a><i data-i="chevron-right"></i>
+      <a href="courses.html" data-en="Physics, term 1">الفيزياء · الترم الأول</a><i data-i="chevron-right"></i>
+      <span aria-current="page" data-en="Video review">مراجعة الفيديو</span>
+    </nav>
+
+    <div class="vr-head">
+      <div>
+        <h2 data-en="Check the video before students see it">راجع الفيديو قبل أن يراه الطلاب</h2>
+        <p data-en="Lecture 3: Kirchhoff’s first law · Lecture video">المحاضرة ٣: قانون كيرشوف الأول · شرح المحاضرة</p>
+      </div>
+      <div class="chips">
+        <span class="chip ok review-only" data-en="Uploaded and checked">رُفع وتم التحقق منه</span>
+        <span class="chip warn review-only" data-en="Not published yet">لم يُنشر بعد</span>
+        <span class="chip ok when-pub" data-en="Published">منشور</span>
+      </div>
+    </div>
+
+    <div class="banner ok st-note pub" role="status" style="margin-top:16px;background:var(--mint-tint);border-color:var(--mint)"><i data-i="check"></i><div><strong data-en="Published: enrolled students can watch it now">نُشر: يستطيع الطلاب المسجلون مشاهدته الآن</strong><p data-en="It shows inside Lecture 3. You can hide it again from the course content at any time.">يظهر داخل المحاضرة ٣، ويمكنك إخفاؤه من محتوى الكورس في أي وقت.</p><a class="btn btn-sm" href="courses.html" data-en="Back to the course">ارجع للكورس</a></div></div>
+    <div class="banner danger st-note fail" role="alert" style="margin-top:16px"><i data-i="triangle-alert"></i><div><strong data-en="This upload could not be checked">تعذّر التحقق من هذا الملف</strong><p data-en="The stored file did not match the size or type that was declared, so it was removed. Nothing reached students. Upload the video again.">الملف المحفوظ لم يطابق الحجم أو النوع المعلن، فحُذف ولم يصل لأي طالب. ارفع الفيديو مرة أخرى.</p><a class="btn btn-sm" href="courses.html" data-en="Upload again">ارفع مرة أخرى</a></div></div>
+
+    <div class="vr-grid">
+      <section aria-label="المشغل" data-en-aria-label="Player">
+        <!-- GET /content-items/:id/access → signed video URL (4 h) + watermark text, same as students get -->
+        <div class="player" id="player">
+          <div class="screen" id="screen">
+            <svg class="board" viewBox="0 0 640 360" aria-hidden="true">
+              <rect width="640" height="360" fill="#F7F3EA"/>
+              <rect x="40" y="34" width="560" height="292" rx="10" fill="#FFFDF8" stroke="#1A1712" stroke-width="3"/>
+              <text x="320" y="86" text-anchor="middle" font-family="Baloo Bhaijaan 2, sans-serif" font-weight="800" font-size="30" fill="#1A1712">قانون كيرشوف الأول</text>
+              <text x="320" y="128" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="26" fill="#2B5FE3" direction="ltr">ΣI in = ΣI out</text>
+              <g fill="none" stroke="#1A1712" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="320" cy="232" r="8" fill="#1A1712"/>
+                <path d="M150 232 H312"/><path d="M328 232 H490"/><path d="M320 240 V300"/>
+                <path d="M210 222 l14 10 -14 10" stroke="#E9502E"/><path d="M420 222 l14 10 -14 10" stroke="#3F9D7B"/><path d="M310 270 l10 14 10 -14" stroke="#3F9D7B"/>
+              </g>
+              <g font-family="Readex Pro, sans-serif" font-size="18" fill="#1A1712" direction="ltr">
+                <text x="200" y="212">I₁ = 5 A</text><text x="400" y="212">I₂ = 3 A</text><text x="334" y="296">I₃ = 2 A</text>
+              </g>
+            </svg>
+            <span class="wm" id="wm" hidden>Youssef Ahmed · 01•••••••12 · karim.itqan.example</span>
+            <button class="big-play" type="button" data-play aria-label="شغّل الفيديو" data-en-aria-label="Play video"><i data-i="play"></i></button>
+            <div class="wait" id="wait" hidden><b data-en="Still uploading: 64%">ما زال يُرفع: ٦٤٪</b><span class="prog"><i></i></span><p data-en="The preview opens once the upload finishes and the server checks the file’s size and type.">تفتح المعاينة بعد اكتمال الرفع وتحقق الخادم من حجم الملف ونوعه.</p></div>
+          </div>
+          <div class="controls">
+            <button class="ctl ctl-play" type="button" data-play aria-label="تشغيل" data-en-aria-label="Play"><i data-i="play"></i></button>
+            <button class="ctl ctl-txt ctl-hide-sm" type="button" data-skip="-10" aria-label="رجوع ١٠ ثوانٍ" data-en-aria-label="Back 10 seconds">−10</button>
+            <button class="ctl ctl-txt ctl-hide-sm" type="button" data-skip="10" aria-label="تقدّم ١٠ ثوانٍ" data-en-aria-label="Forward 10 seconds">+10</button>
+            <div class="seek" id="seek" role="slider" tabindex="0" aria-label="موضع التشغيل" data-en-aria-label="Playback position" aria-valuemin="0" aria-valuemax="3134" aria-valuenow="0"><div class="rail"><i class="buf"></i><i class="done" id="done"></i><i class="knob" id="knob"></i></div></div>
+            <span class="time" id="time">00:00 / 52:14</span>
+            <button class="ctl ctl-txt" type="button" id="speed" aria-label="السرعة" data-en-aria-label="Speed">1×</button>
+            <button class="ctl" type="button" id="wm-btn" aria-pressed="false" aria-label="اعرض العلامة المائية كما يراها الطالب" data-en-aria-label="Show the watermark as a student sees it"><i data-i="user-round"></i></button>
+            <button class="ctl" type="button" id="full" aria-label="ملء الشاشة" data-en-aria-label="Full screen"><i data-i="monitor"></i></button>
+          </div>
+        </div>
+
+        <p class="frames-cap"><i data-i="image"></i><span data-en="Frames across the video: click one to jump there">لقطات على طول الفيديو، اضغط على لقطة لتقفز إليها</span></p>
+        <div class="frames" id="frames"></div>
+      </section>
+
+      <aside class="side-col">
+        <section class="panel review-only" aria-labelledby="h-check">
+          <div class="panel-head" style="margin-bottom:6px"><h3 id="h-check" data-en="Before you publish">قبل النشر تأكد أن</h3></div>
+          <ul class="checks" id="checks">
+            <li><label><input type="checkbox"><span><span data-en="It starts and plays from the first second">يبدأ ويعمل من أول ثانية</span></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="The sound is clear and loud enough">الصوت واضح ومسموع</span></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="The board is sharp and readable">السبورة واضحة ومقروءة</span></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="The last minute is there (the upload was not cut)">آخر دقيقة موجودة (لم يُقطع الرفع)</span><small><button class="jump" type="button" data-to="3074" data-en="Jump to the last minute">اقفز لآخر دقيقة</button></small></span></label></li>
+            <li><label><input type="checkbox"><span><span data-en="The watermark does not cover the explanation">العلامة المائية لا تغطي الشرح</span><small><button class="jump" type="button" data-wm data-en="Show the watermark">اعرض العلامة المائية</button></small></span></label></li>
+          </ul>
+          <div class="tally"><span class="meter"><i id="tally-bar"></i></span><span class="num" id="tally">٠ / ٥</span></div>
+        </section>
+
+        <section class="panel pub-acts review-only" aria-label="النشر" data-en-aria-label="Publishing">
+          <button class="btn" type="button" id="publish" disabled><i data-i="check"></i><span data-en="Publish the video">انشر الفيديو</span></button>
+          <p id="pub-hint" data-en="Tick all five checks to publish.">علّم البنود الخمسة لتنشره.</p>
+          <div class="path"><span class="chip ok" data-en="Chapter 2">الفصل الثاني</span><span class="chip ok" data-en="Lecture 3">المحاضرة ٣</span><span class="chip warn" data-en="This video">هذا الفيديو</span></div>
+          <p data-en="Students see it once it and everything above it are published; both parents already are.">يراه الطلاب عندما يكون هو وكل ما فوقه منشورًا، وما فوقه منشور بالفعل.</p>
+          <a class="btn btn-light" href="courses.html"><i data-i="cloud-upload"></i><span data-en="Replace the file">استبدل الملف</span></a>
+        </section>
+
+        <section class="panel" aria-labelledby="h-file">
+          <div class="panel-head" style="margin-bottom:4px"><h3 id="h-file" data-en="The file">الملف</h3></div>
+          <dl class="facts">
+            <div><dt data-en="Name">الاسم</dt><dd class="ltr">lecture-03.mp4</dd></div>
+            <div><dt data-en="Length">المدة</dt><dd class="num" data-en="52:14">٥٢:١٤</dd></div>
+            <div><dt data-en="Size">الحجم</dt><dd class="num" data-en="1.4 GB">١٫٤ ج.ب</dd></div>
+            <div><dt data-en="Uploaded by">رفعه</dt><dd data-en="Nour Adel · 5 min ago">نور عادل · منذ ٥ دقائق</dd></div>
+            <div><dt data-en="Students can">الطالب يستطيع</dt><dd data-en="Watch only, no download">المشاهدة فقط، بلا تحميل</dd></div>
+            <div><dt data-en="Watch link">رابط المشاهدة</dt><dd data-en="Signed, valid 4 hours">موقّع، صالح ٤ ساعات</dd></div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="ready" aria-pressed="true" data-en="Ready to review">جاهز للمراجعة</button>
+  <button type="button" data-state="processing" aria-pressed="false" data-en="Still uploading">ما زال يُرفع</button>
+  <button type="button" data-state="failed" aria-pressed="false" data-en="Check failed">فشل التحقق</button>
+  <button type="button" data-state="published" aria-pressed="false" data-en="Published">منشور</button>
+  <a href="courses.html" data-en="Course content">محتوى الكورس</a>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isEn = () => document.documentElement.lang === 'en';
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const LEN = 3134; // 52:14
+  const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  let t = 0, playing = false, rate = 1, tick;
+
+  // frames along the video (in the real app: seek the <video> and draw each frame to a canvas)
+  const frameSvg = (k) => `<svg viewBox="0 0 160 90" aria-hidden="true"><rect x="8" y="8" width="144" height="74" rx="4" fill="#FFFDF8" stroke="#1A1712" stroke-width="1.5"/>${
+    ['<path d="M30 30h100M30 44h70M30 58h86" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/>',
+     '<circle cx="80" cy="54" r="4" fill="#1A1712"/><path d="M38 54h84M80 58v18" stroke="#1A1712" stroke-width="2.5"/><path d="M34 26h92" stroke="#2B5FE3" stroke-width="3" stroke-linecap="round"/>',
+     '<path d="M30 28h56" stroke="#2B5FE3" stroke-width="3" stroke-linecap="round"/><rect x="30" y="40" width="40" height="28" fill="none" stroke="#1A1712" stroke-width="2.5"/><rect x="90" y="40" width="40" height="28" fill="none" stroke="#E9502E" stroke-width="2.5"/>',
+     '<path d="M30 30h100M30 44h100M30 58h60" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/><path d="M110 60l6 6 12-14" stroke="#3F9D7B" stroke-width="3" fill="none" stroke-linecap="round"/>',
+     '<path d="M52 36h56M60 52h40" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/><path d="M70 66h20" stroke="#E9502E" stroke-width="3" stroke-linecap="round"/>'][k]}</svg>`;
+  const at = [0, 784, 1567, 2350, 3074];
+  $('frames').innerHTML = at.map((s, k) => `<button class="frame" type="button" data-to="${s}" aria-label="${isEn() ? 'Jump to ' + fmt(s) : 'اقفز إلى ' + fmt(s)}">${frameSvg(k)}<span>${fmt(s)}</span></button>`).join('');
+
+  function draw() {
+    const p = t / LEN * 100;
+    $('done').style.width = p + '%'; $('knob').style.insetInlineStart = p + '%';
+    $('time').textContent = `${fmt(t)} / ${fmt(LEN)}`;
+    $('seek').setAttribute('aria-valuenow', Math.round(t));
+    $('seek').setAttribute('aria-valuetext', fmt(t));
+  }
+  function setPlay(on) {
+    if (document.body.dataset.state === 'processing' || document.body.dataset.state === 'failed') return;
+    playing = on; $('player').classList.toggle('playing', on);
+    document.querySelectorAll('.ctl-play').forEach((b) => { b.setAttribute('aria-label', on ? (isEn() ? 'Pause' : 'إيقاف مؤقت') : (isEn() ? 'Play' : 'تشغيل')); b.innerHTML = `<svg aria-hidden="true"><use href="#i-${on ? 'pause' : 'play'}"/></svg>`; });
+    clearInterval(tick);
+    if (on) tick = setInterval(() => { t = Math.min(LEN, t + rate); draw(); if (t >= LEN) setPlay(false); }, 1000);
+  }
+  const seekTo = (s) => { t = Math.max(0, Math.min(LEN, s)); draw(); };
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-play')) setPlay(!playing);
+    if (b.dataset.skip) seekTo(t + +b.dataset.skip);
+    if (b.dataset.to) { e.preventDefault(); seekTo(+b.dataset.to); setPlay(true); }
+    if (b.hasAttribute('data-wm')) { e.preventDefault(); toggleWm(true); }
+  });
+  $('seek').addEventListener('click', (e) => {
+    const r = e.currentTarget.getBoundingClientRect(), rtl = document.documentElement.dir === 'rtl';
+    seekTo(((rtl ? r.right - e.clientX : e.clientX - r.left) / r.width) * LEN);
+  });
+  $('seek').addEventListener('keydown', (e) => {
+    const fwd = document.documentElement.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight', back = fwd === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+    if (e.key === fwd) seekTo(t + 10); if (e.key === back) seekTo(t - 10);
+    if (e.key === 'Home') seekTo(0); if (e.key === 'End') seekTo(LEN);
+    if (e.key === ' ' || e.key === 'k') { e.preventDefault(); setPlay(!playing); }
+  });
+  const speeds = [1, 1.25, 1.5, 2];
+  $('speed').addEventListener('click', (e) => { rate = speeds[(speeds.indexOf(rate) + 1) % speeds.length]; e.currentTarget.textContent = rate + '×'; });
+  $('full').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else $('player').requestFullscreen?.(); });
+
+  // the watermark students see (from the access response), moving so it cannot be cropped out
+  let wmTimer;
+  function toggleWm(on) {
+    const wm = $('wm'); wm.hidden = !on; $('wm-btn').setAttribute('aria-pressed', String(on));
+    clearInterval(wmTimer);
+    if (on) { const move = () => { wm.style.top = (8 + Math.random() * 78) + '%'; wm.style.left = (4 + Math.random() * 60) + '%'; }; move(); wmTimer = setInterval(move, 4000); }
+  }
+  $('wm-btn').addEventListener('click', () => toggleWm($('wm').hidden));
+
+  // checklist gates the publish button
+  const boxes = [...document.querySelectorAll('#checks input')];
+  const tally = () => {
+    const n = boxes.filter((b) => b.checked).length;
+    $('tally').textContent = isEn() ? `${n} / 5` : `${ar(n)} / ٥`;
+    $('tally-bar').style.width = n / 5 * 100 + '%';
+    $('publish').disabled = n < 5;
+    $('pub-hint').hidden = n === 5;
+  };
+  boxes.forEach((b) => b.addEventListener('change', tally));
+  $('publish').addEventListener('click', () => { setPlay(false); window.itqanSetState('published'); scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  document.addEventListener('itqan:state', (e) => {
+    setPlay(false); $('wait').hidden = e.detail !== 'processing';
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(tally)));
+  draw(); tally();
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الطلبات · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: requests inbox for device changes, sign-out of another device and general messages (GET /support-requests, approve, reject, close with a reply).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .find { position: relative; }
+  .find svg { position: absolute; inset-inline-start: 14px; top: 50%; translate: 0 -50%; width: 17px; height: 17px; color: var(--ink-3); pointer-events: none; }
+  .find input { min-height: 42px; width: 220px; padding-inline: 40px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font-size: 14px; }
+  .find input:focus { outline: none; border-color: var(--ink); }
+
+  .inbox { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .list { padding: 8px; display: grid; gap: 2px; max-height: calc(100dvh - 230px); overflow-y: auto; position: sticky; top: 16px; }
+  .item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; width: 100%; padding: 12px; border: 0; border-radius: 14px; background: none; text-align: start; font: inherit; color: var(--ink); cursor: pointer; }
+  .item:hover { background: #FFF8E8; }
+  .item[aria-current="true"] { background: var(--sun-tint); }
+  .item:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+  .item .avatar { width: 40px; height: 40px; grid-row: span 2; }
+  .item b { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item.open b { font-weight: 700; }
+  .item time { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  .item .snip { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--ink-2); }
+  .item .snip span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .chip { font-size: 11.5px; min-height: 22px; flex: none; }
+  .item .chip::before { display: none; }
+  .t-dev { background: var(--blue-tint); color: #1F47B0; } .t-out { background: var(--sun-tint); color: #7A5200; } .t-gen { background: var(--mint-tint); color: #22694F; }
+
+  .detail { display: grid; gap: 18px; min-width: 0; }
+  .d-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .d-top .avatar { width: 56px; height: 56px; }
+  .d-top b { display: block; font-family: var(--f-display); font-size: 21px; line-height: 1.3; }
+  .d-top small { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .d-top small .mail { direction: ltr; }
+  .d-top .btn { margin-inline-start: auto; min-height: 40px; font-size: 14.5px; }
+  .quote { padding: 14px 16px; border-radius: 14px; background: #FBF5E8; font-size: 15px; line-height: 1.7; }
+  .quote small { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+  .cmp { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+  .dev { display: grid; gap: 6px; padding: 14px; border-radius: 14px; border: 2px solid var(--line); }
+  .dev.new { border-color: var(--ink); background: #FFFBF0; }
+  .dev .lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+  .dev b { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .dev b svg { width: 20px; height: 20px; }
+  .dev small { font-size: 13px; color: var(--ink-2); }
+  .cmp > svg { width: 22px; height: 22px; color: var(--ink-2); }
+  [dir="rtl"] .cmp > svg { transform: scaleX(-1); }
+  .effect { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--blue-tint); color: #183A8C; font-size: 14px; }
+  .effect svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .acts .btn { min-height: 48px; }
+  .reply textarea { font: inherit; font-size: 15px; min-height: 110px; padding: 12px 16px; resize: vertical; line-height: 1.7; }
+  .outcome { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; }
+  .outcome.ok { background: var(--mint-tint); } .outcome.no { background: var(--coral-tint); } .outcome.closed { background: #F3EBDA; }
+  .outcome svg { width: 22px; height: 22px; flex: none; }
+  .outcome b { display: block; }
+  .outcome p { font-size: 14px; margin-top: 4px; }
+  .conflict { display: none; }
+  [data-state="conflict"] .conflict { display: flex; }
+  [data-state="conflict"] .detail .acts, [data-state="conflict"] .detail .reply { display: none; }
+
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .inbox { display: none; }
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 48px 12px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--mint-tint); color: #22694F; }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 46ch; }
+
+  @media (max-width: 1100px) { .inbox { grid-template-columns: minmax(0, 1fr); } .list { position: static; max-height: 420px; } }
+  @media (max-width: 680px) { .cmp { grid-template-columns: 1fr; } .cmp > svg { transform: rotate(90deg); justify-self: center; } .find { flex: 1; } .find input { width: 100%; } .d-top .btn { margin-inline-start: 0; } }
+</style>
+</head>
+<body data-page="requests" data-unread="3" data-state="inbox" data-title-en="Requests · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Requests">الطلبات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="head">
+      <div><h2 data-en="Students’ requests">طلبات الطلاب</h2><p data-en="Device changes, signing out of another device, and general messages">تغيير جهاز، خروج من جهاز آخر، ورسائل عامة</p></div>
+      <div class="toolbar">
+        <label class="find"><span class="sr-only" data-en="Find a student">ابحث عن طالب</span><i data-i="search"></i><input type="search" id="find" placeholder="اسم الطالب" data-en-placeholder="Student name" autocomplete="off"></label>
+        <div class="seg" role="group" aria-label="الحالة" data-en-aria-label="Status" id="f-status">
+          <button type="button" data-f="open" aria-pressed="true"><span data-en="Open">مفتوحة</span> <span class="num" id="n-open"></span></button>
+          <button type="button" data-f="done" aria-pressed="false" data-en="Handled">تمت</button>
+          <button type="button" data-f="all" aria-pressed="false" data-en="All">الكل</button>
+        </div>
+        <div class="dd" id="f-type">
+          <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Type:">النوع:</span><span class="dd-val" data-en="All">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+          <div class="dd-menu" role="listbox" hidden aria-label="نوع الطلب" data-en-aria-label="Request type">
+            <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="All">الكل</span><span class="tick"><i data-i="check"></i></span></button>
+            <button class="dd-item" type="button" role="option" aria-selected="false" data-value="device_change"><i data-i="smartphone"></i><span class="dd-label" data-en="Device change">تغيير جهاز</span><span class="tick"><i data-i="check"></i></span></button>
+            <button class="dd-item" type="button" role="option" aria-selected="false" data-value="sign_out_other"><i data-i="monitor-x"></i><span class="dd-label" data-en="Sign out other device">خروج من جهاز آخر</span><span class="tick"><i data-i="check"></i></span></button>
+            <button class="dd-item" type="button" role="option" aria-selected="false" data-value="general"><i data-i="message-square"></i><span class="dd-label" data-en="General message">رسالة عامة</span><span class="tick"><i data-i="check"></i></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="inbox">
+      <nav class="panel list" id="list" aria-label="قائمة الطلبات" data-en-aria-label="Request list"></nav>
+      <section class="panel detail" id="detail" aria-live="polite" aria-label="الطلب المحدد" data-en-aria-label="Selected request"></section>
+    </div>
+
+    <div class="panel empty when-empty">
+      <span class="bub"><i data-i="check"></i></span>
+      <b data-en="No open requests">لا طلبات مفتوحة</b>
+      <p data-en="When a student asks to change a device, sign out elsewhere, or sends a message, it lands here and the bell tells you.">حين يطلب طالب تغيير جهازه أو الخروج من جهاز آخر أو يرسل رسالة، يصل الطلب هنا ويخبرك الجرس.</p>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="inbox" aria-pressed="true" data-en="Inbox">الطلبات</button>
+  <button type="button" data-state="conflict" aria-pressed="false" data-en="Already handled">حُسم بالفعل</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="Nothing open">لا شيء مفتوح</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e}" data-ar="${a}">${isEn() ? e : a}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const TYPE = { device_change: ['t-dev', 'smartphone', 'تغيير جهاز', 'Device change'], sign_out_other: ['t-out', 'monitor-x', 'خروج من جهاز آخر', 'Sign out other device'], general: ['t-gen', 'message-square', 'رسالة عامة', 'General message'] };
+
+  // sample of GET /support-requests (newest first)
+  const reqs = [
+    { id: 1, type: 'device_change', st: 'open', n: ['يوسف أحمد', 'Youssef Ahmed'], e: 'youssef@mail.example', at: ['منذ ١٢ دقيقة', '12 min ago'], m: ['موبايلي اتكسر واشتريت واحد جديد.', 'My phone broke, I bought a new one.'], old: ['Chrome على Android', 'Chrome on Android', 'آخر ظهور منذ ٣ أيام', 'last seen 3 days ago'], nu: ['Safari على iPhone', 'Safari on iPhone', 'طلب من هذا الجهاز الآن', 'asked from this device just now'] },
+    { id: 2, type: 'sign_out_other', st: 'open', n: ['مريم خالد', 'Mariam Khaled'], e: 'mariam@mail.example', at: ['منذ ٤٠ دقيقة', '40 min ago'], m: ['نسيت أخرج من لابتوب المدرسة.', 'I forgot to sign out on the school laptop.'], sess: ['Edge على Windows', 'Edge on Windows', 'مفتوحة منذ أمس ١١:٢٠ ص', 'open since yesterday 11:20 am'] },
+    { id: 3, type: 'general', st: 'open', n: ['ليلى عادل', 'Laila Adel'], e: 'laila@mail.example', at: ['منذ ساعة', '1 hour ago'], m: ['مش قادرة أفتح ملخص المحاضرة ٢، بيقولي الرابط انتهى.', 'I can’t open the Lecture 2 summary; it says the link expired.'], tip: ['روابط الملفات صالحة ٥ دقائق فقط وتتجدد عند فتح الملف من صفحة المحاضرة.', 'File links last 5 minutes and renew when the file is opened from the lecture page.'] },
+    { id: 4, type: 'device_change', st: 'open', n: ['عمر حسن', 'Omar Hassan'], e: 'omar@mail.example', at: ['منذ ساعتين', '2 hours ago'], m: ['', ''], old: ['Chrome على Windows', 'Chrome on Windows', 'آخر ظهور أمس', 'last seen yesterday'], nu: ['Chrome على Android', 'Chrome on Android', 'طلب من هذا الجهاز منذ ساعتين', 'asked from this device 2 hours ago'] },
+    { id: 5, type: 'device_change', st: 'open', n: ['سلمى إبراهيم', 'Salma Ibrahim'], e: 'salma@mail.example', at: ['أمس', 'Yesterday'], m: ['نقلت على لابتوب البيت.', 'I moved to the family laptop.'], old: ['Safari على Mac', 'Safari on Mac', 'آخر ظهور منذ أسبوع', 'last seen a week ago'], nu: ['Chrome على Windows', 'Chrome on Windows', 'طلب أمس', 'asked yesterday'] },
+    { id: 6, type: 'sign_out_other', st: 'open', n: ['آدم مصطفى', 'Adam Mostafa'], e: 'adam.m@mail.example', at: ['أمس', 'Yesterday'], m: ['حسابي لسه مفتوح على تليفون أخويا.', 'My account is still open on my brother’s phone.'], sess: ['Chrome على Android', 'Chrome on Android', 'مفتوحة منذ ٤ أيام', 'open for 4 days'] },
+    { id: 7, type: 'device_change', st: 'open', n: ['كريم محمود', 'Karim Mahmoud'], e: 'karim.m@mail.example', at: ['منذ يومين', '2 days ago'], m: ['الجهاز القديم اتسرق.', 'My old device was stolen.'], old: ['Chrome على Windows', 'Chrome on Windows', 'آخر ظهور منذ ٥ أيام', 'last seen 5 days ago'], nu: ['Firefox على Windows', 'Firefox on Windows', 'طلب منذ يومين', 'asked 2 days ago'] },
+    { id: 8, type: 'general', st: 'open', n: ['نور الهدى سعيد', 'Nour Elhoda Saeed'], e: 'nour.s@mail.example', at: ['منذ يومين', '2 days ago'], m: ['إمتى الامتحان الشامل للترم الأول؟', 'When is the full exam for term 1?'] },
+    { id: 9, type: 'device_change', st: 'approved', n: ['سارة يوسف', 'Sara Youssef'], e: 'sara.y@mail.example', at: ['منذ ٣ أيام', '3 days ago'], m: ['غيّرت الموبايل.', 'I changed my phone.'], by: ['نور عادل', 'Nour Adel'], when: ['منذ ٣ أيام', '3 days ago'] },
+    { id: 10, type: 'sign_out_other', st: 'rejected', n: ['محمد علي', 'Mohamed Ali'], e: 'mohamed.a@mail.example', at: ['الأسبوع الماضي', 'Last week'], m: ['اقفلوا الجلسة التانية.', 'Close my other session.'], by: ['أ. كريم سامي', 'Mr. Karim Samy'], when: ['الأسبوع الماضي', 'last week'] },
+    { id: 11, type: 'general', st: 'closed', n: ['هنا محمود', 'Hana Mahmoud'], e: 'hana@mail.example', at: ['الأسبوع الماضي', 'Last week'], m: ['الفيديو بيقف عندي كتير.', 'The video keeps pausing for me.'], by: ['نور عادل', 'Nour Adel'], when: ['الأسبوع الماضي', 'last week'], resp: ['جربي جودة إنترنت أعلى أو افتحي الفيديو من Chrome، ولو استمر ابعتيلنا تاني.', 'Try a stronger connection or open it in Chrome; if it continues, write to us again.'] },
+  ];
+  let fStatus = 'open', fType = 'all', current = 1;
+
+  const visible = () => {
+    const q = (document.getElementById('find')?.value || '').trim().toLowerCase();
+    return reqs.filter((r) => (fStatus === 'all' || (fStatus === 'open') === (r.st === 'open')) && (fType === 'all' || r.type === fType) && (!q || (r.n[0] + ' ' + r.n[1].toLowerCase()).includes(q)));
+  };
+
+  function renderList() {
+    const list = visible();
+    if (!list.some((r) => r.id === current)) current = list[0]?.id;
+    document.getElementById('list').innerHTML = list.length ? list.map((r) => `
+      <button class="item${r.st === 'open' ? ' open' : ''}" type="button" data-id="${r.id}" aria-current="${r.id === current}">
+        <span class="avatar av-student" aria-hidden="true">${r.n[0][0]}</span>
+        <b>${t(...r.n)}</b><time>${t(...r.at)}</time>
+        <span class="snip"><span class="chip ${TYPE[r.type][0]}">${t(TYPE[r.type][2], TYPE[r.type][3])}</span><span>${r.m[0] ? t(...r.m) : t('بدون رسالة', 'No message')}</span></span>
+      </button>`).join('') : `<p style="padding:18px;color:var(--ink-2)">${t('لا طلبات بهذا الاختيار.', 'No requests match.')}</p>`;
+    const open = reqs.filter((r) => r.st === 'open').length;
+    document.getElementById('n-open').innerHTML = t(`(${ar(open)})`, `(${open})`);
+    const side = document.querySelector('[data-count="requests"]');
+    if (side) { side.hidden = !open; side.dataset.ar = ar(open); side.dataset.en = String(open); side.textContent = isEn() ? open : ar(open); }
+    renderDetail();
+  }
+
+  function renderDetail() {
+    const r = reqs.find((x) => x.id === current), box = document.getElementById('detail');
+    if (!r) { box.innerHTML = `<p style="color:var(--ink-2)">${t('اختر طلبًا من القائمة.', 'Pick a request from the list.')}</p>`; return; }
+    const ty = TYPE[r.type];
+    let body = `<div class="quote">${r.m[0] ? t('«' + r.m[0] + '»', '“' + r.m[1] + '”') : t('لم يكتب الطالب رسالة.', 'The student wrote no message.')}<small>${t(...r.at)}</small></div>`;
+    if (r.st === 'open' && r.type === 'device_change') body += `
+      <div class="cmp">
+        <div class="dev"><span class="lbl">${t('الجهاز المعتمد الآن', 'Approved device now')}</span><b>${ic('smartphone')}${t(r.old[0], r.old[1])}</b><small>${t(r.old[2], r.old[3])}</small></div>
+        ${ic('arrow-right')}
+        <div class="dev new"><span class="lbl">${t('الجهاز الجديد', 'New device')}</span><b>${ic('smartphone')}${t(r.nu[0], r.nu[1])}</b><small>${t(r.nu[2], r.nu[3])}</small></div>
+      </div>
+      <p class="effect">${ic('info')}<span>${t('القبول يلغي الجهاز القديم وينهي جلساته، ثم يعتمد الجديد. يصل الطالب إشعار بالقرار. الحد: جهاز واحد.', 'Approving revokes the old device and ends its sessions, then approves the new one. The student is notified. Limit: one device.')}</span></p>
+      <div class="acts"><button class="btn" type="button" data-decide="approved">${ic('check')}${t('اقبل الجهاز الجديد', 'Approve the new device')}</button><button class="btn btn-light" type="button" data-decide="rejected">${ic('x')}${t('ارفض', 'Reject')}</button></div>`;
+    if (r.st === 'open' && r.type === 'sign_out_other') body += `
+      <div class="dev"><span class="lbl">${t('الجلسة المفتوحة على الجهاز الآخر', 'Open session on the other device')}</span><b>${ic('monitor-x')}${t(r.sess[0], r.sess[1])}</b><small>${t(r.sess[2], r.sess[3])}</small></div>
+      <p class="effect">${ic('info')}<span>${t('القبول ينهي تلك الجلسة فورًا. الجهاز يبقى مسجلًا ولا يُلغى.', 'Approving ends that session at once. The device stays registered.')}</span></p>
+      <div class="acts"><button class="btn" type="button" data-decide="approved">${ic('log-out')}${t('أنهِ الجلسة الأخرى', 'End the other session')}</button><button class="btn btn-light" type="button" data-decide="rejected">${ic('x')}${t('ارفض', 'Reject')}</button></div>`;
+    if (r.st === 'open' && r.type === 'general') body += `
+      ${r.tip ? `<p class="effect">${ic('info')}<span>${t(...r.tip)}</span></p>` : ''}
+      <form class="reply field" id="reply-form" novalidate>
+        <label class="label" for="reply" data-en="Your reply">ردك</label>
+        <textarea class="input" id="reply" aria-describedby="hint-r err-r" placeholder="${isEn() ? 'Write a short answer the student will get as a notification' : 'اكتب ردًا قصيرًا يصل الطالب كإشعار'}"></textarea>
+        <span class="hint" id="hint-r">${t('يصل الرد للطالب كإشعار، ويُغلق الطلب.', 'The student gets it as a notification and the request closes.')}</span>
+        <span class="err" id="err-r">${t('اكتب ردًا، أو أغلق الطلب بدون رد.', 'Write a reply, or close without one.')}</span>
+        <div class="acts" style="margin-top:6px"><button class="btn" type="submit">${ic('send')}${t('أرسل الرد وأغلق الطلب', 'Send reply and close')}</button><button class="btn btn-light" type="button" data-decide="closed">${t('أغلق بدون رد', 'Close without a reply')}</button></div>
+      </form>`;
+    if (r.st !== 'open') {
+      const O = { approved: ['ok', 'check', 'قُبل', 'Approved'], rejected: ['no', 'x', 'رُفض', 'Rejected'], closed: ['closed', 'check', 'أُغلق', 'Closed'] }[r.st];
+      body += `<div class="outcome ${O[0]}">${ic(O[1])}<div><b>${t(`${O[2]} بواسطة ${r.by[0]} · ${r.when[0]}`, `${O[3]} by ${r.by[1]} · ${r.when[1]}`)}</b>${r.resp ? `<p>${t('الرد: ' + r.resp[0], 'Reply: ' + r.resp[1])}</p>` : ''}</div></div>`;
+    }
+    box.innerHTML = `
+      <div class="d-top"><span class="avatar av-student" aria-hidden="true">${r.n[0][0]}</span><span><b>${t(...r.n)}</b><small><span class="mail">${r.e}</span><span class="chip ${ty[0]}">${t(ty[2], ty[3])}</span></small></span>
+        <a class="btn btn-light" href="student.html">${ic('user-round')}${t('ملف الطالب', 'Student profile')}</a></div>
+      <div class="banner danger conflict" role="alert">${ic('triangle-alert')}<div><strong>${t('حسم شخص آخر هذا الطلب', 'Someone else already handled this')}</strong><p>${t('قبلته نور عادل منذ دقيقة، فلم يتغير شيء. حدّث القائمة لترى الحالة الجديدة.', 'Nour Adel approved it a minute ago, so nothing changed. Refresh the list to see where it stands.')}</p></div></div>
+      ${body}`;
+  }
+  renderList();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  renderList(); // again: the side count exists now, and the saved language is applied
+  const toast = (a, e) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  const decide = (st, resp) => {
+    const r = reqs.find((x) => x.id === current);
+    Object.assign(r, { st, by: ['أ. كريم سامي', 'Mr. Karim Samy'], when: ['الآن', 'just now'], resp });
+    const msg = { approved: ['قُبل الطلب ووصل الطالب إشعار', 'Approved; the student was notified'], rejected: ['رُفض الطلب ووصل الطالب إشعار', 'Rejected; the student was notified'], closed: [resp ? 'أُرسل الرد وأُغلق الطلب' : 'أُغلق الطلب', resp ? 'Reply sent and request closed' : 'Request closed'] }[st];
+    renderDetail(); toast(...msg); setTimeout(renderList, 1500);
+  };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.classList.contains('item')) { current = +b.dataset.id; renderList(); if (innerWidth < 1100) document.getElementById('detail').scrollIntoView({ behavior: 'smooth' }); }
+    if (b.dataset.f) { fStatus = b.dataset.f; b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); renderList(); }
+    if (b.dataset.decide) decide(b.dataset.decide);
+  });
+  document.addEventListener('submit', (e) => {
+    if (e.target.id !== 'reply-form') return;
+    e.preventDefault();
+    const ta = document.getElementById('reply'), ok = !!ta.value.trim();
+    ta.setAttribute('aria-invalid', String(!ok)); document.getElementById('err-r').classList.toggle('show', !ok);
+    if (!ok) { ta.focus(); return; }
+    decide('closed', [ta.value.trim(), ta.value.trim()]);
+  });
+  document.getElementById('find').addEventListener('input', renderList);
+  document.getElementById('f-type').addEventListener('dd:change', (e) => { fType = e.detail; renderList(); });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(renderList)));
+</script>
+</body>
+</html>

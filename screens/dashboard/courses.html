@@ -204,7 +204,7 @@
           <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
           <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
           <div class="dd-sep"></div>
-          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
         </div>
       </div>
     </header>
@@ -491,7 +491,7 @@
           ${n.upload != null ? `<span class="chip info">${t('يُرفع', 'Uploading')}</span>` : n.failed ? `<span class="chip bad">${t('فشل', 'Failed')}</span>` : `<span class="chip ok">${t('جاهز', 'Ready')}</span>`}</div>
         ${n.upload != null ? `<span class="prog" style="max-width:none"><i style="--p:${n.upload}%"></i></span><p>${t('لا تغلق الصفحة حتى يكتمل الرفع. الفيديو يُرفع مباشرة إلى التخزين السحابي.', 'Keep this page open until the upload ends. The video goes straight to cloud storage.')}</p>` : ''}
         ${n.failed ? `<div class="err-box">${ic('triangle-alert')}<span>${t('لم يطابق الملف المرفوع الحجم أو النوع المعلن، فحُذف. ارفعه مرة أخرى.', 'The uploaded file did not match its declared size or type, so it was removed. Upload it again.')}</span></div>` : ''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${n.failed ? `<button class="btn btn-sm" type="button" data-retry="${n.id}">${ic('refresh-cw')}${t('ارفع مرة أخرى', 'Upload again')}</button>` : n.upload != null ? `<button class="btn btn-sm btn-light" type="button">${ic('x')}${t('ألغِ الرفع', 'Cancel upload')}</button>` : `<button class="btn btn-sm btn-light" type="button">${ic('cloud-upload')}${t('استبدل الملف', 'Replace file')}</button>`}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${n.failed ? `<button class="btn btn-sm" type="button" data-retry="${n.id}">${ic('refresh-cw')}${t('ارفع مرة أخرى', 'Upload again')}</button>` : n.upload != null ? `<button class="btn btn-sm btn-light" type="button">${ic('x')}${t('ألغِ الرفع', 'Cancel upload')}</button>` : `${n.kind === 'video' ? `<a class="btn btn-sm" href="video-review.html">${ic('play')}${t('شاهد وراجع قبل النشر', 'Watch and check before publishing')}</a>` : `<a class="btn btn-sm" href="file-review.html?k=${n.type === 'PPTX' ? 'slides' : /JPG|PNG|WEBP/.test(n.type) ? 'image' : 'pdf'}">${ic('eye')}${t('افتح وراجع قبل النشر', 'Open and check before publishing')}</a>`}<button class="btn btn-sm btn-light" type="button">${ic('cloud-upload')}${t('استبدل الملف', 'Replace file')}</button>`}</div>
       </div>`;
       if (n.kind === 'file' && !n.failed) media += `<div class="blk"><span class="lbl">${t('صلاحية الملف للطلاب', 'What students can do')}</span>
         <div class="seg" role="group" aria-label="صلاحية الملف" data-en-aria-label="File permission">

@@ -48,6 +48,9 @@
   .who b button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
   .who small { display: block; font-size: 12.5px; color: var(--ink-2); direction: ltr; text-align: start; }
   .muted { color: var(--ink-2); }
+  .batch-link { color: inherit; text-decoration: none; }
+  .batch-link:hover b { text-decoration: underline; }
+  .batch-link:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
   .tbl .chip { font-size: 12px; }
   .dev { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; white-space: nowrap; max-width: 110px; }
   .dev svg { width: 16px; height: 16px; color: var(--ink-2); }
@@ -166,7 +169,7 @@
           <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
           <a class="dd-item t-only" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
           <div class="dd-sep"></div>
-          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
         </div>
       </div>
     </header>
@@ -310,9 +313,9 @@
           <table class="tbl" style="min-width:700px">
             <thead><tr><th scope="col" data-en="Batch">الدفعة</th><th scope="col" data-en="Course">الكورس</th><th scope="col" data-en="Used">المستخدم</th><th scope="col" data-en="Created">أُنشئت</th><th scope="col" data-en="Status">الحالة</th><th scope="col"><span class="sr-only" data-en="Actions">إجراءات</span></th></tr></thead>
             <tbody>
-              <tr><td><b data-en="November booklet">ملزمة نوفمبر</b></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="143 / 200"><i style="--p:72%"></i></span><span class="num" data-en="143 / 200">١٤٣ / ٢٠٠</span></span></td><td class="muted" data-en="1 Nov">١ نوفمبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
-              <tr><td><b data-en="Term 2 launch">إطلاق الترم الثاني</b></td><td class="muted" data-en="Term 2">الترم الثاني</td><td><span class="att"><span class="meter" role="img" aria-label="188 / 300"><i style="--p:63%"></i></span><span class="num" data-en="188 / 300">١٨٨ / ٣٠٠</span></span></td><td class="muted" data-en="15 Oct">١٥ أكتوبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
-              <tr><td><b data-en="September trial">تجربة سبتمبر</b></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="71 / 100"><i style="--p:71%"></i></span><span class="num" data-en="71 / 100">٧١ / ١٠٠</span></span></td><td class="muted" data-en="2 Sep">٢ سبتمبر</td><td><span class="chip off" data-en="Unused revoked">أُلغي غير المستخدم</span></td><td></td></tr>
+              <tr><td><a class="batch-link" href="code-batch.html"><b data-en="November booklet">ملزمة نوفمبر</b></a></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="143 / 200"><i style="--p:72%"></i></span><span class="num" data-en="143 / 200">١٤٣ / ٢٠٠</span></span></td><td class="muted" data-en="1 Nov">١ نوفمبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
+              <tr><td><a class="batch-link" href="code-batch.html"><b data-en="Term 2 launch">إطلاق الترم الثاني</b></a></td><td class="muted" data-en="Term 2">الترم الثاني</td><td><span class="att"><span class="meter" role="img" aria-label="188 / 300"><i style="--p:63%"></i></span><span class="num" data-en="188 / 300">١٨٨ / ٣٠٠</span></span></td><td class="muted" data-en="15 Oct">١٥ أكتوبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
+              <tr><td><a class="batch-link" href="code-batch.html?s=revoked"><b data-en="September trial">تجربة سبتمبر</b></a></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="71 / 100"><i style="--p:71%"></i></span><span class="num" data-en="71 / 100">٧١ / ١٠٠</span></span></td><td class="muted" data-en="2 Sep">٢ سبتمبر</td><td><span class="chip off" data-en="Unused revoked">أُلغي غير المستخدم</span></td><td></td></tr>
             </tbody>
           </table>
         </div>
@@ -393,6 +396,7 @@
         <div class="p-id"><span class="avatar av-student" aria-hidden="true">${s.n[0][0]}</span><span><b>${t(s.n[0], s.n[1])}</b>
           <small><span class="mail">${s.e}</span>${s.st === 'pending' ? `<span class="chip warn">${t('لم يؤكد الإيميل', 'Email not confirmed')}</span>` : `<span class="chip ok">${t('إيميل مؤكد', 'Email confirmed')}</span>`}${blocked ? `<span class="chip bad">${t('الوصول مغلق', 'Access closed')}</span>` : ''}</small></span></div>
         <div class="p-acts">
+          <a class="btn btn-sm" href="student.html">${ic('user-round')}${t('الملف الكامل', 'Full profile')}</a>
           <button class="btn btn-sm btn-light" type="button" data-toast-msg="${s.st === 'suspended' ? 'reactivated' : 'suspended'}">${ic(s.st === 'suspended' ? 'rotate-ccw' : 'lock')}${s.st === 'suspended' ? t('أعد تفعيل الحساب', 'Reactivate account') : t('أوقف الحساب', 'Suspend account')}</button>
           <button class="btn btn-sm btn-light" type="button" data-toast-msg="signedOut">${ic('log-out')}${t('أخرجه من كل الأجهزة', 'Sign out everywhere')}</button>
         </div>
@@ -493,6 +497,7 @@
     document.getElementById('me-av').textContent = asA ? 'ن' : 'ك';
   });
   document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(renderProfile)));
+  if (new URLSearchParams(location.search).get('tab') === 'codes') setState('codes'); // back from a batch page
 </script>
 </body>
 </html>

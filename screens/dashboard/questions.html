@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أسئلة الطلاب · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: students' questions under lectures, with threaded replies, hide and delete (comments API).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .find { position: relative; }
+  .find svg { position: absolute; inset-inline-start: 14px; top: 50%; translate: 0 -50%; width: 17px; height: 17px; color: var(--ink-3); pointer-events: none; }
+  .find input { min-height: 42px; width: 220px; padding-inline: 40px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font-size: 14px; }
+  .find input:focus { outline: none; border-color: var(--ink); }
+
+  .feed { display: grid; gap: 16px; max-width: 920px; }
+  .thread { display: grid; gap: 14px; }
+  .thread.hid { background: #FBF7EF; }
+  .where { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+  .where a { color: var(--ink-2); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; }
+  .where a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+  .where svg { width: 15px; height: 15px; }
+  .where .chip { margin-inline-start: auto; }
+  .post { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+  .post .avatar { width: 40px; height: 40px; grid-row: span 3; }
+  .post .who { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+  .post .who b { font-weight: 700; }
+  .post .who time { font-size: 12.5px; color: var(--ink-2); }
+  .post .who .chip { font-size: 11.5px; min-height: 22px; }
+  .post .who .chip::before { display: none; }
+  .post .body { font-size: 15px; line-height: 1.75; white-space: pre-wrap; }
+  .post.q .body { font-size: 16px; }
+  .post .tools { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 2px; }
+  .post .tools .btn { min-height: 36px; padding: 0 10px; font-size: 13.5px; border-color: transparent; box-shadow: none; --bg: transparent; text-decoration: none; }
+  .post .tools .btn:hover { background: var(--sun-tint); transform: none; }
+  .post .tools .btn svg { width: 16px; height: 16px; }
+  .post .tools .btn.danger { color: #B8341A; }
+  .replies { display: grid; gap: 12px; padding-inline-start: 52px; position: relative; }
+  .replies::before { content: ""; position: absolute; inset-block: 0 8px; inset-inline-start: 19px; width: 2px; border-radius: 2px; background: var(--line); }
+  .reply.staff { padding: 12px 14px; border-radius: 14px; background: var(--mint-tint); }
+  .reply.staff .avatar { width: 34px; height: 34px; }
+  .compose { display: grid; gap: 8px; padding-inline-start: 52px; }
+  .compose[hidden] { display: none; }
+  .compose textarea { font: inherit; font-size: 15px; min-height: 90px; padding: 12px 16px; resize: vertical; line-height: 1.7; }
+  .compose .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .compose .row .btn { min-height: 44px; }
+  .compose .row .hint { margin-inline-start: auto; }
+  .hid-note { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: #F3EBDA; font-size: 13.5px; }
+  .hid-note svg { width: 18px; height: 18px; flex: none; }
+  .hid-note .btn { margin-inline-start: auto; min-height: 36px; font-size: 13.5px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .confirm { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: var(--coral-tint); font-size: 14px; color: #8E2A14; }
+  .confirm[hidden] { display: none; }
+  .confirm svg { width: 18px; height: 18px; flex: none; }
+  .confirm .btn { min-height: 38px; font-size: 14px; padding: 0 12px; }
+  .confirm .btn:first-of-type { margin-inline-start: auto; }
+  .btn-danger { --bg: var(--paper); --fg: #B8341A; border-color: #B8341A; box-shadow: 0 3px 0 #B8341A; }
+  .btn-danger:hover { background: #FFF4F0; box-shadow: 0 5px 0 #B8341A; }
+
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .feed, [data-state="empty"] .toolbar { display: none; }
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 48px 12px; max-width: 920px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--mint-tint); color: #22694F; }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 46ch; }
+
+  @media (max-width: 680px) { .replies, .compose { padding-inline-start: 0; } .replies::before { display: none; } .find { flex: 1; } .find input { width: 100%; } }
+</style>
+</head>
+<body data-page="questions" data-unread="3" data-state="list" data-title-en="Students’ questions · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Students’ questions">أسئلة الطلاب</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true" data-who-av>ك</span>
+          <span><b data-who-name data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-who-role data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="head">
+      <div><h2 data-en="Questions under the lectures">الأسئلة تحت المحاضرات</h2><p data-en="Your reply shows under the lecture for every student in the course">ردك يظهر تحت المحاضرة لكل طلاب الكورس</p></div>
+      <div class="toolbar">
+        <label class="find"><span class="sr-only" data-en="Search questions">ابحث في الأسئلة</span><i data-i="search"></i><input type="search" id="find" placeholder="كلمة من السؤال أو اسم الطالب" data-en-placeholder="A word or a student’s name" autocomplete="off"></label>
+        <div class="seg" role="group" aria-label="عرض" data-en-aria-label="Show" id="f-show">
+          <button type="button" data-f="open" aria-pressed="true"><span data-en="No reply yet">بلا رد</span> <span class="num" id="n-open"></span></button>
+          <button type="button" data-f="answered" aria-pressed="false" data-en="Answered">تم الرد</button>
+          <button type="button" data-f="hidden" aria-pressed="false" data-en="Hidden">مخفية</button>
+          <button type="button" data-f="all" aria-pressed="false" data-en="All">الكل</button>
+        </div>
+        <div class="dd" id="f-course">
+          <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Course:">الكورس:</span><span class="dd-val" data-en="All">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+          <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالكورس" data-en-aria-label="Filter by course">
+            <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="All courses">كل الكورسات</span><span class="tick"><i data-i="check"></i></span></button>
+            <button class="dd-item" type="button" role="option" aria-selected="false" data-value="t1"><span class="dd-label" data-en="Physics, term 1">الفيزياء · الترم الأول</span><span class="tick"><i data-i="check"></i></span></button>
+            <button class="dd-item" type="button" role="option" aria-selected="false" data-value="t2"><span class="dd-label" data-en="Physics, term 2">الفيزياء · الترم الثاني</span><span class="tick"><i data-i="check"></i></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feed" id="feed"></div>
+    <div class="panel empty when-empty">
+      <span class="bub"><i data-i="message-square"></i></span>
+      <b data-en="No questions yet">لا أسئلة بعد</b>
+      <p data-en="When a student asks something under a lecture, it shows here so you can answer once for everyone.">حين يسأل طالب تحت محاضرة، يظهر سؤاله هنا لتجيب مرة واحدة للجميع.</p>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="list" aria-pressed="true" data-en="Questions">الأسئلة</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="As assistant">كمساعد</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="No questions">لا أسئلة</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e.replace(/"/g, '&quot;')}" data-ar="${a.replace(/"/g, '&quot;')}">${isEn() ? e : a}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ME = () => document.body.dataset.state === 'assistant' ? 'nour' : 'karim';
+  const STAFF = { karim: ['أ. كريم سامي', 'Mr. Karim Samy', 'av-teacher', 'مدرس', 'Teacher'], nour: ['نور عادل', 'Nour Adel', 'av-assistant', 'مساعدة', 'Assistant'] };
+
+  // sample of GET /content-items/:id/comments, gathered across lectures
+  let threads = [
+    { id: 1, c: 't1', where: ['الترم الأول · الفصل الأول · المحاضرة ٢: قانون أوم', 'Term 1 · Chapter 1 · Lecture 2: Ohm’s law'], n: ['عمر حسن', 'Omar Hassan'], at: ['منذ ساعة', '1 hour ago'], q: ['ليه المقاومة بتزيد لما السلك يسخن؟', 'Why does resistance go up when the wire heats up?'], replies: [] },
+    { id: 2, c: 't1', where: ['الترم الأول · الفصل الأول · المحاضرة ١', 'Term 1 · Chapter 1 · Lecture 1'], n: ['مريم خالد', 'Mariam Khaled'], at: ['منذ ٣ ساعات', '3 hours ago'], q: ['في المسألة ٤ من الواجب، هل نحسب المقاومة الداخلية للبطارية؟', 'In homework problem 4, do we count the battery’s internal resistance?'], replies: [] },
+    { id: 3, c: 't2', where: ['الترم الثاني · الفصل الأول · المحاضرة ١', 'Term 2 · Chapter 1 · Lecture 1'], n: ['يوسف أحمد', 'Youssef Ahmed'], at: ['أمس', 'Yesterday'], q: ['ممكن شرح تاني لقاعدة اليد اليمنى؟ اتلخبطت في الاتجاهات.', 'Could you explain the right-hand rule again? I mixed up the directions.'], replies: [] },
+    { id: 4, c: 't1', where: ['الترم الأول · الفصل الثاني · المحاضرة ٣', 'Term 1 · Chapter 2 · Lecture 3'], n: ['سلمى إبراهيم', 'Salma Ibrahim'], at: ['أمس', 'Yesterday'], q: ['الصوت واطي جدًا من الدقيقة ٣٢ لحد آخر الفيديو.', 'The sound is very low from minute 32 to the end of the video.'], replies: [] },
+    { id: 5, c: 't1', where: ['الترم الأول · الفصل الثاني · المحاضرة ٣', 'Term 1 · Chapter 2 · Lecture 3'], n: ['آدم مصطفى', 'Adam Mostafa'], at: ['منذ يومين', '2 days ago'], q: ['هل قانون كيرشوف الأول ينطبق على التيار المتردد؟', 'Does Kirchhoff’s first law work for alternating current too?'],
+      replies: [{ by: 'karim', at: ['منذ يومين', '2 days ago'], b: ['أيوه، في أي لحظة مجموع التيارات الداخلة للنقطة يساوي الخارج منها. هنشوفها بالتفصيل في الترم الثاني.', 'Yes. At any instant, the currents into a junction equal the currents out. We cover it in detail in term 2.'] },
+                { student: ['آدم مصطفى', 'Adam Mostafa'], at: ['منذ يومين', '2 days ago'], b: ['تمام، شكرًا يا مستر.', 'Got it, thank you, sir.'] }] },
+    { id: 6, c: 't1', where: ['الترم الأول · الفصل الأول · المحاضرة ١', 'Term 1 · Chapter 1 · Lecture 1'], n: ['حساب طالب', 'A student'], at: ['منذ ٣ أيام', '3 days ago'], q: ['حد معاه حل امتحان السنة اللي فاتت؟ ابعتوه على الواتساب.', 'Anyone have last year’s exam solved? Send it on WhatsApp.'], hidden: { by: 'nour', at: ['منذ ٣ أيام', '3 days ago'] }, replies: [] },
+  ];
+  let fShow = 'open', fCourse = 'all', composing = null, confirming = null;
+  const state = (th) => th.hidden ? 'hidden' : th.replies.some((r) => r.by) ? 'answered' : 'open';
+
+  function render() {
+    const q = (document.getElementById('find')?.value || '').trim().toLowerCase();
+    const list = threads.filter((th) => (fShow === 'all' || state(th) === fShow) && (fCourse === 'all' || th.c === fCourse)
+      && (!q || (th.q.join(' ') + ' ' + th.n.join(' ')).toLowerCase().includes(q)));
+    const open = threads.filter((th) => state(th) === 'open').length;
+    document.getElementById('n-open').innerHTML = t(`(${ar(open)})`, `(${open})`);
+    const side = document.querySelector('[data-count="questions"]');
+    if (side) { side.hidden = !open; side.dataset.ar = ar(open); side.dataset.en = String(open); side.textContent = isEn() ? open : ar(open); }
+
+    document.getElementById('feed').innerHTML = list.length ? list.map((th) => {
+      const st = state(th);
+      const tag = { open: ['bad', 'بلا رد', 'No reply yet'], answered: ['ok', 'تم الرد', 'Answered'], hidden: ['off', 'مخفي', 'Hidden'] }[st];
+      return `<article class="panel thread${th.hidden ? ' hid' : ''}" data-id="${th.id}" aria-label="${isEn() ? 'Question from ' + th.n[1] : 'سؤال من ' + th.n[0]}">
+        <div class="where"><a href="courses.html">${ic('notebook-text')}${t(...th.where)}</a><span class="chip ${tag[0]}">${t(tag[1], tag[2])}</span></div>
+        ${th.hidden ? `<div class="hid-note">${ic('eye-off')}<span>${t(`أخفته ${STAFF[th.hidden.by][0]} ${th.hidden.at[0]}. الطلاب لا يرونه، والطاقم يراه.`, `${STAFF[th.hidden.by][1]} hid it ${th.hidden.at[1]}. Students cannot see it; staff still can.`)}</span><button class="btn btn-light" type="button" data-unhide="${th.id}">${ic('eye')}${t('أظهره للطلاب', 'Show it again')}</button></div>` : ''}
+        <div class="post q"><span class="avatar av-student" aria-hidden="true">${th.n[0][0]}</span>
+          <div class="who"><b>${t(...th.n)}</b><time>${t(...th.at)}</time></div>
+          <p class="body">${t(esc(th.q[0]), esc(th.q[1]))}</p>
+          <div class="tools">
+            <button class="btn btn-sm" type="button" data-reply="${th.id}">${ic('reply')}${t('رد', 'Reply')}</button>
+            ${th.hidden ? '' : `<button class="btn btn-sm" type="button" data-hide="${th.id}">${ic('eye-off')}${t('أخفِ عن الطلاب', 'Hide from students')}</button>`}
+            <button class="btn btn-sm danger" type="button" data-del="${th.id}">${ic('trash-2')}${t('احذف', 'Delete')}</button>
+          </div>
+        </div>
+        <div class="confirm" ${confirming === th.id ? '' : 'hidden'} role="alert">${ic('triangle-alert')}<span>${t('يُحذف السؤال وكل ردوده من تحت المحاضرة.', 'The question and all its replies leave the lecture.')}</span><button class="btn btn-danger" type="button" data-del-yes="${th.id}">${t('احذف', 'Delete')}</button><button class="btn btn-ghost" type="button" data-del-no>${t('تراجع', 'Keep it')}</button></div>
+        ${th.replies.length ? `<div class="replies">${th.replies.map((r, i) => r.by ? `
+          <div class="post reply staff"><span class="avatar ${STAFF[r.by][2]}" aria-hidden="true">${STAFF[r.by][0][0]}</span>
+            <div class="who"><b>${t(STAFF[r.by][0], STAFF[r.by][1])}</b><span class="chip ${r.by === 'karim' ? 'warn' : 'info'}">${t(STAFF[r.by][3], STAFF[r.by][4])}</span><time>${t(...r.at)}</time></div>
+            <p class="body">${t(esc(r.b[0]), esc(r.b[1]))}</p>
+            <div class="tools">${r.by === ME() ? `<button class="btn btn-sm" type="button" data-edit="${th.id}:${i}">${ic('pencil')}${t('عدّل', 'Edit')}</button>` : ''}<button class="btn btn-sm danger" type="button" data-del-reply="${th.id}:${i}">${ic('trash-2')}${t('احذف', 'Delete')}</button></div>
+          </div>` : `
+          <div class="post reply"><span class="avatar av-student" aria-hidden="true">${r.student[0][0]}</span>
+            <div class="who"><b>${t(...r.student)}</b><time>${t(...r.at)}</time></div>
+            <p class="body">${t(esc(r.b[0]), esc(r.b[1]))}</p>
+          </div>`).join('')}</div>` : ''}
+        <form class="compose" data-compose="${th.id}" ${composing === th.id ? '' : 'hidden'} novalidate>
+          <label class="sr-only" for="r${th.id}">${t('ردك', 'Your reply')}</label>
+          <textarea class="input" id="r${th.id}" maxlength="5000" placeholder="${isEn() ? 'Answer once; every student in the course will see it' : 'أجب مرة واحدة، وسيراه كل طلاب الكورس'}" aria-describedby="e${th.id}"></textarea>
+          <span class="err" id="e${th.id}">${t('اكتب ردك أولًا.', 'Write your reply first.')}</span>
+          <div class="row"><button class="btn" type="submit">${ic('send')}${t('انشر الرد', 'Post reply')}</button><button class="btn btn-ghost" type="button" data-cancel>${t('إلغاء', 'Cancel')}</button><span class="hint">${t('يصل الطالب إشعار بردك.', 'The student is notified.')}</span></div>
+        </form>
+      </article>`;
+    }).join('') : `<div class="panel" style="padding:28px;text-align:center;color:var(--ink-2);max-width:920px">${t('لا أسئلة بهذا الاختيار.', 'No questions match.')}</div>`;
+  }
+  render();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  render(); // again: the side count exists now, and the saved language is applied
+  const toast = (a, e) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  const byId = (id) => threads.find((x) => x.id === +id);
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.f) { fShow = b.dataset.f; b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); render(); }
+    if (b.dataset.reply) { composing = +b.dataset.reply; confirming = null; render(); document.getElementById('r' + composing).focus(); }
+    if (b.hasAttribute('data-cancel')) { composing = null; render(); }
+    if (b.dataset.hide) { byId(b.dataset.hide).hidden = { by: ME(), at: ['الآن', 'just now'] }; render(); toast('أُخفي السؤال عن الطلاب', 'Hidden from students'); }
+    if (b.dataset.unhide) { delete byId(b.dataset.unhide).hidden; render(); toast('ظهر السؤال للطلاب مرة أخرى', 'Students can see it again'); }
+    if (b.dataset.del) { confirming = +b.dataset.del; composing = null; render(); document.querySelector(`[data-del-yes="${confirming}"]`).focus(); }
+    if (b.hasAttribute('data-del-no')) { confirming = null; render(); }
+    if (b.dataset.delYes) { threads = threads.filter((x) => x.id !== +b.dataset.delYes); confirming = null; render(); toast('حُذف السؤال وردوده', 'Question and replies deleted'); }
+    if (b.dataset.delReply) { const [id, i] = b.dataset.delReply.split(':'); byId(id).replies.splice(+i, 1); render(); toast('حُذف الرد', 'Reply deleted'); }
+    if (b.dataset.edit) {
+      const [id, i] = b.dataset.edit.split(':'), r = byId(id).replies[+i];
+      byId(id).replies.splice(+i, 1); composing = +id; render();
+      const ta = document.getElementById('r' + id); ta.value = isEn() ? r.b[1] : r.b[0]; ta.focus();
+    }
+  });
+  document.addEventListener('submit', (e) => {
+    const f = e.target.closest('[data-compose]'); if (!f) return;
+    e.preventDefault();
+    const ta = f.querySelector('textarea'), ok = !!ta.value.trim();
+    ta.setAttribute('aria-invalid', String(!ok)); f.querySelector('.err').classList.toggle('show', !ok);
+    if (!ok) { ta.focus(); return; }
+    byId(f.dataset.compose).replies.push({ by: ME(), at: ['الآن', 'just now'], b: [ta.value.trim(), ta.value.trim()] });
+    composing = null; render(); toast('نُشر ردك ووصل الطالب إشعار', 'Reply posted; the student was notified');
+  });
+  document.getElementById('find').addEventListener('input', render);
+  document.getElementById('f-course').addEventListener('dd:change', (e) => { fCourse = e.detail; render(); });
+  document.addEventListener('itqan:state', (e) => {
+    const asA = e.detail === 'assistant';
+    document.querySelectorAll('[data-who-name]').forEach((el) => { el.dataset.ar = asA ? 'نور عادل' : 'أ. كريم سامي'; el.dataset.en = asA ? 'Nour Adel' : 'Mr. Karim Samy'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    document.querySelectorAll('[data-who-role]').forEach((el) => { el.dataset.ar = asA ? 'مساعدة' : 'مدرس'; el.dataset.en = asA ? 'Assistant' : 'Teacher'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    render();
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(render)));
+</script>
+</body>
+</html>

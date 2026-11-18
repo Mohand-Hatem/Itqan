@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>يوسف أحمد · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: one student in full: account, courses and progress, quiz results, devices and sessions, guardian consent and history.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  /* who */
+  .sp-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+  .sp-head .avatar { width: 76px; height: 76px; font-size: 28px; border-width: 2.5px; flex: none; }
+  .sp-id { flex: 1 1 320px; min-width: 0; }
+  .sp-id h2 { font-size: 28px; font-weight: 800; line-height: 1.3; }
+  .sp-id .contact { display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 4px; font-size: 14.5px; color: var(--ink-2); }
+  .sp-id .contact span { direction: ltr; unicode-bidi: isolate; }
+  .sp-id .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .sp-acts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sp-acts .btn { min-height: 46px; }
+  .btn-danger { --bg: var(--paper); --fg: #B8341A; border-color: #B8341A; box-shadow: 0 3px 0 #B8341A; }
+  .btn-danger:hover { background: #FFF4F0; box-shadow: 0 5px 0 #B8341A; }
+  .since { margin-top: 14px; font-size: 14px; color: var(--ink-2); }
+  .since a { color: var(--ink); font-weight: 600; }
+
+  .alert { display: none; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 14px 18px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; }
+  .alert > svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+  .alert b { display: block; font-size: 15.5px; }
+  .alert .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .alert .btn { min-height: 38px; font-size: 14px; padding: 0 14px; box-shadow: 0 2px 0 var(--ink); }
+  .alert.req { background: var(--sun-tint); }
+  .alert.stop { background: var(--coral-tint); }
+  .alert.stop > svg { color: #B8341A; }
+  .alert.info { background: var(--blue-tint); }
+  .alert.info > svg { color: var(--blue); }
+  [data-state="normal"] .a-req, [data-state="assistant"] .a-req, [data-state="consent"] .a-consent,
+  [data-state="suspended"] .a-susp, [data-state="unverified"] .a-unver { display: flex; }
+
+  /* numbers */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 18px; padding: 0; overflow: hidden; }
+  .stat { padding: 16px 20px; display: grid; gap: 2px; align-content: start; }
+  .stat + .stat { border-inline-start: 1px solid var(--line); }
+  .stat span { font-size: 13.5px; color: var(--ink-2); }
+  .stat b { font-family: var(--f-display); font-size: 30px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .stat small { font-size: 12.5px; color: var(--ink-2); }
+
+  .sp-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .col { display: grid; gap: 18px; min-width: 0; }
+  .panel-head .btn { min-height: 38px; font-size: 14px; padding: 0 14px; box-shadow: 0 2px 0 var(--ink); }
+
+  /* courses */
+  .course { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+  .course:first-of-type { border-top: 0; padding-top: 4px; }
+  .course .ic { width: 42px; height: 42px; border-radius: 12px; background: var(--sun-tint); display: grid; place-items: center; grid-row: span 2; align-self: start; }
+  .course .ic svg { width: 20px; height: 20px; }
+  .course b { font-weight: 700; font-size: 15.5px; }
+  .course .src { font-size: 13px; color: var(--ink-2); }
+  .course .src a { color: var(--ink); font-weight: 600; }
+  .course .prog { grid-column: 2 / -1; display: grid; gap: 6px; }
+  .course .prog .row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
+  .course .prog .row b { font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .meter { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: var(--p); background: var(--mint); border-radius: inherit; }
+  .course .c-side { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+  .course .btn { min-height: 36px; font-size: 13.5px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .course.ended b, .course.ended .ic { opacity: .6; }
+  .course.ended .ic { background: #EFE8DA; }
+
+  /* quiz results */
+  .tbl-wrap { overflow-x: auto; position: relative; }
+  .tbl { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 14.5px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 11px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl td small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .tbl .chip { font-size: 12px; }
+  .score { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tbl td.score small { display: inline; font-weight: 500; }
+  .tbl tr.live td { background: #FFFAEC; }
+  .rescue { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .rescue .btn { min-height: 32px; font-size: 13px; padding: 0 10px; box-shadow: 0 2px 0 var(--ink); }
+
+  /* history */
+  .hist { list-style: none; margin: 0; padding: 0; display: grid; }
+  .hist li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 10px 0; position: relative; }
+  .hist li + li::before { content: ""; position: absolute; inset-inline-start: 16px; top: -10px; height: 20px; width: 2px; background: var(--line); }
+  .hist .k { width: 34px; height: 34px; border-radius: 50%; background: #FBF5E8; display: grid; place-items: center; }
+  .hist .k svg { width: 16px; height: 16px; }
+  .hist b { font-weight: 600; font-size: 14.5px; }
+  .hist small { display: block; font-size: 12.5px; color: var(--ink-2); }
+
+  /* side lists */
+  .line { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #FBF5E8; font-size: 14px; }
+  .line + .line { margin-top: 8px; }
+  .line > div { flex: 1; min-width: 0; }
+  .line b { display: block; font-weight: 600; font-size: 14px; }
+  .line small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .line .kind { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--paper); flex: none; }
+  .line .kind svg { width: 18px; height: 18px; }
+  .line .btn { min-height: 34px; font-size: 13px; padding: 0 10px; box-shadow: 0 2px 0 var(--ink); }
+  .line.pend { background: var(--sun-tint); }
+  .line.gone { background: none; border: 1.5px dashed var(--line); color: var(--ink-2); }
+  .line.gone b { color: var(--ink-2); }
+  .limit { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--ink-2); }
+  .stepper { display: inline-flex; align-items: center; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .stepper button { width: 36px; height: 36px; border: 0; background: var(--paper); cursor: pointer; display: grid; place-items: center; font-size: 18px; color: var(--ink); }
+  .stepper button:hover { background: var(--sun-tint); }
+  .stepper output { min-width: 34px; text-align: center; font-weight: 700; }
+  .hint { font-size: 12.5px; color: var(--ink-2); margin-top: 10px; line-height: 1.6; }
+  .sess { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); display: flex; gap: 8px; align-items: flex-start; }
+  .sess svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+  .consent { display: grid; gap: 8px; padding: 14px; border-radius: 14px; }
+  .consent.ok { background: var(--mint-tint); }
+  .consent.wait { background: var(--sun-tint); }
+  .consent b { display: flex; align-items: center; gap: 8px; font-size: 14.5px; }
+  .consent b svg { width: 18px; height: 18px; }
+  .consent p { font-size: 13px; line-height: 1.6; }
+  .consent .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .consent .btn { min-height: 36px; font-size: 13.5px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+
+  /* state switches */
+  .ro, .c-wait, .s-on, .v-no { display: none; }
+  [data-state="assistant"] .t-only { display: none !important; }
+  [data-state="assistant"] .ro { display: inline; }
+  [data-state="consent"] .c-wait { display: grid; } [data-state="consent"] .c-ok { display: none; }
+  [data-state="suspended"] .s-on { display: inline-flex; } [data-state="suspended"] .s-off { display: none; }
+  [data-state="unverified"] .v-no { display: inline-flex; } [data-state="unverified"] .v-yes { display: none; }
+
+  @media (max-width: 1150px) {
+    /* one column: what staff come here for (courses, devices, consent) before grades and history */
+    .sp-grid { grid-template-columns: minmax(0, 1fr); }
+    .col { display: contents; }
+    #courses-p { order: 1; } #dev-p { order: 2; } #guard { order: 3; } #grades-p { order: 4; } #hist-p { order: 5; }
+  }
+  @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat:nth-child(3) { border-inline-start: 0; } .stat:nth-child(n+3) { border-top: 1px solid var(--line); } }
+  @media (max-width: 560px) {
+    .sp-head .avatar { width: 60px; height: 60px; font-size: 22px; }
+    .sp-id h2 { font-size: 23px; }
+    .sp-acts, .sp-acts .btn { width: 100%; }
+    .course { grid-template-columns: auto minmax(0, 1fr); }
+    .course .c-side { grid-column: 1 / -1; justify-content: flex-start; }
+    .course .prog { grid-column: 1 / -1; }
+    .course .ic { grid-row: auto; }
+    .tbl { min-width: 0; }
+    .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .tbl tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .tbl tbody tr.live { padding-inline: 10px; border-radius: 12px; background: #FFFAEC; }
+    .tbl tbody td { display: block; padding: 0; border: 0; background: none !important; }
+    .tbl tbody td:first-child { grid-column: 1 / -1; }
+    .tbl tbody td.muted:empty, .tbl tbody td.muted { display: none; }
+    .tbl tbody td:nth-child(3) { font-size: 13px; color: var(--ink-2); }
+    .tbl tbody td:nth-child(4) { justify-self: end; grid-row: 2; grid-column: 2; }
+  }
+</style>
+</head>
+<body data-page="accounts" data-unread="3" data-state="normal" data-title-en="Youssef Ahmed · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Accounts">الحسابات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b id="me-name"></b><small id="me-role"></small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb">
+      <a href="accounts.html" data-en="Accounts">الحسابات</a><i data-i="chevron-right"></i>
+      <a href="accounts.html" data-en="Students">الطلاب</a><i data-i="chevron-right"></i>
+      <span aria-current="page" data-en="Youssef Ahmed">يوسف أحمد</span>
+    </nav>
+
+    <!-- GET /students/:membershipId → profile -->
+    <div class="sp-head">
+      <span class="avatar av-student" aria-hidden="true">ي</span>
+      <div class="sp-id">
+        <h2 data-en="Youssef Ahmed">يوسف أحمد</h2>
+        <div class="contact"><span>youssef@mail.example</span><span>010 2345 6789</span></div>
+        <div class="chips">
+          <span class="chip ok s-off" data-en="Active">نشط</span>
+          <span class="chip bad s-on" data-en="Suspended">موقوف</span>
+          <span class="chip ok v-yes" data-en="Email confirmed">إيميل مؤكد</span>
+          <span class="chip warn v-no" data-en="Email not confirmed">لم يؤكد الإيميل</span>
+          <span class="chip info" data-en="Under 18">أقل من ١٨</span>
+        </div>
+      </div>
+      <div class="sp-acts">
+        <!-- POST /students/:membershipId/force-signout · PATCH /students/:membershipId {status} -->
+        <button class="btn btn-light" type="button" data-toast="أخرجناه من كل الأجهزة، وأجهزته باقية|Signed out everywhere; devices kept"><i data-i="log-out"></i><span data-en="Sign out everywhere">أخرجه من كل الأجهزة</span></button>
+        <button class="btn btn-danger s-off" type="button" data-set="suspended" data-toast="أُوقف الحساب وانتهت جلساته في أكاديميتك|Account suspended; its sessions here ended"><i data-i="lock"></i><span data-en="Suspend account">أوقف الحساب</span></button>
+        <button class="btn s-on" type="button" data-set="normal" data-toast="أُعيد تفعيل الحساب|Account reactivated"><i data-i="rotate-ccw"></i><span data-en="Reactivate">أعد التفعيل</span></button>
+      </div>
+    </div>
+    <p class="since" data-en-html="Student since 2 Sep 2025, joined with an access code from <a href=&quot;code-batch.html?s=revoked&quot;>September trial, no. 17</a>.">طالب منذ ٢ سبتمبر ٢٠٢٥، انضم بكود وصول من <a href="code-batch.html?s=revoked">تجربة سبتمبر، رقم ١٧</a>.</p>
+
+    <div class="alert req a-req" role="status"><i data-i="smartphone"></i><div><b data-en="He asked to change his device 12 minutes ago">طلب تغيير جهازه منذ ١٢ دقيقة</b><span data-en="“My phone broke, I bought a new one.” He can’t sign in on the new phone until someone approves.">«موبايلي اتكسر واشتريت واحد جديد.» لا يستطيع الدخول من الموبايل الجديد حتى يوافق أحد.</span><div class="row-btns"><a class="btn" href="requests.html" data-en="Open the request">افتح الطلب</a></div></div></div>
+    <div class="alert stop a-consent" role="alert"><i data-i="triangle-alert"></i><div><b data-en="Access is closed until his guardian agrees">الوصول مغلق حتى يوافق ولي أمره</b><span data-en="He is under 18. He can sign in, but can’t open lessons or quizzes in any academy until consent is recorded.">عمره أقل من ١٨. يستطيع الدخول، لكن لا يفتح الدروس ولا الاختبارات في أي أكاديمية حتى تُسجَّل الموافقة.</span><div class="row-btns"><a class="btn" href="#h-guard" data-en="Go to guardian consent">اذهب لموافقة ولي الأمر</a></div></div></div>
+    <div class="alert stop a-susp" role="status"><i data-i="lock"></i><div><b data-en="Suspended by Mr. Karim Samy on 16 Nov">أوقفه أ. كريم سامي في ١٦ نوفمبر</b><span data-en="He can’t sign in to this academy. His courses, progress and grades are kept, and other academies are not affected.">لا يستطيع الدخول لهذه الأكاديمية. كورساته وتقدمه ودرجاته محفوظة، ولا تتأثر الأكاديميات الأخرى.</span></div></div>
+    <div class="alert info a-unver" role="status"><i data-i="mail"></i><div><b data-en="He hasn’t confirmed his email yet">لم يؤكد إيميله بعد</b><span data-en="He can’t sign in until he opens the link we sent. The code he used is already counted.">لا يستطيع الدخول حتى يفتح الرابط الذي أرسلناه. والكود الذي استخدمه احتُسب بالفعل.</span><div class="row-btns"><button class="btn" type="button" data-toast="أُرسل رابط التأكيد مرة أخرى|Confirmation link sent again" data-en="Send the link again">أرسل الرابط مرة أخرى</button></div></div></div>
+
+    <section class="panel stats" aria-label="ملخص الطالب" data-en-aria-label="Student summary">
+      <div class="stat"><span data-en="Courses">الكورسات</span><b class="num" data-en="2">٢</b><small data-en="1 ended">وواحد انتهى</small></div>
+      <div class="stat"><span data-en="Term 1 progress">تقدم الترم الأول</span><b class="num" data-en="64%">٦٤٪</b><small data-en="18 of 28 items">١٨ من ٢٨ عنصرًا</small></div>
+      <div class="stat"><span data-en="Quiz average">متوسط الاختبارات</span><b class="num" data-en="82%">٨٢٪</b><small data-en="3 released grades">من ٣ درجات معلنة</small></div>
+      <div class="stat"><span data-en="Last active">آخر نشاط</span><b data-en="12 min">١٢ دقيقة</b><small data-en="Chrome on Windows">Chrome على Windows</small></div>
+    </section>
+
+    <div class="sp-grid">
+      <div class="col">
+        <!-- courses: GET /students/:id → courses[] (source, status); progress per student needs a staff endpoint -->
+        <section class="panel" id="courses-p" aria-labelledby="h-courses">
+          <div class="panel-head"><h3 id="h-courses" data-en="Courses">الكورسات</h3><button class="btn btn-light" type="button" data-toast="اختر كورسًا لإضافته|Pick a course to add"><i data-i="plus"></i><span data-en="Add a course">أضف كورسًا</span></button></div>
+          <div class="course">
+            <span class="ic"><i data-i="book-open"></i></span>
+            <div><b data-en="Physics, term 1">الفيزياء · الترم الأول</b><div class="src" data-en-html="Access code (<a href=&quot;code-batch.html?s=revoked&quot;>September trial</a>) · since 2 Sep">كود وصول (<a href="code-batch.html?s=revoked">تجربة سبتمبر</a>) · منذ ٢ سبتمبر</div></div>
+            <div class="c-side"><span class="chip ok" data-en="Active">نشط</span><button class="btn btn-light t-only" type="button" data-toast="أُنهي الاشتراك، وبقي التقدم والدرجات|Access ended; progress and grades kept" data-en="End access">أنهِ الاشتراك</button></div>
+            <div class="prog"><div class="row"><span data-en="Next: Lecture 6 video, at 12:40">التالي: فيديو المحاضرة ٦، عند ١٢:٤٠</span><b data-en="18 / 28 · 64%">١٨ / ٢٨ · ٦٤٪</b></div><span class="meter"><i style="--p:64%"></i></span></div>
+          </div>
+          <div class="course">
+            <span class="ic"><i data-i="book-open"></i></span>
+            <div><b data-en="Physics, term 2">الفيزياء · الترم الثاني</b><div class="src" data-en="Invitation from Nour Adel · since 15 Oct">دعوة من نور عادل · منذ ١٥ أكتوبر</div></div>
+            <div class="c-side"><span class="chip ok" data-en="Active">نشط</span><button class="btn btn-light t-only" type="button" data-toast="أُنهي الاشتراك، وبقي التقدم والدرجات|Access ended; progress and grades kept" data-en="End access">أنهِ الاشتراك</button></div>
+            <div class="prog"><div class="row"><span data-en="Last opened 3 days ago">آخر فتح منذ ٣ أيام</span><b data-en="3 / 24 · 13%">٣ / ٢٤ · ١٣٪</b></div><span class="meter"><i style="--p:13%"></i></span></div>
+          </div>
+          <div class="course ended">
+            <span class="ic"><i data-i="archive"></i></span>
+            <div><b data-en="Revision camp">معسكر المراجعة</b><div class="src" data-en="Ended by Mr. Karim Samy on 30 Sep · history and grades kept">أنهاه أ. كريم سامي في ٣٠ سبتمبر · السجل والدرجات محفوظة</div></div>
+            <div class="c-side"><span class="chip off" data-en="Ended">منتهٍ</span><button class="btn btn-light" type="button" data-toast="أُعيد فتح الكورس له|Course opened for him again" data-en="Add back">أعده</button></div>
+          </div>
+        </section>
+
+        <!-- grades: GET /students/:id → grades (returns [] today) -->
+        <section class="panel" id="grades-p" aria-labelledby="h-grades">
+          <div class="panel-head"><h3 id="h-grades" data-en="Quiz results">نتائج الاختبارات</h3></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th scope="col" data-en="Quiz">الاختبار</th><th scope="col" data-en="Score">الدرجة</th><th scope="col" data-en="When">متى</th><th scope="col" data-en="He sees it">يراها الطالب</th></tr></thead>
+              <tbody>
+                <tr class="live">
+                  <td><b data-en="November monthly exam">امتحان نوفمبر الشهري</b><small data-en="Term 1 · in progress now">الترم الأول · يحله الآن</small>
+                    <div class="rescue"><button class="btn btn-light" type="button" data-toast="أُضيفت ١٠ دقائق لمحاولته|10 minutes added to his attempt" data-en="+10 minutes">+١٠ دقائق</button><button class="btn btn-light" type="button" data-toast="يكمل المحاولة من جهازه الآخر بدون أن يخسر إجاباته|He can carry on from his other device without losing answers" data-en="Move to another device">انقلها لجهاز آخر</button></div></td>
+                  <td class="muted">—</td>
+                  <td><span data-en="Started 9 min ago">بدأ منذ ٩ دقائق</span><small data-en="22 min left">باقي ٢٢ دقيقة</small></td>
+                  <td><span class="chip info" data-en="Answering">يجيب الآن</span></td>
+                </tr>
+                <tr>
+                  <td><b data-en="Chapter 2 exam">امتحان الفصل الثاني</b><small data-en="Term 1">الترم الأول</small></td>
+                  <td class="score" data-en-html="38 / 50 <small>· 76%</small>">٣٨ / ٥٠ <small>· ٧٦٪</small></td>
+                  <td data-en="16 Nov">١٦ نوفمبر</td>
+                  <td><span class="chip warn" data-en="On 20 Nov">في ٢٠ نوفمبر</span></td>
+                </tr>
+                <tr>
+                  <td><b data-en="Kirchhoff’s laws quiz">اختبار قوانين كيرشوف</b><small data-en="Term 1">الترم الأول</small></td>
+                  <td class="score" data-en-html="17 / 20 <small>· 85%</small>">١٧ / ٢٠ <small>· ٨٥٪</small></td>
+                  <td data-en="14 Nov">١٤ نوفمبر</td>
+                  <td><span class="chip ok" data-en="Released">معلنة</span></td>
+                </tr>
+                <tr>
+                  <td><b data-en="Chapter 1 exam">امتحان الفصل الأول</b><small data-en="Term 1">الترم الأول</small></td>
+                  <td class="score" data-en-html="41 / 50 <small>· 82%</small>">٤١ / ٥٠ <small>· ٨٢٪</small></td>
+                  <td data-en="2 Nov">٢ نوفمبر</td>
+                  <td><span class="chip ok" data-en="Released">معلنة</span></td>
+                </tr>
+                <tr>
+                  <td><b data-en="Ohm’s law quiz">اختبار قانون أوم</b><small data-en="Term 1">الترم الأول</small></td>
+                  <td class="score" data-en-html="8 / 10 <small>· 80%</small>">٨ / ١٠ <small>· ٨٠٪</small></td>
+                  <td data-en="25 Oct">٢٥ أكتوبر</td>
+                  <td><span class="chip ok" data-en="Released">معلنة</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- history: audit log entries whose target is this student -->
+        <section class="panel" id="hist-p" aria-labelledby="h-hist">
+          <div class="panel-head"><h3 id="h-hist" data-en="History">السجل</h3><a class="link" href="notifications.html" data-en="Full activity log">سجل النشاط كاملًا</a></div>
+          <ol class="hist">
+            <li><span class="k"><i data-i="smartphone"></i></span><div><b data-en="Asked to change his device">طلب تغيير جهازه</b><small data-en="12 min ago · Safari on iPhone">منذ ١٢ دقيقة · Safari على iPhone</small></div></li>
+            <li><span class="k"><i data-i="log-out"></i></span><div><b data-en="Signed out everywhere by Nour Adel">أخرجته نور عادل من كل الأجهزة</b><small data-en="10 Nov · he left a school laptop signed in">١٠ نوفمبر · ترك لابتوب المدرسة مفتوحًا</small></div></li>
+            <li><span class="k"><i data-i="book-open"></i></span><div><b data-en="Added to Physics, term 2">أُضيف إلى الفيزياء · الترم الثاني</b><small data-en="15 Oct · invitation from Nour Adel">١٥ أكتوبر · دعوة من نور عادل</small></div></li>
+            <li><span class="k"><i data-i="archive"></i></span><div><b data-en="Revision camp access ended">انتهى اشتراك معسكر المراجعة</b><small data-en="30 Sep · by Mr. Karim Samy">٣٠ سبتمبر · بواسطة أ. كريم سامي</small></div></li>
+            <li><span class="k"><i data-i="shield-check"></i></span><div><b data-en="His father gave consent by email">وافق والده بالإيميل</b><small data-en="3 Sep 2025 · Ahmed Ali">٣ سبتمبر ٢٠٢٥ · أحمد علي</small></div></li>
+            <li><span class="k"><i data-i="key-round"></i></span><div><b data-en="Joined with an access code">انضم بكود وصول</b><small data-en="2 Sep 2025 · September trial, no. 17">٢ سبتمبر ٢٠٢٥ · تجربة سبتمبر، رقم ١٧</small></div></li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="col">
+        <!-- devices: GET /students/:id → devices[], sessions[] · PATCH {maxDevices} (teacher) · POST /devices/:id/revoke -->
+        <section class="panel" id="dev-p" aria-labelledby="h-dev">
+          <div class="panel-head" style="margin-bottom:8px"><h3 id="h-dev" data-en="Devices">الأجهزة</h3></div>
+          <div class="limit"><span data-en="How many devices he may use">عدد الأجهزة المسموح بها</span>
+            <span class="stepper t-only"><button type="button" data-step="-1" aria-label="أجهزة أقل" data-en-aria-label="Fewer devices">−</button><output class="num" id="maxdev">١</output><button type="button" data-step="1" aria-label="أجهزة أكثر" data-en-aria-label="More devices">+</button></span>
+            <b class="ro num" data-en="1 (the teacher sets it)">١ (يحددها المدرس)</b></div>
+          <div class="line"><span class="kind"><i data-i="monitor"></i></span><div><b data-en="Chrome on Windows">Chrome على Windows</b><small data-en="Approved 2 Sep · signed in now">معتمد منذ ٢ سبتمبر · داخل الآن</small></div><button class="btn btn-light" type="button" data-toast="أُلغي الجهاز وانتهت جلساته|Device revoked; its sessions ended" data-en="Revoke">ألغِه</button></div>
+          <div class="line pend"><span class="kind"><i data-i="smartphone"></i></span><div><b data-en="Safari on iPhone">Safari على iPhone</b><small data-en="Waiting · from his device request">بانتظار الموافقة · من طلب تغيير الجهاز</small></div><a class="btn" href="requests.html" data-en="Open request">افتح الطلب</a></div>
+          <div class="line gone"><span class="kind"><i data-i="smartphone"></i></span><div><b data-en="Chrome on Android">Chrome على Android</b><small data-en="Revoked 9 Oct, replaced by the Windows laptop">أُلغي في ٩ أكتوبر، وحلّ محله لابتوب Windows</small></div></div>
+          <p class="sess"><i data-i="clock-3"></i><span data-en="1 open session here, on Chrome on Windows. It ends by itself after 30 days without use.">جلسة واحدة مفتوحة هنا على Chrome على Windows، وتنتهي وحدها بعد ٣٠ يومًا بلا استخدام.</span></p>
+          <p class="hint" data-en="Devices belong to the student, so this list is the same in every academy he studies in.">الأجهزة تخص الطالب نفسه، فهذه القائمة واحدة في كل الأكاديميات التي يدرس بها.</p>
+        </section>
+
+        <!-- guardian consent (10R.7) -->
+        <section class="panel" aria-labelledby="h-guard" id="guard">
+          <div class="panel-head" style="margin-bottom:8px"><h3 id="h-guard" tabindex="-1" data-en="Guardian consent">موافقة ولي الأمر</h3></div>
+          <div class="consent ok c-ok">
+            <b><i data-i="check"></i><span data-en="Recorded">مسجلة</span></b>
+            <p data-en="By email on 3 Sep 2025 · father: Ahmed Ali. Consent belongs to the student, so it opens every academy he studies in.">بالإيميل في ٣ سبتمبر ٢٠٢٥ · الأب: أحمد علي. الموافقة تخص الطالب نفسه، فتفتح له كل الأكاديميات التي يدرس بها.</p>
+            <div class="row-btns"><button class="btn btn-light" type="button" data-set="consent" data-toast="سُجّل سحب الموافقة وأُغلق الوصول|Withdrawal recorded; access closed" data-en="Record a withdrawal">سجّل سحب الموافقة</button></div>
+          </div>
+          <div class="consent wait c-wait">
+            <b><i data-i="clock-3"></i><span data-en="Waiting for the guardian">بانتظار ولي الأمر</span></b>
+            <p data-en="We emailed his father (ah•••@mail.example) on 16 Nov. The link works for 7 days.">أرسلنا لوالده (ah•••@mail.example) في ١٦ نوفمبر، والرابط يعمل ٧ أيام.</p>
+            <div class="row-btns"><button class="btn" type="button" data-toast="أُرسل الطلب لإيميل ولي الأمر|Request sent to the guardian’s email"><i data-i="refresh-cw"></i><span data-en="Send it again">أرسله مرة أخرى</span></button><a class="btn btn-light" href="accounts.html" data-en="Record a paper form">سجّل موافقة ورقية</a></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="normal" aria-pressed="true" data-en="Teacher view">عرض المدرس</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="Assistant view">عرض المساعد</button>
+  <button type="button" data-state="consent" aria-pressed="false" data-en="Waiting for guardian">بانتظار ولي الأمر</button>
+  <button type="button" data-state="unverified" aria-pressed="false" data-en="Email not confirmed">إيميل غير مؤكد</button>
+  <button type="button" data-state="suspended" aria-pressed="false" data-en="Suspended">موقوف</button>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => isEn() ? e : a;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  let maxDev = 1;
+
+  // links inside translated text: swap innerHTML from data-en-html (itqan.js only swaps textContent)
+  const htmls = [...document.querySelectorAll('[data-en-html]')].map((el) => [el, el.innerHTML]);
+  function render() {
+    htmls.forEach(([el, a]) => { el.innerHTML = isEn() ? el.dataset.enHtml : a; });
+    const asst = document.body.dataset.state === 'assistant';
+    $('me-name').textContent = asst ? t('نور عادل', 'Nour Adel') : t('أ. كريم سامي', 'Mr. Karim Samy');
+    $('me-role').textContent = asst ? t('مساعدة', 'Assistant') : t('مدرس', 'Teacher');
+    document.querySelectorAll('.me .avatar').forEach((a) => { a.classList.toggle('av-assistant', asst); a.classList.toggle('av-teacher', !asst); });
+    $('maxdev').textContent = isEn() ? maxDev : ar(maxDev);
+  }
+
+  const toast = (a, e) => { $('toast-text').textContent = t(a, e); $('toast').hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { $('toast').hidden = true; }, 2800); };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-toast], [data-step]'); if (!b) return;
+    if (b.dataset.step) {
+      maxDev = Math.max(1, Math.min(10, maxDev + +b.dataset.step)); render();
+      toast(`حُفظ: حتى ${ar(maxDev)} أجهزة. الأجهزة الحالية لا تُلغى`, `Saved: up to ${maxDev} devices. Current devices are not revoked`);
+      return;
+    }
+    const [a, en] = b.dataset.toast.split('|'); toast(a, en);
+    if (b.dataset.set) window.itqanSetState(b.dataset.set);
+  });
+  document.addEventListener('itqan:state', render);
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(render)));
+  render();
+</script>
+</body>
+</html>

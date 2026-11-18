@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دفعة أكواد · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: one access-code batch, every code's status (used, not used, revoked), who used it and when, and revoking the unused codes.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .cb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .cb-head h2 { font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cb-head p { color: var(--ink-2); font-size: 14.5px; margin-top: 6px; }
+  .cb-head .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-danger { --bg: var(--paper); --fg: #B8341A; border-color: #B8341A; box-shadow: 0 3px 0 #B8341A; }
+  .btn-danger:hover { background: #FFF4F0; box-shadow: 0 5px 0 #B8341A; }
+  .btn-danger.solid { --bg: #B8341A; --fg: #fff; box-shadow: 0 3px 0 var(--ink); }
+  .btn-danger.solid:hover { background: #A02C15; }
+
+  /* one panel, four numbers */
+  .stats { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); margin-top: 18px; padding: 0; overflow: hidden; }
+  .stat { padding: 18px 22px; display: grid; gap: 4px; align-content: start; }
+  .stat + .stat { border-inline-start: 1px solid var(--line); }
+  .stat span { font-size: 13.5px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
+  .stat span i.sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .stat b { font-family: var(--f-display); font-size: 34px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat small { font-size: 13px; color: var(--ink-2); }
+  .bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--line); margin-top: 8px; }
+  .bar i { display: block; height: 100%; }
+  .sw-used, .bar .b-used { background: var(--mint); }
+  .sw-free, .bar .b-free { background: var(--sun); }
+  .sw-rev, .bar .b-rev { background: #CFC4AE; }
+
+  .note-line { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px 16px; border-radius: 14px; background: var(--blue-tint); font-size: 14px; line-height: 1.65; }
+  .note-line > svg { width: 18px; height: 18px; flex: none; color: var(--blue); margin-top: 3px; }
+
+  .codes { margin-top: 18px; }
+  .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .toolbar .seg { flex-wrap: wrap; }
+  .toolbar .seg .n { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .find { position: relative; flex: 1 1 260px; max-width: 360px; margin-inline-start: auto; }
+  .find svg { position: absolute; inset-inline-start: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--ink-2); pointer-events: none; }
+  .find input { width: 100%; min-height: 44px; padding-inline: 40px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper); font: inherit; font-size: 14.5px; color: var(--ink); }
+  .find input:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; border-color: transparent; }
+
+  .tbl-wrap { overflow-x: auto; position: relative; }
+  .tbl { width: 100%; border-collapse: collapse; min-width: 660px; font-size: 14.5px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 11px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl .chip { font-size: 12px; }
+  .ser { font-variant-numeric: tabular-nums; color: var(--ink-2); width: 64px; }
+  .code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 14px; letter-spacing: .04em; direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+  .code .hid { color: #B2A68D; }
+  .who { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; }
+  .who .avatar { width: 34px; height: 34px; font-size: 14px; flex: none; }
+  .who b { display: block; font-weight: 600; }
+  a.who:hover b { text-decoration: underline; }
+  a.who:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 8px; }
+  .who small { display: block; font-size: 12.5px; color: var(--ink-2); direction: ltr; text-align: start; }
+  .muted { color: var(--ink-2); }
+  .when { white-space: nowrap; }
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; color: var(--ink-2); }
+  .empty-row { text-align: center; padding: 36px 12px !important; color: var(--ink-2); }
+  .empty-row b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+
+  dialog { border: 2px solid var(--ink); border-radius: var(--r-card); padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-lift); }
+  dialog::backdrop { background: rgba(26, 23, 18, .45); }
+  dialog form { padding: 24px; display: grid; gap: 14px; }
+  dialog h2 { font-size: 22px; font-weight: 800; }
+  dialog ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  dialog li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.6; }
+  dialog li svg { width: 18px; height: 18px; flex: none; margin-top: 4px; }
+  dialog li.keep svg { color: #22694F; }
+  dialog li.stop svg { color: #B8341A; }
+  dialog .acts { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+  .as-asst, .when-rev { display: none; }
+  [data-state="assistant"] .t-only { display: none !important; }
+  [data-state="assistant"] .as-asst { display: flex; }
+  [data-state="revoked"] .when-rev { display: inline-flex; }
+  [data-state="revoked"] p.when-rev { display: flex; }
+  [data-state="revoked"] .when-sale, [data-state="revoked"] .t-only { display: none !important; }
+
+  @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat:nth-child(3) { border-inline-start: 0; } .stat:nth-child(n+3) { border-top: 1px solid var(--line); } }
+  @media (max-width: 560px) {
+    /* each code becomes a short card: number, code and status on top, then who and when */
+    .tbl { min-width: 0; }
+    .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .tbl tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .tbl tbody td { display: block; padding: 0; border: 0; }
+    .tbl tbody td:nth-child(4), .tbl tbody td:nth-child(5) { grid-column: 1 / -1; }
+    .tbl tbody td:nth-child(5):not(:empty) { font-size: 13px; }
+    .tbl tbody tr:has(td:nth-child(4) .muted) td:nth-child(n+4) { display: none; }
+    .ser { width: auto; }
+    .tbl .empty-row { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) { .stat { padding: 14px 16px; } .stat b { font-size: 28px; } .find { max-width: none; } .cb-head .acts, .cb-head .acts .btn { width: 100%; } }
+</style>
+</head>
+<body data-page="accounts" data-unread="3" data-state="teacher" data-title-en="Code batch · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Accounts">الحسابات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b id="me-name"></b><small id="me-role"></small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb">
+      <a href="accounts.html" data-en="Accounts">الحسابات</a><i data-i="chevron-right"></i>
+      <a href="accounts.html?tab=codes" data-en="Access codes">أكواد الوصول</a><i data-i="chevron-right"></i>
+      <span aria-current="page" data-en="November booklet">ملزمة نوفمبر</span>
+    </nav>
+
+    <!-- GET /code-batches (this batch) -->
+    <div class="cb-head">
+      <div>
+        <h2><span data-en="November booklet">ملزمة نوفمبر</span>
+          <span class="chip ok when-sale" data-en="On sale">متاحة للبيع</span>
+          <span class="chip off when-rev" data-en="Unused codes revoked">أُلغيت الأكواد غير المستخدمة</span></h2>
+        <p data-en="Physics, term 1 · 200 codes · made on 1 Nov by Mr. Karim Samy">الفيزياء · الترم الأول · ٢٠٠ كود · أنشأها أ. كريم سامي في ١ نوفمبر</p>
+      </div>
+      <div class="acts t-only">
+        <button class="btn btn-danger" type="button" id="revoke-btn"><i data-i="lock"></i><span id="revoke-label"></span></button>
+      </div>
+    </div>
+
+    <section class="panel stats" aria-label="ملخص الدفعة" data-en-aria-label="Batch summary" id="stats"></section>
+
+    <p class="note-line when-sale"><i data-i="info"></i><span data-en="The codes file downloaded once, on 1 Nov, and can’t be downloaded again: only the first 4 characters of each code are kept readable. Lost the file? Revoke the unused codes and make a new batch.">نزل ملف الأكواد مرة واحدة في ١ نوفمبر ولا يمكن تحميله مرة أخرى، ولا يظهر من كل كود إلا أول ٤ حروف. ضاع الملف؟ ألغِ الأكواد غير المستخدمة وأنشئ دفعة جديدة.</span></p>
+    <p class="note-line as-asst"><i data-i="info"></i><span data-en="You can see every code’s status. Only the teacher can make or revoke codes.">ترى حالة كل كود، وإنشاء الأكواد أو إلغاؤها للمدرس فقط.</span></p>
+    <p class="note-line when-rev" style="background:#F3EBDA"><i data-i="lock"></i><span data-en="Revoked on 18 Nov by Mr. Karim Samy. The unused codes stop working; the students who used a code keep their course.">أُلغيت في ١٨ نوفمبر بواسطة أ. كريم سامي. الأكواد غير المستخدمة لا تعمل، والطلاب الذين استخدموا كودًا يحتفظون بالكورس.</span></p>
+
+    <!-- GET /code-batches/:id/codes?status=&cursor=&limit=50 -->
+    <section class="panel codes" aria-labelledby="h-codes">
+      <div class="panel-head" style="margin-bottom:10px"><h3 id="h-codes" data-en="Every code">كل الأكواد</h3></div>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="الحالة" data-en-aria-label="Status" id="filter"></div>
+        <label class="find"><span class="sr-only" data-en="Find a code">ابحث عن كود</span><i data-i="search"></i>
+          <input type="search" id="q" placeholder="رقم الكود، أول ٤ حروف، أو اسم الطالب" data-en-placeholder="Serial, first 4 characters, or student" autocomplete="off"></label>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th scope="col" class="ser" data-en="No.">رقم</th>
+            <th scope="col" data-en="Code">الكود</th>
+            <th scope="col" data-en="Status">الحالة</th>
+            <th scope="col" data-en="Used by">استخدمه</th>
+            <th scope="col" data-en="Used on">تاريخ الاستخدام</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="pager"><span id="shown" aria-live="polite"></span><button class="btn btn-sm btn-light" type="button" id="more" data-en="Show 50 more">اعرض ٥٠ أخرى</button></div>
+    </section>
+  </main>
+</div>
+
+<!-- POST /code-batches/:id/revoke (teacher) -->
+<dialog id="dlg" aria-labelledby="dlg-t">
+  <form method="dialog" id="dlg-form">
+    <h2 id="dlg-t"></h2>
+    <ul>
+      <li class="stop"><i data-i="x"></i><span id="dlg-stop"></span></li>
+      <li class="keep"><i data-i="check"></i><span id="dlg-keep"></span></li>
+      <li class="stop"><i data-i="triangle-alert"></i><span data-en="This can’t be undone. If you need more codes, make a new batch.">لا يمكن التراجع عن هذا. إن احتجت أكوادًا أخرى أنشئ دفعة جديدة.</span></li>
+    </ul>
+    <div class="acts">
+      <button class="btn btn-ghost" type="button" id="dlg-cancel" data-en="Keep them">أبقِها</button>
+      <button class="btn btn-danger solid" type="submit" value="ok"><i data-i="lock"></i><span id="dlg-ok"></span></button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="teacher" aria-pressed="true" data-en="On sale (teacher)">متاحة (المدرس)</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="Assistant view">عرض المساعد</button>
+  <button type="button" data-state="revoked" aria-pressed="false" data-en="Unused revoked">أُلغي غير المستخدم</button>
+  <a href="accounts.html?tab=codes" data-en="All batches">كل الدفعات</a>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => isEn() ? e : a;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const num = (n) => isEn() ? String(n) : ar(n);
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // 200 codes like the API returns them: serial, first group only, status, who and when
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const FIRST = [['يوسف', 'Youssef'], ['مريم', 'Mariam'], ['عمر', 'Omar'], ['سلمى', 'Salma'], ['آدم', 'Adam'], ['جنى', 'Jana'], ['مالك', 'Malek'], ['ملك', 'Malak'], ['زياد', 'Ziad'], ['فريدة', 'Farida'], ['حمزة', 'Hamza'], ['نور', 'Nour'], ['كريم', 'Karim'], ['رنا', 'Rana'], ['سيف', 'Seif'], ['هنا', 'Hana']];
+  const LAST = [['أحمد', 'Ahmed'], ['حسن', 'Hassan'], ['محمود', 'Mahmoud'], ['علي', 'Ali'], ['إبراهيم', 'Ibrahim'], ['سامي', 'Samy'], ['خالد', 'Khaled'], ['مصطفى', 'Mostafa'], ['عادل', 'Adel'], ['فؤاد', 'Fouad']];
+  const used = new Set(); while (used.size < 143) used.add(1 + Math.floor(rnd() * 200));
+  const CODES = Array.from({ length: 200 }, (_, i) => {
+    const serial = i + 1, prefix = Array.from({ length: 4 }, () => B32[Math.floor(rnd() * 32)]).join('');
+    if (!used.has(serial)) return { serial, prefix, status: 'unredeemed' };
+    const f = FIRST[Math.floor(rnd() * FIRST.length)], l = LAST[Math.floor(rnd() * LAST.length)];
+    const day = 1 + Math.floor(rnd() * 17), hh = 9 + Math.floor(rnd() * 13), mm = Math.floor(rnd() * 60);
+    return { serial, prefix, status: 'redeemed', name: [`${f[0]} ${l[0]}`, `${f[1]} ${l[1]}`], email: `${f[1].toLowerCase()}.${l[1].toLowerCase()}${serial}@gmail.com`, day, hh, mm };
+  });
+  let filter = 'all', shown = 50;
+
+  const status = (c) => c.status === 'unredeemed' && document.body.dataset.state === 'revoked' ? 'revoked' : c.status;
+  const counts = () => { const k = { all: 200, redeemed: 0, unredeemed: 0, revoked: 0 }; CODES.forEach((c) => k[status(c)]++); return k; };
+  const CHIP = { redeemed: ['ok', 'استُخدم', 'Used'], unredeemed: ['warn', 'لم يُستخدم', 'Not used'], revoked: ['off', 'أُلغي', 'Revoked'] };
+  const when = (c) => isEn() ? `${c.day} Nov, ${String(c.hh).padStart(2, '0')}:${String(c.mm).padStart(2, '0')}` : `${ar(c.day)} نوفمبر، ${ar(String(c.hh).padStart(2, '0'))}:${ar(String(c.mm).padStart(2, '0'))}`;
+
+  function renderStats() {
+    const k = counts(), p = (n) => (n / 200 * 100).toFixed(1) + '%';
+    $('stats').innerHTML = `
+      <div class="stat"><span><i class="sw sw-used"></i>${t('استُخدمت', 'Used')}</span><b>${num(k.redeemed)}</b>
+        <small>${t(`${ar(Math.round(k.redeemed / 2))}٪ من الدفعة`, `${Math.round(k.redeemed / 2)}% of the batch`)}</small>
+        <span class="bar" role="img" aria-label="${t(`${ar(k.redeemed)} مستخدم، ${ar(k.unredeemed)} غير مستخدم، ${ar(k.revoked)} ملغى`, `${k.redeemed} used, ${k.unredeemed} not used, ${k.revoked} revoked`)}"><i class="b-used" style="width:${p(k.redeemed)}"></i><i class="b-free" style="width:${p(k.unredeemed)}"></i><i class="b-rev" style="width:${p(k.revoked)}"></i></span></div>
+      <div class="stat"><span><i class="sw sw-free"></i>${t('لم تُستخدم', 'Not used')}</span><b>${num(k.unredeemed)}</b><small>${k.unredeemed ? t('ما زالت تعمل', 'Still work') : t('لا يوجد', 'None left')}</small></div>
+      <div class="stat"><span><i class="sw sw-rev"></i>${t('أُلغيت', 'Revoked')}</span><b>${num(k.revoked)}</b><small>${k.revoked ? t('لم تعد تعمل', 'No longer work') : t('لا شيء أُلغي', 'Nothing revoked')}</small></div>
+      <div class="stat"><span>${t('الإجمالي', 'Total')}</span><b>${num(200)}</b><small>${t('الحد ٥٠٠ في الدفعة', 'Up to 500 a batch')}</small></div>`;
+    $('revoke-label').textContent = t(`ألغِ ${ar(k.unredeemed)} كودًا غير مستخدم`, `Revoke ${k.unredeemed} unused codes`);
+  }
+  function renderFilter() {
+    const k = counts();
+    $('filter').innerHTML = [['all', 'الكل', 'All'], ['redeemed', 'استُخدم', 'Used'], ['unredeemed', 'لم يُستخدم', 'Not used'], ['revoked', 'أُلغي', 'Revoked']]
+      .map(([id, a, e]) => `<button type="button" data-f="${id}" aria-pressed="${filter === id}">${t(a, e)} <span class="n">${num(k[id])}</span></button>`).join('');
+  }
+  function renderRows() {
+    const q = $('q').value.trim().toLowerCase().replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    // shortcut: search runs over the loaded page; the real list needs a ?q= on GET /code-batches/:id/codes
+    const list = CODES.filter((c) => (filter === 'all' || status(c) === filter) &&
+      (!q || (/^\d+$/.test(q) ? String(c.serial) === q || c.prefix.toLowerCase() === q : c.prefix.toLowerCase().startsWith(q) || (c.name && (c.name[0].includes(q) || c.name[1].toLowerCase().includes(q) || c.email.includes(q))))));
+    const page = list.slice(0, shown);
+    $('rows').innerHTML = page.length ? page.map((c) => {
+      const s = status(c), ch = CHIP[s];
+      const who = c.name ? `<a class="who" href="student.html"><span class="avatar av-student" aria-hidden="true">${c.name[0][0]}</span><span><b>${esc(t(...c.name))}</b><small>${c.email}</small></span></a>` : '<span class="muted">—</span>';
+      return `<tr><td class="ser">${num(c.serial)}</td><td><span class="code">${c.prefix}<span class="hid">-••••-••••</span></span></td><td><span class="chip ${ch[0]}">${t(ch[1], ch[2])}</span></td><td>${who}</td><td class="muted when">${c.day ? when(c) : '—'}</td></tr>`;
+    }).join('') : `<tr><td colspan="5" class="empty-row"><b>${t('لا يوجد كود بهذا الوصف', 'No code matches')}</b>${t('جرّب رقم الكود المطبوع، أو أول ٤ حروف منه، أو اسم الطالب.', 'Try the printed serial number, its first 4 characters, or the student’s name.')}</td></tr>`;
+    $('shown').textContent = list.length ? t(`يظهر ${ar(page.length)} من ${ar(list.length)}`, `Showing ${page.length} of ${list.length}`) : '';
+    $('more').hidden = page.length >= list.length;
+  }
+  function render() {
+    const asst = document.body.dataset.state === 'assistant';
+    $('me-name').textContent = asst ? t('نور عادل', 'Nour Adel') : t('أ. كريم سامي', 'Mr. Karim Samy');
+    $('me-role').textContent = asst ? t('مساعدة', 'Assistant') : t('مدرس', 'Teacher');
+    document.querySelectorAll('.me .avatar').forEach((a) => { a.classList.toggle('av-assistant', asst); a.classList.toggle('av-teacher', !asst); });
+    renderStats(); renderFilter(); renderRows();
+  }
+
+  $('filter').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; shown = 50; renderFilter(); renderRows(); });
+  $('q').addEventListener('input', () => { shown = 50; renderRows(); });
+  $('more').addEventListener('click', () => { shown += 50; renderRows(); });
+
+  const toast = (a, e) => { $('toast-text').textContent = t(a, e); $('toast').hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { $('toast').hidden = true; }, 2800); };
+  $('revoke-btn').addEventListener('click', () => {
+    const k = counts();
+    $('dlg-t').textContent = t(`إلغاء ${ar(k.unredeemed)} كودًا غير مستخدم؟`, `Revoke ${k.unredeemed} unused codes?`);
+    $('dlg-stop').textContent = t(`الأكواد غير المستخدمة (${ar(k.unredeemed)}) تتوقف عن العمل فورًا، حتى المطبوعة في الملازم.`, `The ${k.unredeemed} unused codes stop working at once, printed ones included.`);
+    $('dlg-keep').textContent = t(`الطلاب الذين استخدموا كودًا (${ar(k.redeemed)}) يحتفظون بالكورس كما هو.`, `The ${k.redeemed} students who used a code keep their course.`);
+    $('dlg-ok').textContent = t('ألغِ الأكواد غير المستخدمة', 'Revoke unused codes');
+    $('dlg').showModal();
+  });
+  $('dlg-cancel').addEventListener('click', () => $('dlg').close());
+  $('dlg').addEventListener('close', () => {
+    if ($('dlg').returnValue !== 'ok') return;
+    $('dlg').returnValue = '';
+    window.itqanSetState('revoked');
+    toast('أُلغيت الأكواد غير المستخدمة. الطلاب المسجلون لم يتأثروا', 'Unused codes revoked. Enrolled students are not affected');
+  });
+
+  document.addEventListener('itqan:state', render);
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(render)));
+  const s0 = new URLSearchParams(location.search).get('s');
+  if (s0 === 'revoked' || s0 === 'assistant') window.itqanSetState(s0); else render();
+</script>
+</body>
+</html>

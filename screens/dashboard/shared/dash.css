@@ -13,32 +13,38 @@ body { background: var(--cream); }
 .num { font-variant-numeric: tabular-nums; }
 
 /* ---------- shell: dark side nav + content ---------- */
-.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100dvh; transition: grid-template-columns .25s var(--ease-out); }
-.app.mini { grid-template-columns: var(--side-w-mini) minmax(0, 1fr); }
+/* Collapsing keeps every icon where it is: the side keeps its 16px padding, and the brand mark,
+   the new-student circle and each nav icon are all centred 44px from the edge, which is the
+   middle of the 88px collapsed width. Only the width and the labels' opacity animate. */
+.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100dvh; transition: grid-template-columns .32s var(--ease-out); }
+.app.is-collapsed { grid-template-columns: var(--side-w-mini) minmax(0, 1fr); }
+.app.no-anim, .app.no-anim * { transition: none !important; } /* first paint of a remembered state */
 
 .side {
-  position: sticky; top: 0; height: 100dvh; z-index: 30;
+  position: sticky; top: 0; height: 100dvh; z-index: 30; min-width: 0;
   background: var(--ink); color: var(--paper);
   display: flex; flex-direction: column; gap: 22px; padding: 22px 16px 18px;
 }
-.side .brand { color: var(--paper); padding-inline: 6px; }
+.side .brand { color: var(--paper); padding-inline: 6px; overflow: hidden; }
 .side .brand-name { font-size: 18px; }
 .side .brand-sub { color: #BFB39C; }
+.side .brand > span, .side .label { transition: opacity .2s var(--ease-out) .1s; } /* back in once there is room */
 .collapse {
   position: absolute; top: 30px; inset-inline-end: -16px; width: 32px; height: 32px; border-radius: 50%;
   display: grid; place-items: center; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer;
-  transition: transform .2s var(--ease-out);
+  transition: background-color .18s;
 }
 .collapse:hover { background: var(--sun); }
-.collapse svg { width: 16px; height: 16px; }
-/* the arrow points the way the menu will move: toward the edge, back out when mini */
-[dir="rtl"] .collapse svg, [dir="ltr"] .app.mini .collapse svg { transform: scaleX(-1); }
-[dir="rtl"] .app.mini .collapse svg { transform: none; }
+.collapse:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.collapse svg { width: 16px; height: 16px; transition: transform .32s var(--ease-out); }
+/* the arrow points the way the menu will move: toward the edge, back out when collapsed */
+[dir="rtl"] .collapse svg, [dir="ltr"] .app.is-collapsed .collapse svg { transform: scaleX(-1); }
+[dir="rtl"] .app.is-collapsed .collapse svg { transform: none; }
 
 .new-student {
-  display: flex; align-items: center; gap: 12px; min-height: 56px; padding-block: 6px;
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding-block: 6px; overflow: hidden;
   padding-inline: 6px 18px; white-space: nowrap; border-radius: 999px; background: var(--paper); color: var(--ink);
-  font-weight: 600; font-size: 15.5px; text-decoration: none; transition: background-color .18s, transform .18s var(--ease-out);
+  font-weight: 600; font-size: 15.5px; text-decoration: none; transition: background-color .2s, transform .18s var(--ease-out);
 }
 .new-student:hover { background: var(--sun-tint); }
 .new-student[aria-current="page"] { background: var(--sun); }
@@ -46,31 +52,33 @@ body { background: var(--cream); }
 .new-student .plus { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--sun); border: 2px solid var(--ink); }
 .new-student .plus svg { width: 20px; height: 20px; }
 
-.nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.nav { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; } /* never wider than the side, even with nowrap labels */
 .nav a {
-  display: flex; align-items: center; gap: 14px; min-height: 48px; padding-inline: 14px; border-radius: 14px;
-  color: #E9E1CF; text-decoration: none; font-size: 15px; transition: background-color .18s, color .18s;
+  position: relative; display: flex; align-items: center; gap: 14px; min-height: 48px; padding-inline: 17.5px 14px; border-radius: 14px; overflow: hidden;
+  color: #E9E1CF; text-decoration: none; font-size: 15px; white-space: nowrap; transition: background-color .18s, color .18s;
 }
 .nav a:hover { background: rgba(255, 253, 248, .08); color: var(--paper); }
 .nav a[aria-current="page"] { background: var(--sun); color: var(--ink); font-weight: 600; }
 .nav svg { width: 21px; height: 21px; flex: none; }
-.nav .label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: clip; }
 .nav .count { min-width: 24px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--coral-strong); color: #fff; font-size: 12.5px; font-weight: 700; display: grid; place-items: center; flex: none; }
 .side-foot { margin-top: auto; display: grid; gap: 4px; padding-top: 14px; border-top: 1px solid rgba(255, 253, 248, .12); }
 
-/* mini side nav: icons only, labels stay for screen readers */
-.app.mini .side { padding-inline: 12px; }
-.app.mini .label, .app.mini .brand > span, .app.mini .new-student .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.app.mini .nav a, .app.mini .new-student { justify-content: center; padding-inline: 0; }
-.app.mini .new-student { background: transparent; }
-.app.mini .nav .count { position: absolute; margin: 0; transform: translate(-14px, -12px); min-width: 18px; height: 18px; font-size: 11px; padding: 0 5px; }
-[dir="ltr"] .app.mini .nav .count { transform: translate(14px, -12px); }
-.app.mini .nav a { position: relative; }
+/* collapsed (desktop only): icons stay, labels fade out first so nothing wraps while the width moves */
+@media (min-width: 981px) {
+  .app.is-collapsed .side .brand > span, .app.is-collapsed .side .label { opacity: 0; transition: opacity .1s; }
+  .app.is-collapsed .new-student { background: transparent; }
+  .app.is-collapsed .nav .count { position: absolute; top: 5px; inset-inline-start: 30px; min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; box-shadow: 0 0 0 2px var(--ink); }
+  .app.is-collapsed .nav a[aria-current="page"] .count { box-shadow: 0 0 0 2px var(--sun); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app, .collapse svg, .side .brand > span, .side .label { transition: none !important; }
+}
 
 /* ---------- top bar ---------- */
 .main { min-width: 0; padding: 0 clamp(16px, 2.4vw, 36px) 96px; }
 .dash-bar { display: flex; align-items: center; gap: 12px; padding: 22px 0 18px; border-bottom: 1px solid var(--line); }
-.dash-bar h1 { font-size: 30px; font-weight: 800; margin-inline-end: auto; }
+.dash-bar h1 { font-size: 30px; font-weight: 800; margin-inline-end: auto; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .menu-btn { display: none; }
 .search { position: relative; width: min(360px, 32vw); }
 .search svg { position: absolute; inset-inline-start: 16px; top: 50%; translate: 0 -50%; width: 19px; height: 19px; color: var(--ink-3); pointer-events: none; }
@@ -105,8 +113,15 @@ body { background: var(--cream); }
 .avatar[class].av-teacher { background-image: url("avatars/teacher.svg"); }
 .avatar[class].av-assistant { background-image: url("avatars/assistant.svg"); }
 .avatar[class].av-student { background-image: url("avatars/student.svg"); }
-.me b { display: block; font-size: 14.5px; line-height: 1.3; }
-.me small { display: block; font-size: 12.5px; color: var(--ink-2); line-height: 1.3; }
+.me b { display: block; font-size: 14.5px; line-height: 1.3; white-space: nowrap; }
+.me small { display: block; font-size: 12.5px; color: var(--ink-2); line-height: 1.3; white-space: nowrap; }
+/* tablet and small laptop (981–1280px): the bar keeps one line; the chip shrinks to its avatar, the search narrows */
+@media (max-width: 1280px) and (min-width: 981px) {
+  .dash-bar h1 { font-size: 26px; }
+  .search { width: clamp(170px, 20vw, 260px); }
+  .me b, .me small, .me .chev { display: none; }
+  .me { padding-inline-end: 5px; }
+}
 .me .chev svg { width: 18px; height: 18px; }
 
 /* ---------- content blocks ---------- */
@@ -239,11 +254,10 @@ body { background: var(--cream); }
 /* ---------- responsive ---------- */
 .scrim { display: none; }
 @media (max-width: 980px) {
-  .app, .app.mini { grid-template-columns: minmax(0, 1fr); }
+  .app, .app.is-collapsed { grid-template-columns: minmax(0, 1fr); }
   .side { position: fixed; inset-block: 0; inset-inline-start: 0; width: min(300px, 86vw); transform: translateX(105%); transition: transform .28s var(--ease-out); }
   [dir="ltr"] .side { transform: translateX(-105%); }
   .app.open .side { transform: none; }
-  .app.mini .label, .app.mini .brand > span { position: static; width: auto; height: auto; clip: auto; }
   .collapse { display: none; }
   .dash-bar .menu-btn { display: grid; }
   .app.open .scrim { display: block; position: fixed; inset: 0; z-index: 25; background: rgba(26, 23, 18, .4); }

@@ -127,7 +127,7 @@
           <a class="dd-item" role="menuitem" href="#me"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
           <a class="dd-item" role="menuitem" href="#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
           <div class="dd-sep"></div>
-          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+          <a class="dd-item danger" role="menuitem" href="login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
         </div>
       </div>
     </header>
@@ -318,7 +318,7 @@
     $('pv-name').textContent = $('s-name').value || '—';
     $('pv-title').textContent = $('h-title').value || '—';
     $('pv-sub').textContent = $('h-sub').value;
-    document.querySelectorAll('[data-count]').forEach((el) => { $(el.dataset.count).textContent = isEn() ? `${el.value.length} / ${el.maxLength}` : `${ar(el.value.length)} / ${ar(el.maxLength)}`; });
+    document.querySelectorAll('input[data-count], textarea[data-count]').forEach((el) => { $(el.dataset.count).textContent = isEn() ? `${el.value.length} / ${el.maxLength}` : `${ar(el.value.length)} / ${ar(el.maxLength)}`; });
   }
   ['c1p', 'c2p'].forEach((id) => $(id).addEventListener('input', (e) => { const box = $(id.slice(0, 2)); box.value = e.target.value.toUpperCase(); box.dispatchEvent(new Event('input')); }));
   ['c1', 'c2', 's-name', 'h-title', 'h-sub'].forEach((id) => $(id).addEventListener('input', syncPreview));

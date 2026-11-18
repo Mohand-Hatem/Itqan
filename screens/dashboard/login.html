@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>دخول لوحة إتقان</title>
+    <meta
+      name="description"
+      content="Itqan staff sign-in sketch: one global sign-in for every teacher and assistant; what the dashboard shows depends on who signs in."
+    />
+    <meta name="theme-color" content="#FFC22E" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../test/shared/itqan.css" />
+    <link rel="stylesheet" href="shared/dash.css" />
+    <style>
+      [data-state="wrong"] #b-wrong,
+      [data-state="suspended"] #b-suspended,
+      [data-state="pending"] #b-pending,
+      [data-state="limited"] #b-limited,
+      [data-state="paused"] #b-paused,
+      [data-state="ok"] #b-ok,
+      [data-state="expired"] #b-expired,
+      [data-state="revoked"] #b-revoked {
+        display: flex;
+        animation: pop 0.4s var(--ease-out);
+      }
+      .banner > svg {
+        width: 26px;
+        height: 26px;
+        flex: none;
+        margin-top: 2px;
+      }
+      .banner.danger > svg {
+        color: #b8341a;
+      }
+      .banner .btn {
+        display: inline-flex;
+      }
+      .banner.ok {
+        background: var(--mint-tint);
+        border-color: var(--mint);
+      }
+      .roles {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: -8px 0 24px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: #fbf5e8;
+        font-size: 13.5px;
+        color: var(--ink-2);
+      }
+      .roles .avatar {
+        width: 34px;
+        height: 34px;
+        border-width: 1.5px;
+      }
+      .roles .avatar + .avatar {
+        margin-inline-start: -14px;
+      }
+      .wait-time {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .step2 {
+        display: none;
+      }
+      [data-state="first"] .step1 {
+        display: none;
+      }
+      [data-state="first"] .step2 {
+        display: block;
+      }
+      .rules {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 6px;
+        font-size: 13.5px;
+        color: var(--ink-2);
+      }
+      .rules li {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .rules li svg {
+        width: 16px;
+        height: 16px;
+        color: var(--ink-3);
+      }
+      .rules li.ok,
+      .rules li.ok svg {
+        color: #22694f;
+      }
+
+      /* the scene: the teacher explains at the board, the assistant hands over the requests tablet */
+      .auth-art .scene {
+        width: 100%;
+        max-width: 620px;
+        margin-inline: auto;
+      }
+      .scene .chalk {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 0;
+        animation: chalk 7s var(--ease-out) infinite;
+      }
+      @keyframes chalk {
+        0% {
+          stroke-dashoffset: 100;
+        }
+        30%,
+        100% {
+          stroke-dashoffset: 0;
+        }
+      } /* first and last frames: fully drawn */
+      .scene .point {
+        transform-box: fill-box;
+        transform-origin: 0% 100%;
+        animation: point 3.6s ease-in-out infinite;
+      }
+      @keyframes point {
+        50% {
+          transform: rotate(-5deg);
+        }
+      }
+      .scene .tab {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: float 4s ease-in-out infinite;
+      }
+      .scene .tick {
+        stroke-dasharray: 30;
+        stroke-dashoffset: 30;
+        animation: tick 3.2s var(--ease-out) infinite;
+      }
+      .scene .tick.d2 {
+        animation-delay: 0.5s;
+      }
+      .scene .tick.d3 {
+        animation-delay: 1s;
+      }
+      @keyframes tick {
+        0%,
+        20% {
+          stroke-dashoffset: 30;
+        }
+        50%,
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+      .auth-art .note svg {
+        width: 34px;
+        height: 34px;
+      }
+      html[lang="en"] .scene .pl-long {
+        font-size: 13.5px;
+      } /* "Homework" is longer than واجب; keep it clear of its icon */
+    </style>
+  </head>
+  <body data-state="idle" data-title-en="Sign in · Itqan dashboard">
+    <a class="skip" href="#form" data-en="Skip to the form">انتقل إلى النموذج</a>
+
+    <header class="topbar">
+      <a class="brand" href="login.html"
+        ><span id="brand-mark"></span>
+        <span
+          ><span class="brand-name" data-en="Itqan">إتقان</span
+          ><span class="brand-sub" data-en="Teachers and assistants"
+            >لوحة المدرسين والمساعدين</span
+          ></span
+        >
+      </a>
+      <div class="topbar-actions"><button class="lang" type="button">English</button></div>
+    </header>
+
+    <main class="auth" id="main">
+      <section class="auth-card enter" aria-labelledby="t">
+        <div class="step1">
+          <h1 id="t" data-en="Sign in to your dashboard">ادخل إلى لوحتك</h1>
+          <p
+            class="lead"
+            data-en="One sign-in for every teacher and assistant. Your academy, courses and permissions open on their own."
+          >
+            دخول واحد لكل مدرس ومساعد، وتفتح أكاديميتك وكورساتك وصلاحياتك وحدها.
+          </p>
+          <div class="roles">
+            <span class="avatar av-teacher" aria-hidden="true">ك</span
+            ><span class="avatar av-assistant" aria-hidden="true">ن</span
+            ><span data-en="The teacher sees everything; an assistant sees what the teacher allows."
+              >المدرس يرى كل شيء، والمساعد يرى ما يسمح به المدرس.</span
+            >
+          </div>
+
+          <!-- POST /api/auth/sign-in/email · failures are logged with a reason, never the password -->
+          <div class="banner danger" id="b-wrong" role="alert">
+            <i data-i="triangle-alert"></i>
+            <div>
+              <strong data-en="Email or password is wrong">الإيميل أو كلمة السر غير صحيحة</strong>
+              <p data-en="Check both and try again. After 5 tries you wait one minute.">
+                راجعهما وحاول مرة أخرى. بعد ٥ محاولات تنتظر دقيقة.
+              </p>
+            </div>
+          </div>
+          <div class="banner danger" id="b-suspended" role="alert">
+            <i data-i="lock"></i>
+            <div>
+              <strong data-en="Your account is not active">حسابك غير نشط</strong>
+              <p
+                data-en="Your access was paused or removed. Contact the academy’s teacher, or the platform team if you are the teacher."
+              >
+                أُوقف وصولك أو أُزيل. تواصل مع مدرس الأكاديمية، أو مع فريق المنصة إن كنت أنت المدرس.
+              </p>
+            </div>
+          </div>
+          <div class="banner" id="b-pending" role="alert">
+            <i data-i="mail"></i>
+            <div>
+              <strong data-en="Confirm your email first">أكّد إيميلك أولًا</strong>
+              <p data-en="Open the link we sent when you joined. It may be in spam.">
+                افتح الرابط الذي أرسلناه عند انضمامك، وقد يكون في الرسائل غير المرغوبة.
+              </p>
+              <button
+                class="btn btn-sm btn-light"
+                type="button"
+                data-resend
+                data-en="Send the link again"
+              >
+                أرسل الرابط مرة أخرى
+              </button>
+            </div>
+          </div>
+          <div class="banner" id="b-limited" role="alert">
+            <i data-i="clock-3"></i>
+            <div>
+              <strong data-en="Too many tries">محاولات كثيرة</strong>
+              <p>
+                <span data-en="For your safety, wait">لحمايتك، انتظر</span>
+                <span class="wait-time" id="wait">٦٠</span>
+                <span data-en="seconds, then try again.">ثانية ثم حاول مرة أخرى.</span>
+              </p>
+            </div>
+          </div>
+          <div class="banner danger" id="b-paused" role="alert">
+            <i data-i="lock"></i>
+            <div>
+              <strong data-en="Your academy is paused for now">أكاديميتك متوقفة مؤقتًا</strong>
+              <p data-en="The platform team paused access. Your data is safe; try again later.">
+                أوقف فريق المنصة الدخول مؤقتًا. بياناتك محفوظة؛ حاول لاحقًا.
+              </p>
+            </div>
+          </div>
+          <!-- redirected here with ?reason=expired (no session) or ?reason=revoked (SSE session_revoked) -->
+          <div class="banner" id="b-expired" role="status">
+            <i data-i="clock-3"></i>
+            <div>
+              <strong data-en="Your session ended">انتهت جلستك</strong>
+              <p data-en="You hadn’t used the dashboard for a long time, so we signed you out to keep it safe. Sign in to carry on.">
+                لم تستخدم اللوحة منذ فترة طويلة، فأخرجناك لحمايتها. ادخل لتكمل.
+              </p>
+            </div>
+          </div>
+          <div class="banner danger" id="b-revoked" role="alert">
+            <i data-i="log-out"></i>
+            <div>
+              <strong data-en="You were signed out on this device">خرجت من هذا الجهاز</strong>
+              <p data-en="Your password was changed, or your access changed. If you didn’t change the password yourself, change it now.">
+                تغيرت كلمة سرك أو تغيرت صلاحيتك. إن لم تغيّر كلمة السر بنفسك، غيّرها الآن.
+              </p>
+              <a class="btn btn-sm btn-light" href="forgot-password.html" data-en="Change my password">غيّر كلمة السر</a>
+            </div>
+          </div>
+          <div class="banner ok" id="b-ok" role="status">
+            <i data-i="check"></i>
+            <div>
+              <strong data-en="Welcome back">أهلًا بعودتك</strong>
+              <p data-en="Opening your dashboard…">جارٍ فتح لوحتك…</p>
+            </div>
+          </div>
+
+          <form id="form" novalidate>
+            <div class="field">
+              <label class="label" for="email" data-en="Email">الإيميل</label>
+              <input
+                class="input"
+                id="email"
+                type="email"
+                dir="ltr"
+                autocomplete="username"
+                required
+                aria-describedby="err-email"
+                placeholder="name@example.com"
+              />
+              <span class="err" id="err-email"
+                ><i data-i="triangle-alert"></i
+                ><span data-en="Write a valid email.">اكتب إيميلًا صحيحًا.</span></span
+              >
+            </div>
+            <div class="field">
+              <label class="label" for="pass"
+                ><span data-en="Password">كلمة السر</span
+                ><a href="forgot-password.html" data-en="Forgot it?">نسيتها؟</a></label
+              >
+              <div class="input-wrap">
+                <input
+                  class="input"
+                  id="pass"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  aria-describedby="err-pass"
+                />
+                <button
+                  class="peek"
+                  type="button"
+                  aria-label="أظهر كلمة السر"
+                  data-en-aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <span class="eye-open"><i data-i="eye"></i></span
+                  ><span class="eye-shut" style="display: none"><i data-i="eye-off"></i></span>
+                </button>
+              </div>
+              <span class="err" id="err-pass"
+                ><i data-i="triangle-alert"></i
+                ><span data-en="Write your password.">اكتب كلمة السر.</span></span
+              >
+            </div>
+            <div class="actions">
+              <button class="btn btn-block" type="submit">
+                <span class="spin" aria-hidden="true"></span
+                ><span data-en="Open my dashboard">ادخل لوحتي</span>
+              </button>
+            </div>
+          </form>
+          <p class="auth-foot">
+            <span data-en="New assistant? Your teacher adds you and gives you a first password."
+              >مساعد جديد؟ يضيفك المدرس ويعطيك كلمة سر أولى.</span
+            >
+          </p>
+        </div>
+
+        <!-- 403 PASSWORD_CHANGE_REQUIRED -->
+        <div class="step2">
+          <h1 data-en="Pick your own password">اختر كلمة سرك</h1>
+          <p
+            class="lead"
+            data-en="Your account was made with a first password. Choose a new one; only you will know it."
+          >
+            أُنشئ حسابك بكلمة سر أولى. اختر كلمة جديدة لا يعرفها غيرك.
+          </p>
+          <form id="form2" novalidate>
+            <div class="field">
+              <label class="label" for="np" data-en="New password">كلمة السر الجديدة</label>
+              <div class="input-wrap">
+                <input
+                  class="input"
+                  id="np"
+                  type="password"
+                  autocomplete="new-password"
+                  required
+                  minlength="12"
+                  aria-describedby="rules err-np"
+                />
+                <button
+                  class="peek"
+                  type="button"
+                  aria-label="أظهر كلمة السر"
+                  data-en-aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <span class="eye-open"><i data-i="eye"></i></span
+                  ><span class="eye-shut" style="display: none"><i data-i="eye-off"></i></span>
+                </button>
+              </div>
+              <ul class="rules" id="rules">
+                <li id="r-len">
+                  <i data-i="check"></i
+                  ><span data-en="12 characters or more">١٢ حرفًا أو أكثر</span>
+                </li>
+                <li id="r-mix">
+                  <i data-i="check"></i><span data-en="Letters and numbers">حروف وأرقام</span>
+                </li>
+              </ul>
+              <span class="err" id="err-np"
+                ><i data-i="triangle-alert"></i
+                ><span data-en="Use at least 12 characters.">استخدم ١٢ حرفًا على الأقل.</span></span
+              >
+            </div>
+            <div class="field">
+              <label class="label" for="rp" data-en="Repeat it">أعد كتابتها</label>
+              <input
+                class="input"
+                id="rp"
+                type="password"
+                autocomplete="new-password"
+                required
+                aria-describedby="err-rp"
+              />
+              <span class="err" id="err-rp"
+                ><i data-i="triangle-alert"></i
+                ><span data-en="The two passwords do not match."
+                  >كلمتا السر غير متطابقتين.</span
+                ></span
+              >
+            </div>
+            <div class="actions">
+              <button class="btn btn-block" type="submit">
+                <span class="spin" aria-hidden="true"></span
+                ><span data-en="Save and continue">احفظ وتابع</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <aside
+        class="auth-art enter d2"
+        aria-label="المدرس يشرح والمساعد يساعده"
+        data-en-aria-label="The teacher explains while the assistant helps"
+      >
+        <p class="art-say" data-en="Your academy, run from one desk.">
+          أكاديميتك كلها من مكتب واحد.
+        </p>
+        <svg
+          class="scene"
+          viewBox="0 0 600 430"
+          role="img"
+          aria-label="مدرس يشرح خريطة الدرس على السبورة: فيديو وملف واختبار وواجب، ومساعد بجانبه يمسك جهازًا لوحيًا عليه الطلبات"
+          data-en-aria-label="A teacher explains a lesson map on the board (video, file, quiz, homework) while an assistant beside him holds a tablet with the requests"
+        >
+          <defs>
+            <style>
+              .k {
+                stroke: #1a1712;
+                stroke-width: 3.2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+              }
+              .kt {
+                stroke: #1a1712;
+                stroke-width: 2.4;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+              }
+              .kf {
+                stroke: #1a1712;
+                stroke-width: 2.4;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+              }
+            </style>
+          </defs>
+          <!-- floor -->
+          <path d="M20 404 H580" class="kt" stroke-width="3" />
+          <path d="M60 414 H160 M420 414 H540" class="kt" stroke-dasharray="6 9" />
+
+          <!-- the board on its stand -->
+          <path d="M296 330 L280 404 M524 330 L540 404" class="k" fill="none" />
+          <rect x="250" y="40" width="320" height="250" rx="12" fill="#FFFDF8" class="k" />
+          <rect x="250" y="290" width="320" height="16" rx="5" fill="#1A1712" />
+          <rect
+            x="470"
+            y="282"
+            width="40"
+            height="10"
+            rx="3"
+            fill="#E9502E"
+            class="kf"
+            stroke-width="2"
+          />
+          <!-- the lesson map: what a lesson holds on Itqan, for any subject -->
+          <g>
+            <path
+              class="chalk"
+              pathLength="100"
+              d="M384 146 L344 116"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            />
+            <path
+              class="chalk"
+              pathLength="100"
+              d="M436 146 L476 116"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            />
+            <path
+              class="chalk"
+              pathLength="100"
+              d="M384 190 L344 212"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            />
+            <path
+              class="chalk"
+              pathLength="100"
+              d="M436 190 L476 212"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            />
+            <circle cx="410" cy="168" r="40" fill="#FFC22E" class="k" />
+            <text
+              x="410"
+              y="176"
+              text-anchor="middle"
+              font-family="Baloo Bhaijaan 2, sans-serif"
+              font-weight="800"
+              font-size="21"
+              fill="#1A1712"
+              data-en="Lesson"
+            >
+              الدرس
+            </text>
+            <rect
+              x="264"
+              y="74"
+              width="120"
+              height="42"
+              rx="21"
+              fill="#FFFDF8"
+              class="k"
+              stroke-width="2.6"
+            />
+            <circle cx="363" cy="95" r="14" fill="#E2EAFC" class="kf" stroke-width="2" />
+            <path d="M358 88 l12 7 -12 7 z" fill="#1F47B0" />
+            <text
+              x="309"
+              y="101"
+              text-anchor="middle"
+              font-family="Readex Pro, sans-serif"
+              font-weight="600"
+              font-size="16"
+              fill="#1A1712"
+              data-en="Video"
+            >
+              فيديو
+            </text>
+            <rect
+              x="436"
+              y="74"
+              width="120"
+              height="42"
+              rx="21"
+              fill="#FFFDF8"
+              class="k"
+              stroke-width="2.6"
+            />
+            <circle cx="535" cy="95" r="14" fill="#DDF1E8" class="kf" stroke-width="2" />
+            <path
+              d="M529 86 h8 l4 4 v13 h-12 z M532 94 h6 M532 98 h6"
+              class="kt"
+              stroke="#22694F"
+              stroke-width="1.8"
+            />
+            <text
+              x="481"
+              y="101"
+              text-anchor="middle"
+              font-family="Readex Pro, sans-serif"
+              font-weight="600"
+              font-size="16"
+              fill="#1A1712"
+              data-en="File"
+            >
+              ملف
+            </text>
+            <rect
+              x="264"
+              y="212"
+              width="120"
+              height="42"
+              rx="21"
+              fill="#FFFDF8"
+              class="k"
+              stroke-width="2.6"
+            />
+            <circle cx="363" cy="233" r="14" fill="#FDE3DC" class="kf" stroke-width="2" />
+            <path d="M356 233 l5 5 9 -10" class="kt" stroke="#A5341B" stroke-width="2.6" />
+            <text
+              x="309"
+              y="239"
+              text-anchor="middle"
+              font-family="Readex Pro, sans-serif"
+              font-weight="600"
+              font-size="16"
+              fill="#1A1712"
+              data-en="Quiz"
+            >
+              اختبار
+            </text>
+            <rect
+              x="436"
+              y="212"
+              width="120"
+              height="42"
+              rx="21"
+              fill="#FFFDF8"
+              class="k"
+              stroke-width="2.6"
+            />
+            <circle cx="535" cy="233" r="14" fill="#FFE9B0" class="kf" stroke-width="2" />
+            <path d="M528 241 l3 -8 9 -9 5 5 -9 9 z" class="kf" fill="#FFC22E" stroke-width="1.6" />
+            <text
+              x="481"
+              y="239"
+              text-anchor="middle"
+              font-family="Readex Pro, sans-serif"
+              font-weight="600"
+              font-size="16"
+              fill="#1A1712"
+              data-en="Homework"
+              class="pl-long"
+            >
+              واجب
+            </text>
+          </g>
+
+          <!-- teacher: glasses, ink jacket, sun tie (like the teacher avatar) -->
+          <g>
+            <path
+              d="M206 404 l6 -96 h22 l4 96 z M178 404 l2 -96 h24 l-2 96 z"
+              fill="#1A1712"
+              class="k"
+            />
+            <path d="M168 404 h38 M206 404 h40" class="k" stroke-width="5" />
+            <path
+              d="M158 312 C 156 252, 172 216, 208 212 C 244 216, 256 252, 254 312 Z"
+              fill="#1A1712"
+              class="k"
+            />
+            <path d="M194 214 L208 238 L222 214 Z" fill="#FFFDF8" class="kf" />
+            <path d="M208 226 l-5 8 5 26 5 -26 z" fill="#FFC22E" class="kf" stroke-width="1.8" />
+            <!-- arm down -->
+            <path
+              d="M168 236 C 158 266, 156 290, 162 306"
+              fill="none"
+              class="k"
+              stroke-width="18"
+            />
+            <path
+              d="M168 236 C 158 266, 156 290, 162 306"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="12"
+              stroke-linecap="round"
+            />
+            <circle cx="163" cy="310" r="9" fill="#FFFDF8" class="kf" />
+            <!-- arm pointing at the board with a marker -->
+            <g class="point">
+              <path
+                d="M240 232 C 262 214, 276 196, 288 178"
+                fill="none"
+                stroke="#1A1712"
+                stroke-width="18"
+                stroke-linecap="round"
+              />
+              <circle cx="292" cy="172" r="9" fill="#FFFDF8" class="kf" />
+              <path d="M296 166 l14 -16" stroke="#1A1712" stroke-width="7" stroke-linecap="round" />
+              <path d="M306 154 l6 -7" stroke="#E9502E" stroke-width="7" stroke-linecap="round" />
+            </g>
+            <!-- head -->
+            <path d="M198 196 v18 h20 v-18" fill="#FFFDF8" class="kf" />
+            <circle cx="181" cy="166" r="7" fill="#FFFDF8" class="kf" />
+            <ellipse cx="208" cy="162" rx="28" ry="32" fill="#FFFDF8" class="k" />
+            <path
+              d="M180 156 C 178 134, 194 124, 210 125 C 226 126, 238 136, 236 152 C 230 144, 220 141, 212 142 C 202 143, 192 142, 186 146 C 183 149, 181 152, 180 156 Z"
+              fill="#1A1712"
+              class="kf"
+            />
+            <circle cx="203" cy="163" r="8" fill="#FFFDF8" class="kf" />
+            <circle cx="225" cy="163" r="8" fill="#FFFDF8" class="kf" />
+            <path d="M211 163 h6" class="kt" />
+            <circle class="blink" cx="204" cy="164" r="2.4" fill="#1A1712" />
+            <circle class="blink" cx="226" cy="164" r="2.4" fill="#1A1712" />
+            <path d="M208 180 q8 6 16 0" class="kt" />
+          </g>
+
+          <!-- assistant: headset, mint shirt, tablet with the requests ticked off -->
+          <g>
+            <path
+              d="M84 404 l4 -84 h20 l2 84 z M58 404 l2 -84 h22 l-2 84 z"
+              fill="#1A1712"
+              class="k"
+            />
+            <path d="M50 404 h34 M84 404 h32" class="k" stroke-width="5" />
+            <path
+              d="M44 326 C 42 274, 56 244, 86 240 C 116 244, 128 274, 126 326 Z"
+              fill="#3F9D7B"
+              class="k"
+            />
+            <path d="M74 242 Q86 252 98 242" class="kt" />
+            <rect
+              x="102"
+              y="270"
+              width="14"
+              height="10"
+              rx="2"
+              fill="#FFFDF8"
+              class="kf"
+              stroke-width="1.8"
+            />
+            <!-- arms holding the tablet out toward the teacher -->
+            <path
+              d="M60 268 C 70 292, 92 300, 112 298"
+              fill="none"
+              stroke="#1A1712"
+              stroke-width="16"
+              stroke-linecap="round"
+            />
+            <path
+              d="M60 268 C 70 292, 92 300, 112 298"
+              fill="none"
+              stroke="#3F9D7B"
+              stroke-width="10"
+              stroke-linecap="round"
+            />
+            <g class="tab">
+              <rect x="108" y="250" width="64" height="48" rx="8" fill="#FFFDF8" class="k" />
+              <path
+                class="tick"
+                d="M118 264 l4 4 8 -8"
+                fill="none"
+                stroke="#3F9D7B"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                class="tick d2"
+                d="M118 278 l4 4 8 -8"
+                fill="none"
+                stroke="#3F9D7B"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                class="tick d3"
+                d="M118 292 l4 4 8 -8"
+                fill="none"
+                stroke="#3F9D7B"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M136 264 h26 M136 278 h20 M136 292 h24"
+                class="kt"
+                stroke-width="2.2"
+                opacity=".5"
+              />
+            </g>
+            <circle cx="114" cy="296" r="8" fill="#FFFDF8" class="kf" />
+            <!-- head with headset -->
+            <path d="M78 226 v16 h18 v-16" fill="#FFFDF8" class="kf" />
+            <circle cx="62" cy="200" r="6" fill="#FFFDF8" class="kf" />
+            <circle cx="112" cy="200" r="6" fill="#FFFDF8" class="kf" />
+            <ellipse cx="87" cy="198" rx="25" ry="29" fill="#FFFDF8" class="k" />
+            <path
+              d="M62 194 C 60 174, 74 164, 88 165 C 102 165, 114 174, 112 192 C 108 184, 104 180, 98 179 C 92 184, 78 184, 68 183 C 65 186, 63 190, 62 194 Z"
+              fill="#1A1712"
+              class="kf"
+            />
+            <path d="M60 198 C 58 168, 116 168, 114 198" class="kt" stroke-width="3" />
+            <rect
+              x="55"
+              y="192"
+              width="9"
+              height="14"
+              rx="3"
+              fill="#FFC22E"
+              class="kf"
+              stroke-width="2"
+            />
+            <path d="M60 206 C 62 216, 70 220, 78 219" class="kt" stroke-width="2.2" />
+            <circle cx="79" cy="219" r="2.4" fill="#1A1712" />
+            <path d="M80 196 q3 -2 6 0 M92 196 q3 -2 6 0" class="kt" stroke-width="2.2" />
+            <circle class="blink" cx="83" cy="200" r="2.4" fill="#1A1712" />
+            <circle class="blink" cx="95" cy="200" r="2.4" fill="#1A1712" />
+            <path d="M84 210 q5 4 10 0" class="kt" stroke-width="2.2" />
+          </g>
+
+          <!-- small accents from the references -->
+          <circle class="twinkle" cx="34" cy="120" r="5" fill="#E9502E" />
+          <circle class="twinkle d2" cx="228" cy="60" r="4" fill="#2B5FE3" />
+          <circle class="twinkle d3" cx="584" cy="350" r="5" fill="#FFFDF8" />
+          <path d="M150 118 q18 -26 46 -18" class="kt" stroke-dasharray="5 7" />
+          <path d="M40 150 l8 -10 M52 158 l12 -4 M30 166 l-2 -12" class="kt" stroke-width="2.6" />
+        </svg>
+        <div class="note">
+          <i data-i="shield-check"></i
+          ><span
+            ><b data-en="You only see your own academy">ترى أكاديميتك فقط</b
+            ><span data-en="Courses, students and grades follow your account and role."
+              >الكورسات والطلاب والدرجات تتبع حسابك ودورك.</span
+            ></span
+          >
+        </div>
+      </aside>
+    </main>
+
+    <nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+      <span data-en="Preview:">معاينة:</span>
+      <button type="button" data-state="idle" aria-pressed="true" data-en="Normal">عادي</button>
+      <button type="button" data-state="wrong" aria-pressed="false" data-en="Wrong password">
+        كلمة سر خطأ
+      </button>
+      <button type="button" data-state="suspended" aria-pressed="false" data-en="Not active">
+        غير نشط
+      </button>
+      <button type="button" data-state="pending" aria-pressed="false" data-en="Email not confirmed">
+        إيميل غير مؤكد
+      </button>
+      <button type="button" data-state="limited" aria-pressed="false" data-en="Too many tries">
+        محاولات كثيرة
+      </button>
+      <button type="button" data-state="paused" aria-pressed="false" data-en="Academy paused">
+        أكاديمية متوقفة
+      </button>
+      <button type="button" data-state="expired" aria-pressed="false" data-en="Session ended">
+        انتهت الجلسة
+      </button>
+      <button type="button" data-state="revoked" aria-pressed="false" data-en="Signed out">
+        أُخرج من الجهاز
+      </button>
+      <button type="button" data-state="first" aria-pressed="false" data-en="First sign-in">
+        أول دخول
+      </button>
+    </nav>
+
+    <script src="shared/dash.js"></script>
+    <script src="../test/shared/itqan.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const isEn = () => document.documentElement.lang === "en";
+      const ar = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+      $("brand-mark").outerHTML = window.itqanCapMark;
+      const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      const check = (input, ok) => {
+        input.setAttribute("aria-invalid", String(!ok));
+        $(
+          input
+            .getAttribute("aria-describedby")
+            .split(" ")
+            .find((x) => x.startsWith("err-")),
+        ).classList.toggle("show", !ok);
+        return ok;
+      };
+      const busy = (form, on) => {
+        const b = form.querySelector('[type="submit"]');
+        on ? b.setAttribute("aria-busy", "true") : b.removeAttribute("aria-busy");
+      };
+
+      // sign in: field errors first; the preview bar picks which server answer comes back
+      $("form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const m = $("email"),
+          p = $("pass"),
+          res = [check(m, isEmail(m.value)), check(p, !!p.value)];
+        if (res.includes(false)) {
+          [m, p][res.indexOf(false)].focus();
+          return;
+        }
+        busy(e.target, true);
+        setTimeout(() => {
+          busy(e.target, false);
+          const want = document.body.dataset.state;
+          if (want === "first") {
+            $("np").focus();
+            return;
+          }
+          if (!["idle", "ok", "expired", "revoked"].includes(want)) return;
+          window.itqanSetState("ok");
+          setTimeout(() => {
+            location.href = "analytics.html";
+          }, 1100);
+        }, 900);
+      });
+      $("np").addEventListener("input", (e) => {
+        $("r-len").classList.toggle("ok", e.target.value.length >= 12);
+        $("r-mix").classList.toggle(
+          "ok",
+          /[A-Za-z؀-ۿ]/.test(e.target.value) && /\d/.test(e.target.value),
+        );
+      });
+      $("form2").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const n = $("np"),
+          r = $("rp"),
+          res = [check(n, n.value.length >= 12), check(r, !!r.value && r.value === n.value)];
+        if (res.includes(false)) {
+          [n, r][res.indexOf(false)].focus();
+          return;
+        }
+        busy(e.target, true);
+        setTimeout(() => {
+          location.href = "analytics.html";
+        }, 900);
+      });
+
+      // too many tries: a real countdown (5 tries a minute per IP and email)
+      let timer;
+      document.addEventListener("itqan:state", (e) => {
+        clearInterval(timer);
+        if (e.detail !== "limited") return;
+        let s = 60;
+        const w = $("wait");
+        const show = () => {
+          w.textContent = isEn() ? s : ar(s);
+        };
+        show();
+        timer = setInterval(() => {
+          s -= 1;
+          show();
+          if (!s) {
+            clearInterval(timer);
+            window.itqanSetState("idle");
+          }
+        }, 1000);
+      });
+      const reason = new URLSearchParams(location.search).get("reason");
+      if (reason === "expired" || reason === "revoked") window.itqanSetState(reason);
+      document.querySelector("[data-resend]").addEventListener("click", (e) => {
+        e.target.disabled = true;
+        e.target.textContent = isEn() ? "Sent. Check your inbox." : "أُرسل. افحص بريدك.";
+      });
+    </script>
+  </body>
+</html>
