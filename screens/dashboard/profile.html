@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الملف والإعدادات · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: my profile, password and sessions, notifications, and the academy website settings (teacher only).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .pf-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 22px; margin-top: 22px; align-items: start; }
+  .toc { position: sticky; top: 16px; display: grid; gap: 2px; padding: 10px; }
+  .toc .grp { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 10px 10px 4px; display: flex; align-items: center; gap: 6px; }
+  .toc .grp:first-child { padding-top: 4px; }
+  .toc a { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 10px; border-radius: 10px; color: var(--ink); text-decoration: none; font-size: 14.5px; }
+  .toc a svg { width: 18px; height: 18px; color: var(--ink-2); flex: none; }
+  .toc a:hover { background: #FFF8E8; }
+  .toc a[aria-current="true"] { background: var(--sun-tint); font-weight: 600; }
+  .pf-main { display: grid; gap: 18px; min-width: 0; }
+  .sec { display: grid; gap: 16px; scroll-margin-top: 16px; }
+  .sec-h { display: flex; align-items: flex-start; gap: 12px; }
+  .sec-h .bub { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--sun-tint); flex: none; }
+  .sec-h .bub svg { width: 20px; height: 20px; }
+  .sec-h h2 { font-size: 19px; font-weight: 800; }
+  .sec-h p { font-size: 13.5px; color: var(--ink-2); }
+  .sec-h .chip { margin-inline-start: auto; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .field + .field { margin-top: 0; }
+  .field .input[readonly] { background: #F7F1E4; color: var(--ink-2); }
+  .opt { color: var(--ink-3); font-weight: 400; font-size: 13px; }
+  textarea.input { font: inherit; font-size: 15px; min-height: 120px; padding: 12px 16px; resize: vertical; line-height: 1.7; }
+  .me-card { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 16px; background: #FBF5E8; }
+  .me-card .avatar { width: 64px; height: 64px; font-size: 26px; }
+  .me-card b { display: block; font-family: var(--f-display); font-size: 20px; }
+  .me-card small { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .force { display: none; }
+  [data-state="must-change"] .force { display: flex; }
+  .sessions { display: grid; gap: 8px; }
+  .sess { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #FBF5E8; }
+  .sess .kind { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--paper); flex: none; }
+  .sess .kind svg { width: 19px; height: 19px; }
+  .sess div { flex: 1; min-width: 0; }
+  .sess b { display: block; font-size: 14.5px; }
+  .sess small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-radius: 12px; background: #FBF5E8; }
+  .sw-row b { display: block; font-size: 14.5px; }
+  .sw-row small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .acts-end { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  .acts-end .btn { min-height: 46px; font-size: 16px; }
+
+  /* academy */
+  .academy-wall { display: none; }
+  [data-state="assistant"] .academy, [data-state="assistant"] .toc .t-only { display: none !important; }
+  [data-state="assistant"] .academy-wall { display: grid; }
+  .url { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--blue-tint); color: #183A8C; font-size: 14px; }
+  .url svg { width: 18px; height: 18px; flex: none; }
+  .url code { font-family: var(--f-body); font-weight: 600; direction: ltr; }
+  .upl { display: flex; align-items: center; gap: 14px; padding: 12px; border: 2px dashed #D9C69A; border-radius: 14px; background: #FFFBF2; }
+  .upl .thumb { width: 64px; height: 64px; border-radius: 14px; display: grid; place-items: center; background: var(--paper); border: 2px solid var(--line); flex: none; overflow: hidden; }
+  .upl .thumb svg { width: 44px; height: 44px; }
+  .upl div { flex: 1; min-width: 0; }
+  .upl b { display: block; font-size: 14.5px; }
+  .upl small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .upl .btn { min-height: 40px; font-size: 14px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .color { display: flex; align-items: center; gap: 10px; }
+  .color input[type="color"] { width: 54px; height: 54px; flex: none; padding: 4px; border: 2px solid var(--line); border-radius: 14px; background: var(--paper); cursor: pointer; }
+  .color .input { font-family: var(--f-body); direction: ltr; text-align: start; text-transform: uppercase; }
+  .preview { border-radius: 16px; overflow: hidden; border: 2px solid var(--line); }
+  .pv-bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--paper); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .pv-bar .dotlogo { width: 30px; height: 30px; border-radius: 9px; background: var(--pv1); border: 2px solid var(--ink); }
+  .pv-bar b { font-family: var(--f-display); font-size: 15px; }
+  .pv-bar span.btnlike { margin-inline-start: auto; padding: 6px 12px; border-radius: 10px; background: var(--pv1); border: 2px solid var(--ink); font-weight: 600; font-size: 12.5px; }
+  .pv-hero { padding: 22px 18px; background: var(--pv1); display: grid; gap: 6px; }
+  .pv-hero b { font-family: var(--f-display); font-size: 22px; line-height: 1.3; }
+  .pv-hero span { font-size: 13.5px; max-width: 46ch; }
+  .pv-hero i { justify-self: start; margin-top: 6px; padding: 7px 14px; border-radius: 10px; background: var(--pv2); color: var(--pv2-fg, var(--ink)); font-style: normal; font-weight: 600; font-size: 13px; }
+  .hint-l { font-size: 12.5px; color: var(--ink-2); }
+  .pv-bad { display: flex; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--coral-tint); color: #8E2A14; font-size: 13.5px; }
+  .pv-bad svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .social { display: grid; gap: 10px; }
+  .social label { display: grid; grid-template-columns: 110px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 14px; }
+  .social .input { min-height: 46px; font-size: 14.5px; direction: ltr; text-align: start; }
+  .social label.bad .input { border-color: var(--coral); }
+  .seg-wide { display: flex; } .seg-wide button { flex: 1; justify-content: center; }
+  .stepper { display: inline-flex; align-items: center; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
+  .stepper button { width: 44px; height: 44px; border: 0; background: var(--paper); cursor: pointer; font-size: 20px; color: var(--ink); }
+  .stepper button:hover { background: var(--sun-tint); }
+  .stepper output { min-width: 40px; text-align: center; font-weight: 600; font-size: 16px; }
+
+  /* unsaved changes bar */
+  .savebar { position: fixed; inset-inline: 0; bottom: 70px; z-index: 35; display: flex; justify-content: center; pointer-events: none; }
+  .savebar[hidden] { display: none; }
+  .savebar > div { pointer-events: auto; display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 18px; padding-inline: 18px 10px; border-radius: 16px; background: var(--ink); color: var(--paper); box-shadow: var(--shadow-lift); animation: pop .3s var(--ease-out); }
+  .savebar .btn { min-height: 42px; font-size: 15px; padding: 0 16px; }
+  .savebar .btn-ghost { color: var(--paper); }
+  .savebar .btn-ghost:hover { background: rgba(255, 253, 248, .1); }
+
+  @media (max-width: 1050px) { .pf-grid { grid-template-columns: minmax(0, 1fr); } .toc { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); } .toc .grp { grid-column: 1 / -1; } }
+  @media (max-width: 680px) { .grid2, .grid3 { grid-template-columns: 1fr; } .social label { grid-template-columns: 1fr; gap: 4px; } .toc { grid-template-columns: 1fr; } .savebar > div { flex-wrap: wrap; justify-content: center; margin: 0 12px; } }
+</style>
+</head>
+<body data-page="profile" data-unread="3" data-state="profile" data-title-en="Profile & settings · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Profile & settings">الملف والإعدادات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true" data-who-av>ك</span>
+          <span><b data-who-name data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-who-role data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="#me"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="pf-grid">
+      <nav class="panel toc" aria-label="أقسام الصفحة" data-en-aria-label="On this page">
+        <div class="grp"><span data-en="You">أنت</span></div>
+        <a href="#me" aria-current="true"><i data-i="user-round"></i><span data-en="My profile">ملفي</span></a>
+        <a href="#security"><i data-i="key-round"></i><span data-en="Password and sessions">كلمة السر والجلسات</span></a>
+        <a href="#alerts"><i data-i="bell"></i><span data-en="Notifications">الإشعارات</span></a>
+        <div class="grp t-only"><span data-en="Academy · teacher only">الأكاديمية · للمدرس</span></div>
+        <a class="t-only" href="#academy"><i data-i="palette"></i><span data-en="Name and brand">الاسم والهوية</span></a>
+        <a class="t-only" href="#home"><i data-i="panels-top-left"></i><span data-en="Home page">الصفحة الرئيسية</span></a>
+        <a class="t-only" href="#pages"><i data-i="file-text"></i><span data-en="About pages">صفحات التعريف</span></a>
+        <a class="t-only" href="#contact"><i data-i="phone"></i><span data-en="Contact and social">التواصل والسوشيال</span></a>
+        <a class="t-only" href="#general"><i data-i="settings"></i><span data-en="General">عام</span></a>
+      </nav>
+
+      <div class="pf-main">
+        <div class="banner danger force" role="alert">
+          <svg class="b-ico" aria-hidden="true" style="color:#B8341A"><use href="#i-key-round"/></svg>
+          <div><strong data-en="Change your password to continue">غيّر كلمة السر لتكمل</strong><p data-en="Your account was created with a first password. Pick a new one of 12 characters or more before using the dashboard.">أُنشئ حسابك بكلمة سر أولى. اختر كلمة جديدة من ١٢ حرفًا أو أكثر قبل استخدام اللوحة.</p></div>
+        </div>
+
+        <!-- GET /me -->
+        <section class="panel sec" id="me" aria-labelledby="h-me">
+          <div class="sec-h"><span class="bub"><i data-i="user-round"></i></span><div><h2 id="h-me" data-en="My profile">ملفي الشخصي</h2><p data-en="How students and staff see you">كيف يراك الطلاب والطاقم</p></div></div>
+          <div class="me-card"><span class="avatar" aria-hidden="true" data-who-av>ك</span><span><b data-who-name data-en="Mr. Karim Samy">أ. كريم سامي</b>
+            <small><span class="chip warn" data-who-role data-en="Teacher">مدرس</span><span data-en="Physics with Mr. Karim · since Aug 2025">الفيزياء مع أ. كريم · منذ أغسطس ٢٠٢٥</span></small></span></div>
+          <div class="grid2">
+            <div class="field"><label class="label" for="p-name" data-en="Display name">الاسم الظاهر</label><input class="input" id="p-name" value="أ. كريم سامي" data-track></div>
+            <div class="field"><label class="label" for="p-email" data-en="Sign-in email">إيميل الدخول</label><input class="input" id="p-email" dir="ltr" value="karim@itqan.example" readonly aria-describedby="h-email"><span class="hint" id="h-email" data-en="Ask the platform admin to change it.">لتغييره تواصل مع إدارة المنصة.</span></div>
+          </div>
+        </section>
+
+        <!-- Better Auth: change-password, list and revoke sessions -->
+        <section class="panel sec" id="security" aria-labelledby="h-sec">
+          <div class="sec-h"><span class="bub"><i data-i="key-round"></i></span><div><h2 id="h-sec" data-en="Password and sessions">كلمة السر والجلسات</h2><p data-en="Staff passwords need 12 characters or more">كلمة سر الطاقم ١٢ حرفًا أو أكثر</p></div></div>
+          <form class="grid3" id="pw-form" novalidate>
+            <input type="text" autocomplete="username" value="karim@itqan.example" hidden aria-hidden="true" tabindex="-1">
+            <div class="field"><label class="label" for="pw-old" data-en="Current password">كلمة السر الحالية</label><div class="input-wrap"><input class="input" id="pw-old" type="password" autocomplete="current-password" required aria-describedby="err-old"><button class="peek" type="button" aria-label="أظهر" data-en-aria-label="Show" aria-pressed="false"><span class="eye-open"><i data-i="eye"></i></span><span class="eye-shut" style="display:none"><i data-i="eye-off"></i></span></button></div><span class="err" id="err-old" data-en="Write your current password.">اكتب كلمة السر الحالية.</span></div>
+            <div class="field"><label class="label" for="pw-new" data-en="New password">كلمة السر الجديدة</label><div class="input-wrap"><input class="input" id="pw-new" type="password" autocomplete="new-password" required minlength="12" aria-describedby="err-new"><button class="peek" type="button" aria-label="أظهر" data-en-aria-label="Show" aria-pressed="false"><span class="eye-open"><i data-i="eye"></i></span><span class="eye-shut" style="display:none"><i data-i="eye-off"></i></span></button></div><span class="err" id="err-new" data-en="Use at least 12 characters.">استخدم ١٢ حرفًا على الأقل.</span></div>
+            <div class="field"><label class="label" for="pw-rep" data-en="Repeat it">أعد كتابتها</label><div class="input-wrap"><input class="input" id="pw-rep" type="password" autocomplete="new-password" required aria-describedby="err-rep"><button class="peek" type="button" aria-label="أظهر" data-en-aria-label="Show" aria-pressed="false"><span class="eye-open"><i data-i="eye"></i></span><span class="eye-shut" style="display:none"><i data-i="eye-off"></i></span></button></div><span class="err" id="err-rep" data-en="The two passwords do not match.">كلمتا السر غير متطابقتين.</span></div>
+            <div class="acts-end" style="grid-column:1/-1"><button class="btn" type="submit"><span class="spin" aria-hidden="true"></span><span data-en="Change password">غيّر كلمة السر</span></button></div>
+          </form>
+          <div class="sessions">
+            <span class="label" data-en="Where you are signed in">أين أنت مسجل الدخول</span>
+            <div class="sess"><span class="kind"><i data-i="monitor"></i></span><div><b data-en="Chrome on Windows · this device">Chrome على Windows · هذا الجهاز</b><small data-en="Cairo · now">القاهرة · الآن</small></div><span class="chip ok" data-en="Current">الحالي</span></div>
+            <div class="sess" id="other-sess"><span class="kind"><i data-i="smartphone"></i></span><div><b data-en="Safari on iPhone">Safari على iPhone</b><small data-en="Giza · yesterday 9:12 pm">الجيزة · أمس ٩:١٢ م</small></div><button class="btn btn-sm btn-light" type="button" data-end-sess data-en="Sign out">أخرج منه</button></div>
+          </div>
+        </section>
+
+        <!-- POST /push-tokens -->
+        <section class="panel sec" id="alerts" aria-labelledby="h-al">
+          <div class="sec-h"><span class="bub"><i data-i="bell"></i></span><div><h2 id="h-al" data-en="Notifications">الإشعارات</h2><p data-en="Everything shows on the Notifications page; these choose what also pops up">كل شيء يظهر في صفحة الإشعارات، وهنا تختار ما ينبّهك أيضًا</p></div></div>
+          <div class="sw-row"><span><b data-en="Alerts in this browser">تنبيهات على هذا المتصفح</b><small data-en="Device and sign-out requests, new comments, quiz results ready">طلبات الأجهزة والخروج، تعليقات جديدة، نتائج الاختبارات</small></span><button class="switch" type="button" role="switch" aria-checked="true" aria-label="تنبيهات على هذا المتصفح" data-en-aria-label="Alerts in this browser"><span class="track"></span></button></div>
+          <div class="sw-row"><span><b data-en="Live updates while the dashboard is open">تحديث مباشر أثناء فتح اللوحة</b><small data-en="New requests appear without reloading the page">تظهر الطلبات الجديدة دون إعادة تحميل الصفحة</small></span><button class="switch" type="button" role="switch" aria-checked="true" aria-label="تحديث مباشر" data-en-aria-label="Live updates"><span class="track"></span></button></div>
+        </section>
+
+        <div class="panel academy-wall" style="justify-items:center;text-align:center;gap:10px;padding:32px">
+          <span class="sec-h"><span class="bub"><i data-i="lock"></i></span></span>
+          <b style="font-family:var(--f-display);font-size:19px" data-en="Academy settings are for the teacher">إعدادات الأكاديمية للمدرس</b>
+          <p class="muted" style="color:var(--ink-2);max-width:48ch" data-en="As an assistant you can change your own profile, password and notifications. Ask the teacher for changes to the website.">كمساعد تستطيع تعديل ملفك وكلمة سرك وإشعاراتك. اطلب من المدرس أي تغيير في موقع الأكاديمية.</p>
+        </div>
+
+        <!-- ===== academy settings: GET/PATCH /settings (teacher only) ===== -->
+        <section class="panel sec academy" id="academy" aria-labelledby="h-ac">
+          <div class="sec-h"><span class="bub"><i data-i="palette"></i></span><div><h2 id="h-ac" data-en="Name and brand">الاسم والهوية</h2><p data-en="Shown on your website and in every email to students">يظهر في موقعك وفي كل إيميل يصل للطلاب</p></div><span class="chip warn" data-en="Teacher only">للمدرس فقط</span></div>
+          <div class="url"><i data-i="globe"></i><span data-en="Your website:">موقعك:</span><code>karim.itqan.example</code></div>
+          <div class="field"><label class="label" for="s-name" data-en="Academy name">اسم الأكاديمية</label><input class="input" id="s-name" value="الفيزياء مع أ. كريم" data-track data-pv-name></div>
+          <div class="grid2">
+            <div class="upl"><span class="thumb" id="logo-thumb"></span><div><b data-en="Logo">الشعار</b><small data-en="PNG, JPG or WebP · up to 10 MB · square works best">PNG أو JPG أو WebP · حتى ١٠ م.ب · المربع أفضل</small></div><button class="btn btn-light" type="button" data-track-click><span data-en="Replace">استبدل</span></button></div>
+            <div class="upl"><span class="thumb" id="fav-thumb"></span><div><b data-en="Browser tab icon">أيقونة تبويب المتصفح</b><small data-en="Small square image, 64 × 64 or bigger">صورة مربعة صغيرة ٦٤ × ٦٤ أو أكبر</small></div><button class="btn btn-light" type="button" data-track-click><span data-en="Replace">استبدل</span></button></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="label" for="c1" data-en="Main colour">اللون الأساسي</label><div class="color"><input type="color" id="c1p" value="#FFC22E" aria-label="اختر اللون الأساسي" data-en-aria-label="Pick the main colour"><input class="input" id="c1" value="#FFC22E" maxlength="7" aria-describedby="err-c1" data-track></div><span class="err" id="err-c1" data-en="Use the #RRGGBB form, e.g. #FFC22E.">استخدم الصيغة ‎#RRGGBB‎ مثل ‎#FFC22E‎.</span></div>
+            <div class="field"><label class="label" for="c2" data-en="Second colour">اللون الثانوي</label><div class="color"><input type="color" id="c2p" value="#3F9D7B" aria-label="اختر اللون الثانوي" data-en-aria-label="Pick the second colour"><input class="input" id="c2" value="#3F9D7B" maxlength="7" aria-describedby="err-c2" data-track></div><span class="err" id="err-c2" data-en="Use the #RRGGBB form, e.g. #3F9D7B.">استخدم الصيغة ‎#RRGGBB‎ مثل ‎#3F9D7B‎.</span></div>
+          </div>
+          <div class="preview" id="preview" style="--pv1:#FFC22E;--pv2:#3F9D7B" aria-label="معاينة الموقع" data-en-aria-label="Website preview">
+            <div class="pv-bar"><span class="dotlogo"></span><b id="pv-name">الفيزياء مع أ. كريم</b><span class="btnlike" data-en="I have a code">معي كود</span></div>
+            <div class="pv-hero"><b id="pv-title">الفيزياء تبقى أسهل خطوة بخطوة</b><span id="pv-sub">محاضرات مسجلة وامتحانات تُصحَّح فورًا، لطلاب الصف الثالث الثانوي.</span><i data-en="Start with your course code">ابدأ بكود الكورس</i></div>
+          </div>
+          <p class="hint-l" id="pv-ok" data-en="Preview only. Dark text reads well on this colour.">معاينة فقط. الكتابة الداكنة واضحة على هذا اللون.</p>
+          <p class="pv-bad" id="pv-bad" hidden><svg aria-hidden="true"><use href="#i-triangle-alert"/></svg><span data-en="Dark text is hard to read on this main colour. Pick a lighter one so students can read your buttons and headings.">الكتابة الداكنة صعبة القراءة على هذا اللون. اختر لونًا أفتح ليقرأ الطلاب أزرارك وعناوينك.</span></p>
+        </section>
+
+        <section class="panel sec academy" id="home" aria-labelledby="h-home">
+          <div class="sec-h"><span class="bub"><i data-i="panels-top-left"></i></span><div><h2 id="h-home" data-en="Home page">الصفحة الرئيسية</h2><p data-en="The first thing a new student sees">أول ما يراه الطالب الجديد</p></div></div>
+          <div class="field"><label class="label" for="h-title"><span data-en="Headline">العنوان</span><span class="opt" id="cnt-title"></span></label><input class="input" id="h-title" maxlength="120" value="الفيزياء تبقى أسهل خطوة بخطوة" data-track data-count="cnt-title"></div>
+          <div class="field"><label class="label" for="h-sub"><span data-en="Line under it">السطر تحته</span><span class="opt" id="cnt-sub"></span></label><textarea class="input" id="h-sub" maxlength="300" style="min-height:80px" data-track data-count="cnt-sub">محاضرات مسجلة وامتحانات تُصحَّح فورًا، لطلاب الصف الثالث الثانوي.</textarea></div>
+          <div class="upl"><span class="thumb"><i data-i="image"></i></span><div><b data-en="Hero image">صورة الواجهة</b><small data-en="Optional · JPG, PNG or WebP up to 10 MB · wide pictures work best">اختياري · JPG أو PNG أو WebP حتى ١٠ م.ب · الصور العريضة أفضل</small></div><button class="btn btn-light" type="button" data-track-click><span data-en="Upload">ارفع</span></button></div>
+        </section>
+
+        <section class="panel sec academy" id="pages" aria-labelledby="h-pages">
+          <div class="sec-h"><span class="bub"><i data-i="file-text"></i></span><div><h2 id="h-pages" data-en="About pages">صفحات التعريف</h2><p data-en="Bold, lists and links are kept; anything else is cleaned before saving">يُحتفظ بالخط العريض والقوائم والروابط، وأي شيء آخر يُنظَّف قبل الحفظ</p></div></div>
+          <div class="field"><label class="label" for="pg-about" data-en="About the teacher">عن المدرس</label><textarea class="input" id="pg-about" data-track>مدرس فيزياء للثانوية العامة منذ ١٢ سنة. أشرح كل قانون بمثال من الحياة، ثم بمسائل الامتحان.</textarea></div>
+          <div class="field"><label class="label" for="pg-how" data-en="How it works">كيف تبدأ</label><textarea class="input" id="pg-how" data-track>١. اشترِ الملزمة واحصل على الكود.
+٢. أنشئ حسابك بالكود.
+٣. ادخل من جهاز واحد وابدأ أول محاضرة.</textarea></div>
+        </section>
+
+        <section class="panel sec academy" id="contact" aria-labelledby="h-ct">
+          <div class="sec-h"><span class="bub"><i data-i="phone"></i></span><div><h2 id="h-ct" data-en="Contact and social">التواصل والسوشيال</h2><p data-en="Shown in your website footer">يظهر في أسفل موقعك</p></div></div>
+          <div class="grid2">
+            <div class="field"><label class="label" for="ct-mail"><span data-en="Email">الإيميل</span><span class="opt" data-en="Optional">اختياري</span></label><input class="input" id="ct-mail" type="email" dir="ltr" value="contact@karim.example" data-track></div>
+            <div class="field"><label class="label" for="ct-wa"><span data-en="WhatsApp">واتساب</span><span class="opt" data-en="Optional">اختياري</span></label><input class="input" id="ct-wa" dir="ltr" inputmode="tel" placeholder="01x xxxx xxxx" data-track></div>
+          </div>
+          <div class="field"><label class="label" for="ct-addr"><span data-en="Centre address">عنوان السنتر</span><span class="opt" data-en="Optional">اختياري</span></label><input class="input" id="ct-addr" value="سنتر النور، شارع الجامعة، المنصورة" data-track></div>
+          <div class="social" id="social">
+            <span class="label" data-en="Social links · https only">روابط السوشيال · تبدأ بـ https فقط</span>
+            <label><span>Facebook</span><input class="input" value="https://facebook.com/karim.physics" data-track data-https></label>
+            <label><span>YouTube</span><input class="input" value="https://youtube.com/@karimphysics" data-track data-https></label>
+            <label><span>Instagram</span><input class="input" placeholder="https://" data-track data-https></label>
+            <label><span>Telegram</span><input class="input" placeholder="https://" data-track data-https></label>
+            <label><span>TikTok</span><input class="input" placeholder="https://" data-track data-https></label>
+            <label><span>X</span><input class="input" placeholder="https://" data-track data-https></label>
+          </div>
+        </section>
+
+        <section class="panel sec academy" id="general" aria-labelledby="h-gen">
+          <div class="sec-h"><span class="bub"><i data-i="settings"></i></span><div><h2 id="h-gen" data-en="General">عام</h2><p data-en="Defaults for the whole academy">الإعدادات الافتراضية للأكاديمية كلها</p></div></div>
+          <div class="grid2">
+            <div class="field"><span class="label" data-en="Website language">لغة الموقع</span><div class="seg seg-wide" role="group" aria-label="لغة الموقع" data-en-aria-label="Website language"><button type="button" aria-pressed="true" data-track-click>العربية</button><button type="button" aria-pressed="false" data-track-click>English</button></div></div>
+            <div class="field"><label class="label" for="tz" data-en="Time zone">المنطقة الزمنية</label><input class="input" id="tz" dir="ltr" value="Africa/Cairo" list="tz-list" data-track><datalist id="tz-list"><option value="Africa/Cairo"><option value="Asia/Riyadh"><option value="Asia/Dubai"><option value="Asia/Kuwait"></datalist><span class="hint" data-en="Quiz times and dates follow this zone.">مواعيد الاختبارات والتواريخ تتبع هذه المنطقة.</span></div>
+          </div>
+          <div class="sw-row"><span><b data-en="Devices per new student">عدد الأجهزة لكل طالب جديد</b><small data-en="1 to 5. You can raise it for one student from their profile, up to 10.">من ١ إلى ٥. يمكن زيادتها لطالب واحد من ملفه حتى ١٠.</small></span>
+            <span class="stepper"><button type="button" data-step="-1" aria-label="أقل" data-en-aria-label="Fewer">−</button><output class="num" id="maxdev" data-en="1">١</output><button type="button" data-step="1" aria-label="أكثر" data-en-aria-label="More">+</button></span></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="savebar" id="savebar" hidden><div role="status"><span data-en="You have unsaved changes">لديك تغييرات غير محفوظة</span><button class="btn btn-ghost" type="button" id="undo" data-en="Undo">تراجع</button><button class="btn" type="button" id="save"><span data-en="Save changes">احفظ التغييرات</span></button></div></div>
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="profile" aria-pressed="true" data-en="Teacher">المدرس</button>
+  <button type="button" data-state="must-change" aria-pressed="false" data-en="First sign-in">أول دخول</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="As assistant">كمساعد</button>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e}" data-ar="${a}">${isEn() ? e : a}</span>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const $ = (id) => document.getElementById(id);
+  const toast = (a, e) => { const el = $('toast'); $('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  $('logo-thumb').innerHTML = $('fav-thumb').innerHTML = window.itqanCapMark || document.querySelector('.side .brand-mark').outerHTML;
+
+  // unsaved-changes bar for the academy settings (PATCH /settings sends only what changed)
+  const tracked = [...document.querySelectorAll('[data-track]')];
+  const initial = new Map(tracked.map((el) => [el, el.value]));
+  let dirty = false;
+  const markDirty = () => { dirty = true; $('savebar').hidden = false; };
+  tracked.forEach((el) => el.addEventListener('input', markDirty));
+  document.querySelectorAll('[data-track-click]').forEach((b) => b.addEventListener('click', markDirty));
+  $('undo').addEventListener('click', () => { initial.forEach((v, el) => { el.value = v; el.dispatchEvent(new Event('input')); }); dirty = false; $('savebar').hidden = true; syncPreview(); });
+  $('save').addEventListener('click', () => {
+    const c1 = $('c1'), c2 = $('c2'); let ok = true;
+    [c1, c2].forEach((c) => { const good = HEX.test(c.value); c.setAttribute('aria-invalid', String(!good)); $('err-' + c.id).classList.toggle('show', !good); ok &&= good; });
+    document.querySelectorAll('[data-https]').forEach((i) => { const good = !i.value || /^https:\/\/\S+\.\S+/.test(i.value); i.closest('label').classList.toggle('bad', !good); i.setAttribute('aria-invalid', String(!good)); ok &&= good; });
+    if (!ok) { toast('راجع الحقول المعلَّمة بالأحمر', 'Check the fields marked in red'); document.querySelector('[aria-invalid="true"]').focus(); return; }
+    initial.forEach((_, el) => initial.set(el, el.value)); dirty = false; $('savebar').hidden = true;
+    toast('حُفظت إعدادات الأكاديمية', 'Academy settings saved');
+  });
+  addEventListener('beforeunload', (e) => { if (dirty) e.preventDefault(); });
+
+  // live brand preview
+  function syncPreview() {
+    const pv = $('preview');
+    const lum = (h) => [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16) / 255).map((c) => (c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4)).reduce((a, c, i) => a + c * [.2126, .7152, .0722][i], 0);
+    if (HEX.test($('c1').value)) {
+      pv.style.setProperty('--pv1', $('c1').value); $('c1p').value = $('c1').value;
+      // ink text on the main colour must reach 4.5:1
+      const ratio = (lum($('c1').value) + .05) / (lum('#1A1712') + .05);
+      $('pv-bad').hidden = ratio >= 4.5; $('pv-ok').hidden = ratio < 4.5;
+    }
+    if (HEX.test($('c2').value)) {
+      pv.style.setProperty('--pv2', $('c2').value); $('c2p').value = $('c2').value;
+      const L = lum($('c2').value); // white or ink, whichever reads better on the second colour
+      pv.style.setProperty('--pv2-fg', 1.05 / (L + .05) >= (L + .05) / (lum('#1A1712') + .05) ? '#fff' : '#1A1712');
+    }
+    $('pv-name').textContent = $('s-name').value || '—';
+    $('pv-title').textContent = $('h-title').value || '—';
+    $('pv-sub').textContent = $('h-sub').value;
+    document.querySelectorAll('[data-count]').forEach((el) => { $(el.dataset.count).textContent = isEn() ? `${el.value.length} / ${el.maxLength}` : `${ar(el.value.length)} / ${ar(el.maxLength)}`; });
+  }
+  ['c1p', 'c2p'].forEach((id) => $(id).addEventListener('input', (e) => { const box = $(id.slice(0, 2)); box.value = e.target.value.toUpperCase(); box.dispatchEvent(new Event('input')); }));
+  ['c1', 'c2', 's-name', 'h-title', 'h-sub'].forEach((id) => $(id).addEventListener('input', syncPreview));
+  syncPreview();
+
+  // controls
+  let maxDev = 1;
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.closest('.seg')) b.closest('.seg').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.getAttribute('role') === 'switch') b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true'));
+    if (b.dataset.step) { maxDev = Math.min(5, Math.max(1, maxDev + +b.dataset.step)); const o = $('maxdev'); o.dataset.en = String(maxDev); o.dataset.ar = ar(maxDev); o.textContent = isEn() ? maxDev : ar(maxDev); markDirty(); }
+    if (b.hasAttribute('data-end-sess')) { $('other-sess').remove(); toast('خرجت من جهاز iPhone', 'Signed out of the iPhone'); }
+  });
+
+  // password: each error under its field
+  $('pw-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const o = $('pw-old'), n = $('pw-new'), r = $('pw-rep');
+    const set = (el, ok) => { el.setAttribute('aria-invalid', String(!ok)); $(el.getAttribute('aria-describedby')).classList.toggle('show', !ok); return ok; };
+    const res = [set(o, !!o.value), set(n, n.value.length >= 12), set(r, !!r.value && r.value === n.value)];
+    if (res.includes(false)) { [o, n, r][res.indexOf(false)].focus(); return; }
+    e.target.reset(); toast('تغيّرت كلمة السر، وخرجت جلساتك الأخرى', 'Password changed; your other sessions were signed out');
+    if (document.body.dataset.state === 'must-change') window.itqanSetState('profile');
+  });
+
+  // table of contents follows the scroll
+  const links = [...document.querySelectorAll('.toc a')];
+  const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + en.target.id))); }), { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('.sec').forEach((s) => io.observe(s));
+
+  // preview roles
+  document.addEventListener('itqan:state', (e) => {
+    const asA = e.detail === 'assistant';
+    document.querySelectorAll('[data-who-name]').forEach((el) => { el.dataset.ar = asA ? 'نور عادل' : 'أ. كريم سامي'; el.dataset.en = asA ? 'Nour Adel' : 'Mr. Karim Samy'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    document.querySelectorAll('[data-who-role]').forEach((el) => { el.dataset.ar = asA ? 'مساعدة' : 'مدرس'; el.dataset.en = asA ? 'Assistant' : 'Teacher'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; el.className = el.classList.contains('chip') ? `chip ${asA ? 'info' : 'warn'}` : el.className; });
+    document.querySelectorAll('[data-who-av]').forEach((el) => { el.textContent = asA ? 'ن' : 'ك'; });
+    $('p-name').value = asA ? 'نور عادل' : 'أ. كريم سامي'; $('p-email').value = asA ? 'nour@itqan.example' : 'karim@itqan.example';
+    if (e.detail === 'must-change') { scrollTo({ top: 0 }); setTimeout(() => $('pw-old').focus(), 50); }
+  });
+  if (location.hash === '#academy') setTimeout(() => $('academy').scrollIntoView());
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(syncPreview)));
+</script>
+</body>
+</html>

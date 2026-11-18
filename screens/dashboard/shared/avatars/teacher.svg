@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Teacher">
+  <!-- teacher: neat hair, glasses, ink jacket, sun tie (ink line style of screens/test) -->
+  <rect width="96" height="96" fill="#FFC22E"/>
+  <g stroke="#1A1712" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 98 C 14 76, 28 66, 48 65 C 68 66, 82 76, 82 98 Z" fill="#1A1712"/>
+    <path d="M38 66 L48 80 L58 66 Z" fill="#FFFDF8"/>
+    <path d="M48 72 l-4 5 4 15 4 -15 z" fill="#FFC22E" stroke-width="2"/>
+    <path d="M41 58 v8 h14 v-8" fill="#FFFDF8"/>
+    <circle cx="27.5" cy="44" r="5" fill="#FFFDF8"/>
+    <circle cx="68.5" cy="44" r="5" fill="#FFFDF8"/>
+    <ellipse cx="48" cy="42" rx="20" ry="23" fill="#FFFDF8"/>
+    <path d="M27 38 C 25 22, 36 15, 49 16 C 61 16, 71 22, 69 38 C 66 30, 58 27, 52 28 C 44 29, 36 27, 30 31 C 28 33, 27 35, 27 38 Z" fill="#1A1712"/>
+    <circle cx="40" cy="43" r="6" fill="#FFFDF8" stroke-width="2.2"/>
+    <circle cx="56" cy="43" r="6" fill="#FFFDF8" stroke-width="2.2"/>
+    <path d="M46 43 h4" stroke-width="2.2"/>
+    <path d="M42 55 q6 4 12 0" fill="none" stroke-width="2.2"/>
+  </g>
+  <circle cx="40" cy="43.5" r="2" fill="#1A1712"/>
+  <circle cx="56" cy="43.5" r="2" fill="#1A1712"/>
+</svg>

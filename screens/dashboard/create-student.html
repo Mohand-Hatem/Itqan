@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>طالب جديد · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: create a student account directly (POST /students), with age, guardian consent, password and courses.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .cs-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .cs-form { display: grid; gap: 18px; }
+  .sec { display: grid; gap: 16px; }
+  .sec-h { display: flex; align-items: center; gap: 12px; }
+  .sec-h .n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--sun); font-family: var(--f-display); font-weight: 800; font-size: 16px; flex: none; }
+  .sec-h h2 { font-size: 19px; font-weight: 800; }
+  .sec-h p { font-size: 13.5px; color: var(--ink-2); }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .field + .field { margin-top: 0; }
+  .opt { color: var(--ink-3); font-weight: 400; font-size: 13px; }
+  .picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .picks.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pick { position: relative; display: grid; gap: 4px; padding: 14px 16px; padding-inline-start: 46px; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; background: var(--paper); transition: border-color .15s, background-color .15s; }
+  .pick:hover { border-color: #D9C69A; }
+  .pick input { position: absolute; inset-inline-start: 14px; top: 16px; width: 20px; height: 20px; accent-color: var(--ink); margin: 0; }
+  .pick b { font-size: 15px; }
+  .pick small { font-size: 13px; color: var(--ink-2); }
+  .pick:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .pick:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .pick:has(input:disabled) { opacity: .6; cursor: not-allowed; }
+  .lock-note { display: flex; gap: 8px; font-size: 13px; color: var(--ink-2); }
+  .lock-note svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+  .guardian { display: grid; gap: 14px; padding: 16px; border-radius: 16px; background: #FBF5E8; }
+  .guardian[hidden], .g-pane[hidden] { display: none; }
+  .g-pane { display: grid; gap: 14px; }
+  .warn-box { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--sun-tint); font-size: 13.5px; }
+  .warn-box svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .pass-row { display: flex; gap: 10px; align-items: flex-start; }
+  .pass-row .input-wrap { flex: 1; }
+  .pass-row .input { font-family: var(--f-body); direction: ltr; text-align: start; letter-spacing: .02em; }
+  .pass-row .btn { min-height: 54px; white-space: nowrap; }
+  .meter-line { display: flex; gap: 6px; margin-top: 2px; }
+  .meter-line i { flex: 1; height: 6px; border-radius: 999px; background: var(--line); transition: background-color .2s; }
+  .meter-line[data-l="1"] i:nth-child(-n+1) { background: var(--coral-strong); }
+  .meter-line[data-l="2"] i:nth-child(-n+2) { background: var(--honey); }
+  .meter-line[data-l="3"] i { background: var(--mint); }
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-radius: 12px; background: #FBF5E8; }
+  .sw-row b { display: block; font-size: 14.5px; }
+  .sw-row small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .courses { display: grid; gap: 10px; }
+  .course { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; background: var(--paper); }
+  .course:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .course:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .course input { width: 20px; height: 20px; accent-color: var(--ink); margin: 0; flex: none; }
+  .course div { flex: 1; min-width: 0; }
+  .course b { display: block; font-size: 15px; }
+  .course small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .form-acts { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .form-acts .btn { min-height: 52px; }
+  .banner-409 { display: none; }
+  [data-state="taken"] .banner-409 { display: flex; }
+  .banner-409 > svg { width: 26px; height: 26px; flex: none; color: #B8341A; }
+
+  /* live summary */
+  .summary { position: sticky; top: 16px; display: grid; gap: 14px; }
+  .summary h3 { font-size: 18px; font-weight: 700; }
+  .sum-id { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: #FBF5E8; }
+  .sum-id .avatar { width: 48px; height: 48px; font-size: 19px; }
+  .sum-id b { display: block; font-family: var(--f-display); font-size: 17px; line-height: 1.3; min-height: 1.3em; }
+  .sum-id small { display: block; font-size: 12.5px; color: var(--ink-2); direction: ltr; text-align: start; min-height: 1.4em; }
+  .sum-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .sum-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+  .sum-list svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--ink-2); }
+  .sum-list span b { font-weight: 600; }
+  .after { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .after b { font-size: 14px; }
+  .after ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+
+  /* success */
+  .done-view { display: none; }
+  [data-state="done"] .done-view { display: grid; }
+  [data-state="done"] .cs-grid { display: none; }
+  .done-view { gap: 18px; max-width: 760px; margin: 18px auto 0; }
+  .done-hero { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 30px 20px; }
+  .done-hero .bub { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--mint); color: #fff; border: 2px solid var(--ink); }
+  .done-hero .bub svg { width: 30px; height: 30px; }
+  .done-hero h2 { font-size: 26px; font-weight: 800; }
+  .done-hero p { color: var(--ink-2); max-width: 52ch; }
+  .creds { display: grid; gap: 10px; }
+  .cred { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #FBF5E8; }
+  .cred span { font-size: 13px; color: var(--ink-2); min-width: 90px; }
+  .cred code { flex: 1; font-family: var(--f-body); font-weight: 600; font-size: 16px; direction: ltr; text-align: start; overflow-wrap: anywhere; }
+  .cred .btn { min-height: 40px; font-size: 14px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .done-acts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .done-acts .btn { min-height: 48px; }
+
+  @media (max-width: 1100px) { .cs-grid { grid-template-columns: minmax(0, 1fr); } .summary { position: static; } }
+  @media (max-width: 680px) { .two, .picks, .picks.three { grid-template-columns: 1fr; } .pass-row { flex-direction: column; align-items: stretch; } .cred { flex-wrap: wrap; } }
+</style>
+</head>
+<body data-page="create-student" data-unread="3" data-state="form" data-title-en="New student · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to the form">انتقل إلى النموذج</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="New student">طالب جديد</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb"><a href="accounts.html" data-en="Accounts">الحسابات</a><i data-i="chevron-right"></i><span aria-current="page" data-en="New student">طالب جديد</span></nav>
+
+    <div class="cs-grid">
+      <!-- POST /students {name, email, password, phone?, isMinor, courseIds?, requirePasswordChange?} -->
+      <form class="cs-form" id="cs" novalidate aria-label="إنشاء حساب طالب" data-en-aria-label="Create a student account">
+        <div class="banner danger banner-409" role="alert">
+          <i data-i="triangle-alert"></i>
+          <div><strong data-en="This email already has an Itqan account">هذا الإيميل له حساب في إتقان بالفعل</strong>
+            <p data-en="You cannot set a password for an existing account. Send an invitation instead; the student accepts it with their own password.">لا يمكن تعيين كلمة سر لحساب موجود. أرسل دعوة بدلًا من ذلك، ويقبلها الطالب بكلمة سره.</p>
+            <a class="btn btn-sm" href="accounts.html" data-en="Send an invitation instead">أرسل دعوة بدلًا من ذلك</a></div>
+        </div>
+
+        <section class="panel sec" aria-labelledby="h1s">
+          <div class="sec-h"><span class="n num" aria-hidden="true" data-en="1">١</span><div><h2 id="h1s" data-en="Who is the student">بيانات الطالب</h2><p data-en="The email is their sign-in name">الإيميل هو اسم الدخول</p></div></div>
+          <div class="field"><label class="label" for="f-name" data-en="Full name">الاسم بالكامل</label><input class="input" id="f-name" autocomplete="off" required minlength="3" aria-describedby="err-name" placeholder="مثال: يوسف أحمد علي" data-en-placeholder="e.g. Youssef Ahmed Ali"><span class="err" id="err-name" data-en="Write the student’s full name.">اكتب اسم الطالب بالكامل.</span></div>
+          <div class="two">
+            <div class="field"><label class="label" for="f-email" data-en="Email">الإيميل</label><input class="input" id="f-email" type="email" dir="ltr" autocomplete="off" required aria-describedby="err-email" placeholder="name@example.com"><span class="err" id="err-email" data-en="Write a valid email.">اكتب إيميلًا صحيحًا.</span></div>
+            <div class="field"><label class="label" for="f-phone"><span data-en="Mobile">الموبايل</span><span class="opt" data-en="Optional">اختياري</span></label><input class="input" id="f-phone" type="tel" dir="ltr" inputmode="tel" autocomplete="off" placeholder="01x xxxx xxxx"></div>
+          </div>
+        </section>
+
+        <section class="panel sec" aria-labelledby="h2s">
+          <div class="sec-h"><span class="n num" aria-hidden="true" data-en="2">٢</span><div><h2 id="h2s" data-en="Age and guardian">العمر وولي الأمر</h2><p data-en="Under 18 needs a guardian’s consent before any content opens">أقل من ١٨ سنة يحتاج موافقة ولي الأمر قبل فتح أي محتوى</p></div></div>
+          <div class="picks" role="radiogroup" aria-labelledby="h2s">
+            <label class="pick"><input type="radio" name="age" value="adult"><b data-en="18 or older">١٨ سنة أو أكثر</b><small data-en="No consent needed">لا تلزم موافقة</small></label>
+            <label class="pick"><input type="radio" name="age" value="minor" checked><b data-en="Under 18">أقل من ١٨ سنة</b><small data-en="A guardian must agree">يلزم موافقة ولي الأمر</small></label>
+          </div>
+          <p class="lock-note"><i data-i="lock"></i><span data-en="Set once. After creating, only the platform admin can change it, because it applies in every academy.">يُحدَّد مرة واحدة؛ بعد الإنشاء يغيّره مدير المنصة فقط لأنه يسري في كل الأكاديميات.</span></p>
+
+          <div class="guardian" id="guardian">
+            <span class="label" data-en="How will the guardian agree?">كيف يوافق ولي الأمر؟</span>
+            <div class="picks three" role="radiogroup" aria-label="طريقة الموافقة" data-en-aria-label="Consent method">
+              <label class="pick"><input type="radio" name="gm" value="email" checked><b data-en="By email">بالإيميل</b><small data-en="We send them a link">نرسل له رابطًا</small></label>
+              <label class="pick"><input type="radio" name="gm" value="paper"><b data-en="Signed form">استمارة موقعة</b><small data-en="You have the paper">الورقة معك</small></label>
+              <label class="pick"><input type="radio" name="gm" value="later"><b data-en="Later">لاحقًا</b><small data-en="Content stays closed">المحتوى يبقى مغلقًا</small></label>
+            </div>
+            <div class="g-pane" data-gm="email">
+              <div class="two">
+                <div class="field"><label class="label" for="g-name" data-en="Guardian name">اسم ولي الأمر</label><input class="input" id="g-name" autocomplete="off"></div>
+                <div class="field"><label class="label" for="g-rel" data-en="Relationship">صلة القرابة</label>
+                  <div class="seg" role="group" aria-label="صلة القرابة" data-en-aria-label="Relationship" id="g-rel"><button type="button" aria-pressed="true" data-en="Parent">الأب أو الأم</button><button type="button" aria-pressed="false" data-en="Legal guardian">وصي قانوني</button><button type="button" aria-pressed="false" data-en="Other">آخر</button></div></div>
+              </div>
+              <div class="field"><label class="label" for="g-email" data-en="Guardian’s email">إيميل ولي الأمر</label><input class="input" id="g-email" type="email" dir="ltr" autocomplete="off" aria-describedby="hint-g err-g" placeholder="parent@example.com"><span class="hint" id="hint-g" data-en="Must differ from the student’s email. The link is valid for 7 days.">يجب أن يختلف عن إيميل الطالب. الرابط صالح ٧ أيام.</span><span class="err" id="err-g" data-en="Write the guardian’s own email, not the student’s.">اكتب إيميل ولي الأمر نفسه، لا إيميل الطالب.</span></div>
+            </div>
+            <div class="g-pane" data-gm="paper" hidden>
+              <div class="two">
+                <div class="field"><label class="label" for="p-name" data-en="Guardian name">اسم ولي الأمر</label><input class="input" id="p-name" autocomplete="off"></div>
+                <div class="field"><label class="label" for="p-date" data-en="Date signed">تاريخ التوقيع</label><input class="input" id="p-date" type="date"></div>
+              </div>
+              <div class="field"><label class="label" for="p-ref" data-en="Form reference">رقم الاستمارة</label><input class="input" id="p-ref" placeholder="مثال: استمارة ١١٤، ملف المكتب ٢٠٢٦" data-en-placeholder="e.g. Form #114, office file 2026"><span class="hint" data-en="No scan is uploaded; keep the paper in your office.">لا تُرفع صورة؛ احتفظ بالورقة في مكتبك.</span></div>
+            </div>
+            <div class="g-pane" data-gm="later" hidden>
+              <div class="warn-box"><i data-i="triangle-alert"></i><span data-en="The account works, but lectures, files and quizzes stay closed until a guardian agrees. You can send the request later from the student’s profile.">الحساب يعمل، لكن المحاضرات والملفات والاختبارات تبقى مغلقة حتى يوافق ولي الأمر. يمكنك إرسال الطلب لاحقًا من ملف الطالب.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel sec" aria-labelledby="h3s">
+          <div class="sec-h"><span class="n num" aria-hidden="true" data-en="3">٣</span><div><h2 id="h3s" data-en="First password">كلمة السر الأولى</h2><p data-en="No email is sent. Hand the email and password to the student yourself.">لا يُرسل أي إيميل. سلّم الطالب الإيميل وكلمة السر بنفسك.</p></div></div>
+          <div class="field">
+            <label class="label" for="f-pass" data-en="Password">كلمة السر</label>
+            <div class="pass-row">
+              <div class="input-wrap"><input class="input" id="f-pass" type="password" autocomplete="new-password" required minlength="8" aria-describedby="hint-pass err-pass">
+                <button class="peek" type="button" aria-label="أظهر كلمة السر" data-en-aria-label="Show password" aria-pressed="false"><span class="eye-open"><i data-i="eye"></i></span><span class="eye-shut" style="display:none"><i data-i="eye-off"></i></span></button></div>
+              <button class="btn btn-light" type="button" id="gen"><i data-i="refresh-cw"></i><span data-en="Make one for me">ولّد كلمة سر</span></button>
+            </div>
+            <div class="meter-line" id="pw-meter" data-l="0" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span class="hint" id="hint-pass" data-en="8 characters or more.">٨ أحرف أو أكثر.</span>
+            <span class="err" id="err-pass" data-en="Use at least 8 characters.">استخدم ٨ أحرف على الأقل.</span>
+          </div>
+          <div class="sw-row">
+            <span><b data-en="Change it at first sign-in">يغيّرها الطالب عند أول دخول</b><small data-en="Recommended: only the student will know the new one">مستحسن: لن يعرف الجديدة غيره</small></span>
+            <button class="switch" type="button" role="switch" aria-checked="true" id="must-change" aria-label="يغيّر كلمة السر عند أول دخول" data-en-aria-label="Change password at first sign-in"><span class="track"></span></button>
+          </div>
+        </section>
+
+        <section class="panel sec" aria-labelledby="h4s">
+          <div class="sec-h"><span class="n num" aria-hidden="true" data-en="4">٤</span><div><h2 id="h4s" data-en="Courses to open">الكورسات التي تُفتح له</h2><p data-en="Optional. You can add courses later from the profile.">اختياري، ويمكن الإضافة لاحقًا من ملفه.</p></div></div>
+          <div class="courses">
+            <label class="course"><input type="checkbox" name="course" value="t1" checked><div><b data-en="Physics, term 1">الفيزياء · الترم الأول</b><small data-en="Published · 214 students">منشور · ٢١٤ طالبًا</small></div><span class="chip ok" data-en="Published">منشور</span></label>
+            <label class="course"><input type="checkbox" name="course" value="t2"><div><b data-en="Physics, term 2">الفيزياء · الترم الثاني</b><small data-en="Published · 188 students">منشور · ١٨٨ طالبًا</small></div><span class="chip ok" data-en="Published">منشور</span></label>
+            <label class="course"><input type="checkbox" name="course" value="rev"><div><b data-en="Night-before-exam review">مراجعة ليلة الامتحان</b><small data-en="Draft: they see it once you publish it">مسودة: يراه عندما تنشره</small></div><span class="chip warn" data-en="Draft">مسودة</span></label>
+          </div>
+        </section>
+
+        <div class="form-acts">
+          <a class="btn btn-ghost" href="accounts.html" data-en="Cancel">إلغاء</a>
+          <button class="btn" type="submit"><span class="spin" aria-hidden="true"></span><i data-i="user-round-plus"></i><span data-en="Create the account">أنشئ الحساب</span></button>
+        </div>
+      </form>
+
+      <aside class="panel summary" aria-labelledby="h-sum">
+        <h3 id="h-sum" data-en="What will be created">ما سيُنشأ</h3>
+        <div class="sum-id"><span class="avatar av-student" aria-hidden="true" id="s-av">؟</span><span><b id="s-name"></b><small id="s-email"></small></span></div>
+        <ul class="sum-list">
+          <li><i data-i="user-round"></i><span id="s-age"></span></li>
+          <li><i data-i="lock"></i><span id="s-pass"></span></li>
+          <li><i data-i="book-open"></i><span id="s-courses"></span></li>
+        </ul>
+        <div class="after">
+          <b data-en="Right after you create it">فور الإنشاء</b>
+          <ul>
+            <li data-en="The account is active and can sign in at once.">الحساب نشط ويستطيع الدخول فورًا.</li>
+            <li data-en="Its email stays unconfirmed until the student confirms it.">يبقى الإيميل غير مؤكد حتى يؤكده الطالب.</li>
+            <li data-en="The first sign-in registers their device; the one-device rule applies.">أول دخول يسجّل جهازه، وتسري قاعدة الجهاز الواحد.</li>
+            <li data-en="It is written to the activity log, without the password.">يُسجَّل في سجل النشاط بدون كلمة السر.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 201 {userId, membershipId, enrollmentIds, status, emailVerified:false, mustChangePassword, guardianConsent} -->
+    <section class="done-view" aria-labelledby="h-done">
+      <div class="panel done-hero">
+        <span class="bub"><i data-i="check"></i></span>
+        <h2 id="h-done" data-en="Account created">أُنشئ الحساب</h2>
+        <p id="done-note" data-en="Hand these details to the student. The password is shown here only once; it is not stored anywhere you can read it again.">سلّم الطالب هذه البيانات. كلمة السر تظهر هنا مرة واحدة فقط ولا تُحفظ في مكان يمكن قراءتها منه لاحقًا.</p>
+      </div>
+      <div class="panel creds">
+        <div class="cred"><span data-en="Sign-in email">إيميل الدخول</span><code id="d-email">youssef.ali@mail.example</code><button class="btn btn-light" type="button" data-copy="d-email"><i data-i="copy"></i><span data-en="Copy">انسخ</span></button></div>
+        <div class="cred"><span data-en="Password">كلمة السر</span><code id="d-pass">Mohandes-Tesla-48</code><button class="btn btn-light" type="button" data-copy="d-pass"><i data-i="copy"></i><span data-en="Copy">انسخ</span></button></div>
+        <div class="cred"><span data-en="Site">الموقع</span><code>karim.itqan.example</code></div>
+        <div class="warn-box" id="d-guardian"><i data-i="clock-3"></i><span data-en="Guardian request sent to parent@mail.example. Content opens once they agree.">أُرسل طلب الموافقة إلى parent@mail.example. يفتح المحتوى بعد موافقته.</span></div>
+      </div>
+      <div class="done-acts">
+        <a class="btn" href="accounts.html"><i data-i="user-round"></i><span data-en="Open the student’s profile">افتح ملف الطالب</span></a>
+        <button class="btn btn-light" type="button" data-again><i data-i="user-round-plus"></i><span data-en="Add another student">أضف طالبًا آخر</span></button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="form" aria-pressed="true" data-en="Form">النموذج</button>
+  <button type="button" data-state="taken" aria-pressed="false" data-en="Email taken">إيميل مستخدم</button>
+  <button type="button" data-state="done" aria-pressed="false" data-en="Created">تم الإنشاء</button>
+  <a href="accounts.html" data-en="Accounts">الحسابات</a>
+</nav>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e}" data-ar="${a}">${isEn() ? e : a}</span>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const $ = (id) => document.getElementById(id);
+  const toast = (a, e) => { const el = $('toast'); $('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const val = (n) => document.querySelector(`input[name="${n}"]:checked`)?.value;
+
+  // age and guardian method panes
+  const syncGuardian = () => {
+    $('guardian').hidden = val('age') !== 'minor';
+    document.querySelectorAll('.g-pane').forEach((p) => { p.hidden = p.dataset.gm !== val('gm'); });
+    summary();
+  };
+  document.querySelectorAll('input[name="age"], input[name="gm"]').forEach((r) => r.addEventListener('change', syncGuardian));
+
+  // segmented controls and the switch
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.closest('.seg')) b.closest('.seg').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.getAttribute('role') === 'switch') { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); summary(); }
+    if (b.dataset.copy) { navigator.clipboard?.writeText($(b.dataset.copy).textContent).catch(() => {}); toast('نُسخ', 'Copied'); }
+    if (b.hasAttribute('data-again')) { $('cs').reset(); window.itqanSetState('form'); syncGuardian(); scrollTo({ top: 0 }); $('f-name').focus(); }
+  });
+
+  // password: generate a readable one, show its strength
+  const words = ['Tesla', 'Volt', 'Ohm', 'Ampere', 'Faraday', 'Newton', 'Joule', 'Watt', 'Henry', 'Kelvin'];
+  $('gen').addEventListener('click', () => {
+    const r = (n) => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+    const p = $('f-pass'); p.value = `${words[r(10)]}-${words[r(10)]}-${10 + r(90)}`;
+    p.type = 'text'; p.dispatchEvent(new Event('input')); p.focus();
+    const peek = document.querySelector('.peek'); peek.setAttribute('aria-pressed', 'true'); peek.querySelector('.eye-open').style.display = 'none'; peek.querySelector('.eye-shut').style.display = '';
+  });
+  $('f-pass').addEventListener('input', (e) => {
+    const v = e.target.value; let l = 0;
+    if (v.length >= 8) l = 1; if (v.length >= 10 && /\d/.test(v) && /[A-Za-z]/.test(v)) l = 2; if (v.length >= 14 && /[^A-Za-z0-9]/.test(v)) l = 3;
+    $('pw-meter').dataset.l = v ? Math.max(l, 1) : 0; summary();
+  });
+
+  // live summary
+  function summary() {
+    const name = $('f-name').value.trim(), email = $('f-email').value.trim();
+    $('s-name').textContent = name || (isEn() ? 'Student name' : 'اسم الطالب');
+    $('s-email').textContent = email || 'name@example.com';
+    $('s-av').textContent = name ? name[0] : '؟';
+    const minor = val('age') === 'minor', gm = val('gm');
+    $('s-age').innerHTML = !minor ? t('١٨ سنة أو أكثر · لا تلزم موافقة', '18 or older · no consent needed')
+      : gm === 'email' ? t('أقل من ١٨ · نرسل طلب الموافقة لولي الأمر', 'Under 18 · we email the guardian a consent link')
+      : gm === 'paper' ? t('أقل من ١٨ · تُسجَّل الاستمارة الموقعة فيفتح المحتوى', 'Under 18 · the signed form is recorded and content opens')
+      : t('أقل من ١٨ · المحتوى مغلق حتى الموافقة', 'Under 18 · content closed until consent');
+    const must = $('must-change').getAttribute('aria-checked') === 'true';
+    $('s-pass').innerHTML = must ? t('كلمة سر أولى · <b>يغيّرها عند أول دخول</b>', 'First password · <b>changed at first sign-in</b>') : t('كلمة سر يحتفظ بها الطالب', 'A password the student keeps');
+    const cs = [...document.querySelectorAll('input[name="course"]:checked')].map((c) => c.closest('.course').querySelector('b'));
+    $('s-courses').innerHTML = cs.length ? cs.map((b) => `<b>${b.textContent}</b>`).join(isEn() ? ', ' : '، ') : t('بدون كورسات الآن', 'No courses for now');
+  }
+  ['f-name', 'f-email'].forEach((id) => $(id).addEventListener('input', summary));
+  document.querySelectorAll('input[name="course"]').forEach((c) => c.addEventListener('change', summary));
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(summary)));
+
+  // submit: each error under its own field, then the success view
+  const check = (input, ok) => { input.setAttribute('aria-invalid', String(!ok)); const id = input.getAttribute('aria-describedby')?.split(' ').find((x) => x.startsWith('err-')); $(id)?.classList.toggle('show', !ok); return ok; };
+  $('cs').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('f-name'), m = $('f-email'), p = $('f-pass'), g = $('g-email');
+    const checks = [[n, n.value.trim().length >= 3], [m, isEmail(m.value)], [p, p.value.length >= 8]];
+    if (val('age') === 'minor' && val('gm') === 'email') checks.push([g, isEmail(g.value) && g.value.trim().toLowerCase() !== m.value.trim().toLowerCase()]);
+    const results = checks.map(([el, ok]) => check(el, ok)); // mark every field, focus the first bad one
+    if (results.includes(false)) { checks[results.indexOf(false)][0].focus(); return; }
+    const btn = e.target.querySelector('[type="submit"]'); btn.setAttribute('aria-busy', 'true');
+    setTimeout(() => {
+      btn.removeAttribute('aria-busy');
+      $('d-email').textContent = m.value.trim(); $('d-pass').textContent = p.value;
+      const minor = val('age') === 'minor', gm = val('gm');
+      $('d-guardian').hidden = !minor || gm === 'paper';
+      if (minor && gm === 'email') $('d-guardian').querySelector('span').innerHTML = t(`أُرسل طلب الموافقة إلى ${g.value.trim()}. يفتح المحتوى بعد موافقته.`, `Guardian request sent to ${g.value.trim()}. Content opens once they agree.`);
+      if (minor && gm === 'later') $('d-guardian').querySelector('span').innerHTML = t('المحتوى مغلق حتى يوافق ولي الأمر. أرسل الطلب من ملف الطالب.', 'Content stays closed until a guardian agrees. Send the request from the profile.');
+      window.itqanSetState('done'); scrollTo({ top: 0 });
+    }, 900);
+  });
+  syncGuardian();
+</script>
+</body>
+</html>

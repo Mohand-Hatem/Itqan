@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الحسابات · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: students (devices, courses, guardian consent), staff, invitations and access codes.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .view { display: none; }
+  [data-state="students"] .v-students, [data-state="assistant"] .v-students, [data-state="empty"] .v-students, [data-state="loading"] .v-students,
+  [data-state="staff"] .v-staff, [data-state="invites"] .v-invites, [data-state="codes"] .v-codes { display: block; }
+  /* assistant view: what only the teacher may do disappears */
+  [data-state="assistant"] .t-only { display: none !important; }
+  .note-bar.as-assistant { display: none; }
+  [data-state="assistant"] .as-assistant { display: flex; }
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .when-full { display: none !important; }
+
+  .tabs-top { margin-top: 22px; display: inline-flex; }
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .find { position: relative; }
+  .find svg { position: absolute; inset-inline-start: 14px; top: 50%; translate: 0 -50%; width: 17px; height: 17px; color: var(--ink-3); pointer-events: none; }
+  .find input { min-height: 42px; width: 250px; padding-inline: 40px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font-size: 14px; }
+  .find input:focus { outline: none; border-color: var(--ink); }
+  .toolbar .btn { min-height: 44px; font-size: 16px; padding: 0 18px; }
+  .note-bar { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 16px; border-radius: 14px; background: var(--blue-tint); color: #183A8C; font-size: 14px; }
+  .note-bar svg { width: 18px; height: 18px; flex: none; }
+
+  .s-grid { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(310px, 1fr); gap: 18px; align-items: start; }
+  .tbl-wrap { overflow-x: auto; position: relative; }
+  .tbl { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 14.5px; }
+  .seen { display: block; font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 12px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl tbody tr { cursor: pointer; transition: background-color .15s; }
+  .tbl tbody tr:hover { background: #FFF8E8; }
+  .tbl tbody tr.sel { background: var(--sun-tint); }
+  .who { display: flex; align-items: center; gap: 10px; }
+  .who .avatar { width: 38px; height: 38px; font-size: 15px; background: var(--paper); }
+  .who b { display: block; font-weight: 600; }
+  .who b button { all: unset; cursor: pointer; }
+  .who b button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+  .who small { display: block; font-size: 12.5px; color: var(--ink-2); direction: ltr; text-align: start; }
+  .muted { color: var(--ink-2); }
+  .tbl .chip { font-size: 12px; }
+  .dev { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; white-space: nowrap; max-width: 110px; }
+  .dev svg { width: 16px; height: 16px; color: var(--ink-2); }
+
+  /* profile panel */
+  .profile { position: sticky; top: 16px; display: grid; gap: 0; padding: 0; overflow: hidden; }
+  .p-top { padding: 20px 22px 16px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+  .p-id { display: flex; align-items: center; gap: 12px; }
+  .p-id .avatar { width: 56px; height: 56px; font-size: 22px; }
+  .p-id b { display: block; font-family: var(--f-display); font-size: 20px; line-height: 1.3; }
+  .p-id small { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .p-id small .mail { direction: ltr; }
+  .p-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .p-acts .btn { min-height: 40px; font-size: 14.5px; padding: 0 14px; }
+  .p-sec { padding: 16px 22px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+  .p-sec:last-child { border-bottom: 0; }
+  .p-sec h4 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
+  .p-sec h4 svg { width: 18px; height: 18px; color: var(--ink-2); }
+  .p-sec h4 .right { margin-inline-start: auto; font-family: var(--f-body); font-weight: 500; font-size: 13px; color: var(--ink-2); }
+  .line { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #FBF5E8; font-size: 14px; }
+  .line > div { flex: 1; min-width: 0; }
+  .line b { display: block; font-weight: 600; font-size: 14px; }
+  .line small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .line .kind { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--paper); flex: none; }
+  .line .kind svg { width: 18px; height: 18px; }
+  .line .btn { min-height: 36px; font-size: 13.5px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .line.pend { background: var(--sun-tint); }
+  .stepper { display: inline-flex; align-items: center; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .stepper button { width: 36px; height: 36px; border: 0; background: var(--paper); cursor: pointer; display: grid; place-items: center; font-size: 18px; color: var(--ink); }
+  .stepper button:hover { background: var(--sun-tint); }
+  .stepper output { min-width: 34px; text-align: center; font-weight: 600; }
+  .consent { display: grid; gap: 10px; padding: 14px; border-radius: 14px; }
+  .consent.ok { background: var(--mint-tint); }
+  .consent.wait { background: var(--sun-tint); }
+  .consent.stop { background: var(--coral-tint); }
+  .consent.na { background: #F3EBDA; }
+  .consent b { display: flex; align-items: center; gap: 8px; font-size: 14.5px; }
+  .consent b svg { width: 18px; height: 18px; }
+  .consent p { font-size: 13px; color: var(--ink); }
+  .consent .row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .consent .btn { min-height: 38px; font-size: 14px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .offline { display: grid; gap: 10px; padding: 14px; border: 2px dashed #D9C69A; border-radius: 14px; }
+  .offline[hidden] { display: none; }
+  .offline .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .offline label { display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); min-width: 0; }
+  .offline .input { min-height: 42px; font-size: 14px; padding: 0 12px; min-width: 0; }
+  .grades { display: grid; gap: 6px; }
+  .grades div { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .grades div:last-child { border-bottom: 0; }
+
+  /* staff, invites, codes */
+  .perm { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  .perm ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  .perm li { display: flex; gap: 8px; align-items: flex-start; }
+  .perm li svg { width: 17px; height: 17px; flex: none; margin-top: 3px; }
+  .perm .yes svg { color: #22694F; } .perm .no svg { color: #B8341A; }
+  .form-panel { display: grid; gap: 14px; border: 2px solid var(--ink); margin-bottom: 18px; }
+  .form-panel[hidden] { display: none; }
+  .form-panel .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .form-panel .field + .field { margin-top: 0; }
+  .form-panel .acts { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .form-panel .acts .btn { min-height: 44px; font-size: 15.5px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .checks label { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 2px solid var(--line); border-radius: 12px; font-size: 14px; cursor: pointer; }
+  .checks label:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .checks input { width: 18px; height: 18px; accent-color: var(--ink); margin: 0; }
+  .meter { width: 90px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; flex: none; }
+  .meter i { display: block; height: 100%; width: var(--p); background: var(--ink); border-radius: inherit; }
+  .att { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .code { font-family: var(--f-body); direction: ltr; letter-spacing: .08em; font-weight: 600; }
+  .warn-box { display: flex; gap: 10px; padding: 12px; border-radius: 12px; background: var(--sun-tint); font-size: 13.5px; }
+  .warn-box svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 40px 12px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 50ch; }
+  .empty .row-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  [data-state="loading"] #s-rows td > *, [data-state="loading"] .profile > * > * { color: transparent !important; background: var(--line) !important; border-radius: 8px; animation: pulse 1.2s ease-in-out infinite; }
+  [data-state="loading"] #s-rows td > * *, [data-state="loading"] .profile > * > * * { visibility: hidden; }
+
+  dialog { border: 2px solid var(--ink); border-radius: var(--r-card); padding: 0; width: min(500px, calc(100vw - 32px)); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-lift); }
+  dialog::backdrop { background: rgba(26, 23, 18, .45); }
+  dialog form { padding: 24px; display: grid; gap: 14px; }
+  dialog h2 { font-size: 22px; font-weight: 800; }
+  dialog .field + .field { margin-top: 0; }
+  dialog .acts { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 1150px) { .s-grid { grid-template-columns: minmax(0, 1fr); } .profile { position: static; } }
+  @media (max-width: 760px) { .perm, .form-panel .grid3, .offline .two { grid-template-columns: 1fr; } .find { flex: 1; } .find input { width: 100%; } }
+</style>
+</head>
+<body data-page="accounts" data-unread="3" data-state="students" data-title-en="Accounts · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Accounts">الحسابات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true" id="me-av" data-who-av>ك</span>
+          <span><b id="me-name" data-en="Mr. Karim Samy">أ. كريم سامي</b><small id="me-role" data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item t-only" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="seg tabs-top" role="group" aria-label="أقسام الحسابات" data-en-aria-label="Account sections">
+      <button type="button" data-go="students" aria-pressed="true"><i data-i="users-round"></i><span data-en="Students">الطلاب</span></button>
+      <button type="button" data-go="staff" aria-pressed="false" class="t-only"><i data-i="user-round-cog"></i><span data-en="Staff">الطاقم</span></button>
+      <button type="button" data-go="invites" aria-pressed="false"><i data-i="bell"></i><span data-en="Invitations">الدعوات</span></button>
+      <button type="button" data-go="codes" aria-pressed="false"><i data-i="lock"></i><span data-en="Access codes">أكواد الوصول</span></button>
+    </div>
+    <div class="note-bar as-assistant"><i data-i="info"></i><span data-en="You are signed in as an assistant. Staff, code generation and ending course access are for the teacher only.">أنت داخل كمساعد. الطاقم وإنشاء الأكواد وإنهاء الاشتراك في الكورسات للمدرس فقط.</span></div>
+
+    <!-- ================= students (GET /students, GET /students/:membershipId) ================= -->
+    <section class="view v-students" aria-labelledby="t-st">
+      <div class="head">
+        <div><h2 id="t-st" data-en="Students">الطلاب</h2><p data-en="312 students · 3 need your attention">٣١٢ طالبًا · ٣ يحتاجون انتباهك</p></div>
+        <div class="toolbar">
+          <label class="find"><span class="sr-only" data-en="Find a student">ابحث عن طالب</span><i data-i="search"></i><input type="search" id="find" placeholder="الاسم أو الإيميل أو الموبايل" data-en-placeholder="Name, email or phone" autocomplete="off"></label>
+          <div class="dd" id="f-st">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Show:">عرض:</span><span class="dd-val" data-en="Everyone">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية الطلاب" data-en-aria-label="Filter students">
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="Everyone">الكل</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="attention"><span class="dd-dot" style="background:var(--coral-strong)"></span><span class="dd-label" data-en="Needs attention">يحتاج انتباهك</span><span class="dd-n num" data-en="3">٣</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="active"><span class="dd-dot" style="background:var(--mint)"></span><span class="dd-label" data-en="Active">نشط</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="suspended"><span class="dd-dot" style="background:#EFE8DA"></span><span class="dd-label" data-en="Suspended">موقوف</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="minor"><span class="dd-dot" style="background:var(--sun)"></span><span class="dd-label" data-en="Under 18">أقل من ١٨ سنة</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <button class="btn btn-light" type="button" data-go="invites" data-open-invite><i data-i="bell"></i><span data-en="Invite by email">ادعُ بالإيميل</span></button>
+          <a class="btn" href="create-student.html"><i data-i="user-round-plus"></i><span data-en="New student">طالب جديد</span></a>
+        </div>
+      </div>
+
+      <div class="s-grid when-full">
+        <section class="panel" aria-label="قائمة الطلاب" data-en-aria-label="Student list">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th scope="col" data-en="Student">الطالب</th><th scope="col" data-en="Courses">الكورسات</th><th scope="col" data-en="Devices">الأجهزة</th>
+                <th scope="col" data-en="Guardian">ولي الأمر</th><th scope="col" data-en="Account">الحساب</th>
+              </tr></thead>
+              <tbody id="s-rows"></tbody>
+            </table>
+          </div>
+        </section>
+        <aside class="panel profile" id="profile" aria-live="polite" aria-label="ملف الطالب" data-en-aria-label="Student profile"></aside>
+      </div>
+
+      <div class="panel empty when-empty">
+        <span class="bub"><i data-i="users-round"></i></span>
+        <b data-en="No students yet">لا طلاب بعد</b>
+        <p data-en="Students join three ways: they redeem an access code you sold, you invite them by email, or you create the account yourself.">ينضم الطلاب بثلاث طرق: يستخدمون كود وصول بعته، أو تدعوهم بالإيميل، أو تنشئ الحساب بنفسك.</p>
+        <div class="row-btns"><a class="btn" href="create-student.html"><i data-i="user-round-plus"></i><span data-en="Create a student">أنشئ طالبًا</span></a><button class="btn btn-light" type="button" data-go="codes"><i data-i="lock"></i><span data-en="Make access codes">أنشئ أكواد وصول</span></button></div>
+      </div>
+    </section>
+
+    <!-- ================= staff (teacher only: GET/POST /assistants) ================= -->
+    <section class="view v-staff" aria-labelledby="t-staff">
+      <div class="head">
+        <div><h2 id="t-staff" data-en="Staff">الطاقم</h2><p data-en="An academy always keeps at least one active teacher">تبقى في الأكاديمية دائمًا مدرس نشط واحد على الأقل</p></div>
+        <div class="toolbar"><button class="btn" type="button" data-add-staff><i data-i="user-round-plus"></i><span data-en="Add an assistant">أضف مساعدًا</span></button></div>
+      </div>
+      <section class="panel">
+        <div class="tbl-wrap">
+          <table class="tbl" style="min-width:640px">
+            <thead><tr><th scope="col" data-en="Person">الشخص</th><th scope="col" data-en="Role">الدور</th><th scope="col" data-en="Account">الحساب</th><th scope="col" data-en="Last sign-in">آخر دخول</th><th scope="col"><span class="sr-only" data-en="Actions">إجراءات</span></th></tr></thead>
+            <tbody>
+              <tr><td><span class="who"><span class="avatar av-teacher" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></span></td><td><span class="chip warn" data-en="Teacher">مدرس</span></td><td><span class="chip ok" data-en="Active">نشط</span></td><td class="muted" data-en="Now">الآن</td><td class="muted" style="font-size:12.5px" data-en="That’s you">هذا أنت</td></tr>
+              <tr><td><span class="who"><span class="avatar av-assistant" aria-hidden="true">ن</span><span><b data-en="Nour Adel">نور عادل</b><small>nour@itqan.example</small></span></span></td><td><span class="chip info" data-en="Assistant">مساعدة</span></td><td><span class="chip ok" data-en="Active">نشط</span></td><td class="muted" data-en="Today, 6:40 pm">اليوم ٦:٤٠ م</td><td><button class="btn btn-sm btn-light" type="button" data-remove data-en="Remove">أزل</button></td></tr>
+              <tr><td><span class="who"><span class="avatar av-assistant" aria-hidden="true">ح</span><span><b data-en="Hassan Fathy">حسن فتحي</b><small>hassan@itqan.example</small></span></span></td><td><span class="chip info" data-en="Assistant">مساعد</span></td><td><span class="chip warn" data-en="Must change password">يجب تغيير كلمة السر</span></td><td class="muted" data-en="Never">لم يدخل بعد</td><td><button class="btn btn-sm btn-light" type="button" data-remove data-en="Remove">أزل</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div class="perm">
+        <section class="panel"><h3 style="font-size:17px" data-en="An assistant can">المساعد يستطيع</h3>
+          <ul class="yes">
+            <li><i data-i="check"></i><span data-en="Edit courses, content and quizzes">تعديل الكورسات والمحتوى والاختبارات</span></li>
+            <li><i data-i="check"></i><span data-en="Create and invite students, add them to courses">إنشاء الطلاب ودعوتهم وإضافتهم للكورسات</span></li>
+            <li><i data-i="check"></i><span data-en="Approve device and sign-out requests">قبول طلبات الأجهزة والخروج</span></li>
+            <li><i data-i="check"></i><span data-en="Give a student extra exam time">زيادة وقت الامتحان لطالب</span></li>
+          </ul></section>
+        <section class="panel"><h3 style="font-size:17px" data-en="Only the teacher can">المدرس وحده يستطيع</h3>
+          <ul class="no">
+            <li><i data-i="x"></i><span data-en="Add or remove assistants">إضافة المساعدين أو إزالتهم</span></li>
+            <li><i data-i="x"></i><span data-en="Generate or revoke access codes">إنشاء أكواد الوصول أو إلغاؤها</span></li>
+            <li><i data-i="x"></i><span data-en="Delete a course or end a student’s access to it">حذف كورس أو إنهاء اشتراك طالب فيه</span></li>
+            <li><i data-i="x"></i><span data-en="Change academy settings and read the activity log">تغيير إعدادات الأكاديمية وقراءة سجل النشاط</span></li>
+          </ul></section>
+      </div>
+    </section>
+
+    <!-- ================= invitations (GET/POST /invitations) ================= -->
+    <section class="view v-invites" aria-labelledby="t-inv">
+      <div class="head">
+        <div><h2 id="t-inv" data-en="Invitations">الدعوات</h2><p data-en="A one-time email link; opening it proves the email and joins the academy">رابط يُستخدم مرة واحدة بالإيميل، فتحه يؤكد الإيميل ويضيف الشخص للأكاديمية</p></div>
+        <div class="toolbar"><button class="btn" type="button" data-toggle-form="inv-form"><i data-i="plus"></i><span data-en="New invitation">دعوة جديدة</span></button></div>
+      </div>
+      <form class="panel form-panel" id="inv-form" hidden novalidate aria-label="دعوة جديدة" data-en-aria-label="New invitation">
+        <div class="grid3">
+          <div class="field"><label class="label" for="inv-email" data-en="Email">الإيميل</label><input class="input" id="inv-email" type="email" dir="ltr" placeholder="name@example.com" required aria-describedby="err-inv"><span class="err" id="err-inv" data-en="Write a valid email.">اكتب إيميلًا صحيحًا.</span></div>
+          <div class="field"><span class="label" data-en="Joins as">ينضم بصفة</span>
+            <div class="seg" role="group" aria-label="الدور" data-en-aria-label="Role" id="inv-role"><button type="button" aria-pressed="true" data-role="student" data-en="Student">طالب</button><button type="button" aria-pressed="false" data-role="assistant" class="t-only" data-en="Assistant">مساعد</button></div></div>
+          <div class="field" id="inv-courses"><span class="label" data-en="Courses to open">الكورسات التي تُفتح له</span>
+            <div class="checks"><label><input type="checkbox" checked><span data-en="Term 1">الترم الأول</span></label><label><input type="checkbox"><span data-en="Term 2">الترم الثاني</span></label></div></div>
+        </div>
+        <p class="hint" id="inv-hint" data-en="If the student is under 18, the guardian’s consent is asked for during sign-up.">إذا كان الطالب أقل من ١٨ سنة، تُطلب موافقة ولي الأمر أثناء التسجيل.</p>
+        <div class="acts"><button class="btn btn-ghost" type="button" data-toggle-form="inv-form" data-en="Cancel">إلغاء</button><button class="btn" type="submit"><span data-en="Send invitation">أرسل الدعوة</span></button></div>
+      </form>
+      <section class="panel">
+        <div class="tbl-wrap">
+          <table class="tbl" style="min-width:700px">
+            <thead><tr><th scope="col" data-en="Email">الإيميل</th><th scope="col" data-en="Role">الدور</th><th scope="col" data-en="Courses">الكورسات</th><th scope="col" data-en="Sent">أُرسلت</th><th scope="col" data-en="Status">الحالة</th><th scope="col"><span class="sr-only" data-en="Actions">إجراءات</span></th></tr></thead>
+            <tbody>
+              <tr><td dir="ltr" style="text-align:start">salma.new@mail.example</td><td data-en="Student">طالب</td><td class="muted" data-en="Term 1, Term 2">الترم الأول، الترم الثاني</td><td class="muted" data-en="2 days ago">منذ يومين</td><td><span class="chip warn" data-en="Waiting · 5 days left">بانتظار القبول · باقٍ ٥ أيام</span></td><td><span class="toolbar"><button class="btn btn-sm btn-light" type="button" data-toast-msg="resent" data-en="Resend">أعد الإرسال</button><button class="btn btn-sm btn-ghost" type="button" data-toast-msg="revoked" data-en="Cancel">ألغِ</button></span></td></tr>
+              <tr><td dir="ltr" style="text-align:start">hassan@itqan.example</td><td data-en="Assistant">مساعد</td><td class="muted">—</td><td class="muted" data-en="Last week">الأسبوع الماضي</td><td><span class="chip ok" data-en="Accepted">قُبلت</span></td><td></td></tr>
+              <tr><td dir="ltr" style="text-align:start">adam.m@mail.example</td><td data-en="Student">طالب</td><td class="muted" data-en="Term 1">الترم الأول</td><td class="muted" data-en="12 Oct">١٢ أكتوبر</td><td><span class="chip off" data-en="Expired">انتهت</span></td><td><button class="btn btn-sm btn-light" type="button" data-toast-msg="resent" data-en="Send again">أرسل من جديد</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- ================= access codes (GET/POST /code-batches) ================= -->
+    <section class="view v-codes" aria-labelledby="t-codes">
+      <div class="head">
+        <div><h2 id="t-codes" data-en="Access codes">أكواد الوصول</h2><p data-en="Each code opens one course for one student, once. Sell them printed with your booklets.">كل كود يفتح كورسًا واحدًا لطالب واحد مرة واحدة. بِعها مطبوعة مع الملازم.</p></div>
+        <div class="toolbar t-only"><button class="btn" type="button" data-toggle-form="code-form"><i data-i="plus"></i><span data-en="Generate codes">أنشئ أكوادًا</span></button></div>
+      </div>
+      <form class="panel form-panel t-only" id="code-form" hidden novalidate aria-label="دفعة أكواد جديدة" data-en-aria-label="New code batch">
+        <div class="grid3">
+          <div class="field"><span class="label" data-en="Course">الكورس</span><div class="checks"><label><input type="radio" name="code-course" checked><span data-en="Term 1">الترم الأول</span></label><label><input type="radio" name="code-course"><span data-en="Term 2">الترم الثاني</span></label></div></div>
+          <div class="field"><label class="label" for="code-n" data-en="How many codes">عدد الأكواد</label><input class="input num" id="code-n" type="number" min="1" max="500" value="200" aria-describedby="code-hint"><span class="hint" id="code-hint" data-en="Up to 500 in one batch">حتى ٥٠٠ في الدفعة الواحدة</span></div>
+          <div class="field"><label class="label" for="code-label" data-en="Batch name">اسم الدفعة</label><input class="input" id="code-label" placeholder="مثال: ملزمة نوفمبر" data-en-placeholder="e.g. November booklet"></div>
+        </div>
+        <div class="warn-box"><i data-i="triangle-alert"></i><span data-en="The codes download once as a CSV file and are never emailed or shown again. Keep the file safe; a lost file means revoking the unused codes.">تُحمَّل الأكواد مرة واحدة كملف CSV، ولا تُرسل بالإيميل ولا تظهر مرة أخرى. احفظ الملف جيدًا؛ ضياعه يعني إلغاء الأكواد غير المستخدمة.</span></div>
+        <div class="acts"><button class="btn btn-ghost" type="button" data-toggle-form="code-form" data-en="Cancel">إلغاء</button><button class="btn" type="submit"><i data-i="download"></i><span data-en="Generate and download CSV">أنشئ وحمّل CSV</span></button></div>
+      </form>
+      <section class="panel">
+        <div class="tbl-wrap">
+          <table class="tbl" style="min-width:700px">
+            <thead><tr><th scope="col" data-en="Batch">الدفعة</th><th scope="col" data-en="Course">الكورس</th><th scope="col" data-en="Used">المستخدم</th><th scope="col" data-en="Created">أُنشئت</th><th scope="col" data-en="Status">الحالة</th><th scope="col"><span class="sr-only" data-en="Actions">إجراءات</span></th></tr></thead>
+            <tbody>
+              <tr><td><b data-en="November booklet">ملزمة نوفمبر</b></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="143 / 200"><i style="--p:72%"></i></span><span class="num" data-en="143 / 200">١٤٣ / ٢٠٠</span></span></td><td class="muted" data-en="1 Nov">١ نوفمبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
+              <tr><td><b data-en="Term 2 launch">إطلاق الترم الثاني</b></td><td class="muted" data-en="Term 2">الترم الثاني</td><td><span class="att"><span class="meter" role="img" aria-label="188 / 300"><i style="--p:63%"></i></span><span class="num" data-en="188 / 300">١٨٨ / ٣٠٠</span></span></td><td class="muted" data-en="15 Oct">١٥ أكتوبر</td><td><span class="chip ok" data-en="On sale">متاحة للبيع</span></td><td><button class="btn btn-sm btn-light t-only" type="button" data-toast-msg="codesRevoked" data-en="Revoke unused">ألغِ غير المستخدم</button></td></tr>
+              <tr><td><b data-en="September trial">تجربة سبتمبر</b></td><td class="muted" data-en="Term 1">الترم الأول</td><td><span class="att"><span class="meter" role="img" aria-label="71 / 100"><i style="--p:71%"></i></span><span class="num" data-en="71 / 100">٧١ / ١٠٠</span></span></td><td class="muted" data-en="2 Sep">٢ سبتمبر</td><td><span class="chip off" data-en="Unused revoked">أُلغي غير المستخدم</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<dialog id="staff-dlg" aria-labelledby="t-sd">
+  <form method="dialog" novalidate id="staff-form">
+    <h2 id="t-sd" data-en="Add an assistant">أضف مساعدًا</h2>
+    <div class="field"><label class="label" for="sd-name" data-en="Full name">الاسم بالكامل</label><input class="input" id="sd-name" required minlength="3" aria-describedby="err-sdn"><span class="err" id="err-sdn" data-en="Write the assistant’s name.">اكتب اسم المساعد.</span></div>
+    <div class="field"><label class="label" for="sd-email" data-en="Email">الإيميل</label><input class="input" id="sd-email" type="email" dir="ltr" required aria-describedby="err-sde"><span class="err" id="err-sde" data-en="Write a valid email that is not used yet.">اكتب إيميلًا صحيحًا غير مستخدم.</span></div>
+    <div class="field"><label class="label" for="sd-pass" data-en="First password">كلمة سر أولى</label><input class="input" id="sd-pass" type="text" dir="ltr" required minlength="12" aria-describedby="hint-sdp err-sdp"><span class="hint" id="hint-sdp" data-en="12 characters or more. They must change it at their first sign-in.">١٢ حرفًا أو أكثر، ويُطلب منه تغييرها عند أول دخول.</span><span class="err" id="err-sdp" data-en="Use at least 12 characters.">استخدم ١٢ حرفًا على الأقل.</span></div>
+    <div class="acts"><button class="btn btn-ghost" type="button" data-close-dlg data-en="Cancel">إلغاء</button><button class="btn" type="submit"><span data-en="Add assistant">أضف المساعد</span></button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="students" aria-pressed="true" data-en="Students">الطلاب</button>
+  <button type="button" data-state="staff" aria-pressed="false" data-en="Staff">الطاقم</button>
+  <button type="button" data-state="invites" aria-pressed="false" data-en="Invitations">الدعوات</button>
+  <button type="button" data-state="codes" aria-pressed="false" data-en="Codes">الأكواد</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="As assistant">كمساعد</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="No students">بلا طلاب</button>
+  <button type="button" data-state="loading" aria-pressed="false" data-en="Loading">تحميل</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e}" data-ar="${a}">${isEn() ? e : a}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+  // consent: adult | given | pending | withdrawn  (guardian_consents, FR-A06)
+  const students = [
+    { id: 's1', n: ['يوسف أحمد', 'Youssef Ahmed'], e: 'youssef@mail.example', c: 2, dev: [1, 1], req: true, consent: 'given', cm: ['بالإيميل · ٣ سبتمبر ٢٠٢٥ · الأب: أحمد علي', 'By email · 3 Sep 2025 · father: Ahmed Ali'], st: 'active', seen: ['منذ ١٢ دقيقة', '12 min ago'] },
+    { id: 's2', n: ['عمر حسن', 'Omar Hassan'], e: 'omar@mail.example', c: 1, dev: [1, 1], consent: 'pending', cm: ['أُرسل الطلب لولي الأمر أمس', 'Request sent to the guardian yesterday'], st: 'active', seen: ['أمس', 'Yesterday'] },
+    { id: 's3', n: ['ليلى عادل', 'Laila Adel'], e: 'laila@mail.example', c: 1, dev: [1, 1], consent: 'withdrawn', cm: ['سحبت الأم الموافقة · ١٠ نوفمبر', 'Mother withdrew consent · 10 Nov'], st: 'active', seen: ['منذ ٨ أيام', '8 days ago'] },
+    { id: 's4', n: ['مريم خالد', 'Mariam Khaled'], e: 'mariam@mail.example', c: 2, dev: [1, 1], consent: 'adult', st: 'active', seen: ['اليوم', 'Today'] },
+    { id: 's5', n: ['سلمى إبراهيم', 'Salma Ibrahim'], e: 'salma@mail.example', c: 3, dev: [1, 2], consent: 'adult', st: 'active', seen: ['اليوم', 'Today'] },
+    { id: 's6', n: ['كريم محمود', 'Karim Mahmoud'], e: 'karim.m@mail.example', c: 1, dev: [0, 1], consent: 'given', cm: ['استمارة ورقية رقم ١١٤ · ٢ أكتوبر', 'Paper form #114 · 2 Oct'], st: 'suspended', seen: ['منذ شهر', 'A month ago'] },
+    { id: 's7', n: ['نور الهدى سعيد', 'Nour Elhoda Saeed'], e: 'nour.s@mail.example', c: 1, dev: [0, 1], consent: 'adult', st: 'pending', seen: ['لم يدخل بعد', 'Not yet'] },
+    { id: 's8', n: ['آدم مصطفى', 'Adam Mostafa'], e: 'adam.m@mail.example', c: 2, dev: [1, 1], consent: 'adult', st: 'active', seen: ['منذ ساعتين', '2 hours ago'] },
+  ];
+  const CONS = { adult: ['off', '١٨ سنة أو أكثر', '18 or older'], given: ['ok', 'موافق', 'Consent given'], pending: ['warn', 'بانتظار ولي الأمر', 'Waiting for guardian'], withdrawn: ['bad', 'سُحبت الموافقة', 'Consent withdrawn'] };
+  const ACC = { active: ['ok', 'نشط', 'Active'], suspended: ['off', 'موقوف', 'Suspended'], pending: ['warn', 'لم يؤكد الإيميل', 'Email not confirmed'] };
+  const attention = (s) => s.req || s.consent === 'pending' || s.consent === 'withdrawn';
+  let current = 's1';
+
+  document.getElementById('s-rows').innerHTML = students.map((s) => `
+    <tr data-id="${s.id}" data-st="${s.st}" data-attn="${attention(s)}" data-minor="${s.consent !== 'adult'}" data-name="${s.n[0]} ${s.n[1].toLowerCase()} ${s.e}">
+      <td><span class="who"><span class="avatar av-student" aria-hidden="true">${s.n[0][0]}</span><span><b><button type="button" data-pick="${s.id}">${t(s.n[0], s.n[1])}</button></b><small>${s.e}</small></span></span></td>
+      <td class="num">${t(ar(s.c), String(s.c))}</td>
+      <td><span class="dev">${ic('smartphone')}<span class="num">${t(`${ar(s.dev[0])} / ${ar(s.dev[1])}`, `${s.dev[0]} / ${s.dev[1]}`)}</span>${s.req ? `<span class="chip bad">${t('طلب جهاز', 'Device request')}</span>` : ''}</span></td>
+      <td><span class="chip ${CONS[s.consent][0]}">${t(CONS[s.consent][1], CONS[s.consent][2])}</span></td>
+      <td><span class="chip ${ACC[s.st][0]}">${t(ACC[s.st][1], ACC[s.st][2])}</span><small class="seen">${t(...s.seen)}</small></td>
+    </tr>`).join('');
+
+  function renderProfile() {
+    const s = students.find((x) => x.id === current);
+    document.querySelectorAll('#s-rows tr').forEach((r) => r.classList.toggle('sel', r.dataset.id === current));
+    const blocked = s.consent === 'pending' || s.consent === 'withdrawn';
+    const consentBox = {
+      adult: `<div class="consent na"><b>${ic('user-round')}${t('الطالب ١٨ سنة أو أكثر', 'The student is 18 or older')}</b><p>${t('لا تلزم موافقة ولي الأمر.', 'No guardian consent is needed.')}</p></div>`,
+      given: `<div class="consent ok"><b>${ic('check')}${t('موافقة ولي الأمر مسجلة', 'Guardian consent recorded')}</b><p>${t(...s.cm || ['', ''])}</p><p>${t('الموافقة تخص الطالب نفسه، فتفتح له كل الأكاديميات المسجل بها.', 'Consent belongs to the student, so it opens every academy they are in.')}</p>
+        <div class="row-btns"><button class="btn btn-sm btn-light" type="button" data-toast-msg="withdrawn">${t('سجّل سحب الموافقة', 'Record a withdrawal')}</button></div></div>`,
+      pending: `<div class="consent wait"><b>${ic('clock-3')}${t('بانتظار موافقة ولي الأمر', 'Waiting for the guardian')}</b><p>${t(...s.cm)}. ${t('حتى يوافق، لا يفتح الطالب المحتوى ولا الاختبارات.', 'Until then the student cannot open content or quizzes.')}</p>
+        <div class="row-btns"><button class="btn btn-sm" type="button" data-toast-msg="consentSent">${ic('refresh-cw')}${t('أرسل الطلب مرة أخرى', 'Send the request again')}</button><button class="btn btn-sm btn-light" type="button" data-offline>${t('سجّل موافقة ورقية', 'Record a paper form')}</button></div></div>`,
+      withdrawn: `<div class="consent stop"><b>${ic('triangle-alert')}${t('ولي الأمر سحب الموافقة', 'The guardian withdrew consent')}</b><p>${t(...s.cm)}. ${t('أُغلق وصول الطالب في كل الأكاديميات.', 'Access is closed in every academy.')}</p>
+        <div class="row-btns"><button class="btn btn-sm" type="button" data-toast-msg="consentSent">${t('اطلب موافقة جديدة', 'Ask for consent again')}</button><button class="btn btn-sm btn-light" type="button" data-offline>${t('سجّل موافقة ورقية', 'Record a paper form')}</button></div></div>`,
+    }[s.consent];
+    document.getElementById('profile').innerHTML = `
+      <div class="p-top">
+        <div class="p-id"><span class="avatar av-student" aria-hidden="true">${s.n[0][0]}</span><span><b>${t(s.n[0], s.n[1])}</b>
+          <small><span class="mail">${s.e}</span>${s.st === 'pending' ? `<span class="chip warn">${t('لم يؤكد الإيميل', 'Email not confirmed')}</span>` : `<span class="chip ok">${t('إيميل مؤكد', 'Email confirmed')}</span>`}${blocked ? `<span class="chip bad">${t('الوصول مغلق', 'Access closed')}</span>` : ''}</small></span></div>
+        <div class="p-acts">
+          <button class="btn btn-sm btn-light" type="button" data-toast-msg="${s.st === 'suspended' ? 'reactivated' : 'suspended'}">${ic(s.st === 'suspended' ? 'rotate-ccw' : 'lock')}${s.st === 'suspended' ? t('أعد تفعيل الحساب', 'Reactivate account') : t('أوقف الحساب', 'Suspend account')}</button>
+          <button class="btn btn-sm btn-light" type="button" data-toast-msg="signedOut">${ic('log-out')}${t('أخرجه من كل الأجهزة', 'Sign out everywhere')}</button>
+        </div>
+      </div>
+      <div class="p-sec"><h4>${ic('book-open')}${t('الكورسات', 'Courses')}<button class="btn btn-sm btn-ghost right" type="button" style="min-height:32px">${t('+ أضف كورسًا', '+ Add a course')}</button></h4>
+        <div class="line"><span class="kind">${ic('book-open')}</span><div><b>${t('الفيزياء · الترم الأول', 'Physics, term 1')}</b><small>${t('بكود وصول · منذ ٢ سبتمبر', 'Access code · since 2 Sep')}</small></div><button class="btn btn-light t-only" type="button" data-toast-msg="ended">${t('أنهِ الاشتراك', 'End access')}</button></div>
+        ${s.c > 1 ? `<div class="line"><span class="kind">${ic('book-open')}</span><div><b>${t('الفيزياء · الترم الثاني', 'Physics, term 2')}</b><small>${t('بدعوة · منذ ١٥ أكتوبر', 'Invitation · since 15 Oct')}</small></div><button class="btn btn-light t-only" type="button" data-toast-msg="ended">${t('أنهِ الاشتراك', 'End access')}</button></div>` : ''}
+        <p class="hint">${t('إنهاء الاشتراك يُبقي السجل والدرجات.', 'Ending access keeps the history and grades.')}</p>
+      </div>
+      <div class="p-sec"><h4>${ic('smartphone')}${t('الأجهزة', 'Devices')}<span class="right">${t('الحد', 'Limit')}
+          <span class="stepper" style="margin-inline-start:8px"><button type="button" data-step="-1" aria-label="${isEn() ? 'Fewer devices' : 'أجهزة أقل'}">−</button><output class="num" id="maxdev" data-en="${s.dev[1]}" data-ar="${ar(s.dev[1])}">${isEn() ? s.dev[1] : ar(s.dev[1])}</output><button type="button" data-step="1" aria-label="${isEn() ? 'More devices' : 'أجهزة أكثر'}">+</button></span></span></h4>
+        ${s.dev[0] ? `<div class="line"><span class="kind">${ic('smartphone')}</span><div><b>${t('Chrome على Windows', 'Chrome on Windows')}</b><small>${t('معتمد · آخر ظهور ' + s.seen[0], 'Approved · last seen ' + s.seen[1].toLowerCase())}</small></div><button class="btn btn-light" type="button" data-toast-msg="revoked">${t('ألغِ الجهاز', 'Revoke')}</button></div>` : `<p class="hint">${t('لا أجهزة مسجلة.', 'No devices yet.')}</p>`}
+        ${s.req ? `<div class="line pend"><span class="kind">${ic('smartphone')}</span><div><b>${t('Safari على iPhone', 'Safari on iPhone')}</b><small>${t('طلب تغيير جهاز · «موبايلي اتكسر»', 'Device change request · “my phone broke”')}</small></div><button class="btn" type="button" data-toast-msg="approved">${t('اقبل', 'Approve')}</button></div>
+          <p class="hint">${t('القبول يلغي الجهاز القديم وينهي جلساته.', 'Approving revokes the old device and ends its sessions.')}</p>` : ''}
+      </div>
+      <div class="p-sec"><h4>${ic('user-round')}${t('ولي الأمر', 'Guardian')}</h4>${consentBox}
+        <form class="offline" id="offline" hidden novalidate>
+          <div class="two">
+            <label><span>${t('اسم ولي الأمر', 'Guardian name')}</span><input class="input" required></label>
+            <label><span>${t('صلة القرابة', 'Relationship')}</span><input class="input" placeholder="${isEn() ? 'Father, mother…' : 'الأب، الأم…'}"></label>
+            <label><span>${t('تاريخ التوقيع', 'Date signed')}</span><input class="input" type="date"></label>
+            <label><span>${t('رقم الاستمارة', 'Form reference')}</span><input class="input" placeholder="${isEn() ? 'e.g. Form #114, office file' : 'مثال: استمارة ١١٤، ملف المكتب'}"></label>
+          </div>
+          <p class="hint">${t('لا تُرفع صورة الاستمارة؛ يُحفظ رقمها فقط. هذا الإجراء يُسجَّل في سجل النشاط.', 'No scan is uploaded; only its reference is kept. This goes into the activity log.')}</p>
+          <div class="p-acts"><button class="btn btn-sm" type="submit">${t('سجّل الموافقة', 'Record consent')}</button><button class="btn btn-sm btn-ghost" type="button" data-offline>${t('إلغاء', 'Cancel')}</button></div>
+        </form>
+      </div>
+      <div class="p-sec"><h4>${ic('award')}${t('آخر الدرجات', 'Latest grades')}</h4>
+        <div class="grades"><div><span>${t('اختبار قصير: قانون أوم', 'Short quiz: Ohm’s law')}</span><b class="num">${t('٩ / ١٠', '9 / 10')}</b></div><div><span>${t('اختبار الفصل الأول', 'Chapter 1 test')}</span><b class="num">${t('١٧ / ٢٠', '17 / 20')}</b></div><div><span>${t('امتحان شامل: الترم الأول', 'Full exam: term 1')}</span><span class="muted">${t('لم تُعلن بعد', 'Not released yet')}</span></div></div>
+      </div>`;
+  }
+  renderProfile();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const setState = window.itqanSetState;
+  renderProfile(); // again, now that the saved language is applied
+  const toast = (a, e) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2800); };
+  const MSG = {
+    resent: ['أُعيد إرسال الدعوة', 'Invitation sent again'], revoked: ['أُلغي', 'Revoked'], codesRevoked: ['أُلغيت الأكواد غير المستخدمة', 'Unused codes revoked'],
+    withdrawn: ['سُجّل سحب الموافقة وأُغلق الوصول', 'Withdrawal recorded; access closed'], consentSent: ['أُرسل الطلب لإيميل ولي الأمر', 'Request sent to the guardian’s email'],
+    suspended: ['أُوقف الحساب وانتهت جلساته', 'Account suspended; sessions ended'], reactivated: ['أُعيد تفعيل الحساب', 'Account reactivated'],
+    signedOut: ['خرج الطالب من كل الأجهزة، وأجهزته باقية', 'Signed out everywhere; devices kept'], ended: ['أُنهي الاشتراك وبقيت الدرجات', 'Access ended; grades kept'],
+    approved: ['قُبل الجهاز الجديد وأُلغي القديم', 'New device approved; old one revoked'],
+  };
+  const pressIn = (group, btn) => group.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+  const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, a');
+    const row = e.target.closest('#s-rows tr');
+    if (row && !b?.matches('a')) { current = row.dataset.id; renderProfile(); if (innerWidth < 1150) document.getElementById('profile').scrollIntoView({ behavior: 'smooth' }); }
+    if (!b) return;
+    if (b.dataset.go) { setState(b.dataset.go); if (b.hasAttribute('data-open-invite')) document.getElementById('inv-form').hidden = false; }
+    if (b.dataset.toastMsg) toast(...MSG[b.dataset.toastMsg]);
+    if (b.dataset.toggleForm) { const f = document.getElementById(b.dataset.toggleForm); f.hidden = !f.hidden; if (!f.hidden) f.querySelector('input')?.focus(); }
+    if (b.hasAttribute('data-offline')) { const f = document.getElementById('offline'); f.hidden = !f.hidden; if (!f.hidden) f.querySelector('input').focus(); }
+    if (b.dataset.step) { const s = students.find((x) => x.id === current); s.dev[1] = Math.min(10, Math.max(1, s.dev[1] + +b.dataset.step)); const o = document.getElementById('maxdev'); o.dataset.en = String(s.dev[1]); o.dataset.ar = ar(s.dev[1]); o.textContent = isEn() ? s.dev[1] : ar(s.dev[1]); }
+    if (b.dataset.role) { pressIn(b.parentElement, b); const st = b.dataset.role === 'student'; document.getElementById('inv-courses').hidden = !st;
+      document.getElementById('inv-hint').innerHTML = st ? t('إذا كان الطالب أقل من ١٨ سنة، تُطلب موافقة ولي الأمر أثناء التسجيل.', 'If the student is under 18, the guardian’s consent is asked for during sign-up.') : t('المساعد يختار كلمة سر من ١٢ حرفًا على الأقل عند القبول.', 'The assistant picks a password of 12+ characters when accepting.'); }
+    if (b.hasAttribute('data-add-staff')) document.getElementById('staff-dlg').showModal();
+    if (b.hasAttribute('data-close-dlg')) document.getElementById('staff-dlg').close();
+    if (b.hasAttribute('data-remove')) { b.closest('tr').remove(); toast('أُزيل المساعد وانتهت جلساته هنا', 'Assistant removed; their sessions here ended'); }
+  });
+
+  // forms with field errors under each field
+  const check = (input, ok) => { input.setAttribute('aria-invalid', String(!ok)); const err = document.getElementById(input.getAttribute('aria-describedby')?.split(' ').find((x) => x.startsWith('err-'))); err?.classList.toggle('show', !ok); return ok; };
+  document.getElementById('inv-form').addEventListener('submit', (e) => { e.preventDefault(); const m = document.getElementById('inv-email'); if (!check(m, isEmail(m.value))) return m.focus(); e.target.hidden = true; e.target.reset(); toast(`أُرسلت الدعوة إلى ${m.value || ''}`.trim(), 'Invitation sent'); });
+  document.getElementById('code-form').addEventListener('submit', (e) => { e.preventDefault(); e.target.hidden = true; toast('أُنشئت الدفعة وبدأ تحميل ملف CSV', 'Batch created; the CSV download started'); });
+  document.getElementById('staff-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = document.getElementById('sd-name'), m = document.getElementById('sd-email'), p = document.getElementById('sd-pass');
+    const ok = [check(n, n.value.trim().length >= 3), check(m, isEmail(m.value)), check(p, p.value.length >= 12)];
+    if (ok.includes(false)) return [n, m, p][ok.indexOf(false)].focus();
+    document.getElementById('staff-dlg').close(); e.target.reset(); toast('أُضيف المساعد؛ سيغيّر كلمة السر عند أول دخول', 'Assistant added; they change the password at first sign-in');
+  });
+  document.addEventListener('submit', (e) => { if (e.target.id === 'offline') { e.preventDefault(); e.target.hidden = true; toast('سُجّلت الموافقة الورقية وفُتح الوصول', 'Paper consent recorded; access opened'); } });
+
+  // filters
+  const filter = () => {
+    const q = document.getElementById('find').value.trim().toLowerCase(), f = document.querySelector('#f-st [aria-selected="true"]').dataset.value;
+    document.querySelectorAll('#s-rows tr').forEach((r) => {
+      const okF = f === 'all' || (f === 'attention' && r.dataset.attn === 'true') || (f === 'minor' && r.dataset.minor === 'true') || r.dataset.st === f;
+      r.hidden = !okF || (q && !r.dataset.name.includes(q));
+    });
+  };
+  document.getElementById('find').addEventListener('input', filter);
+  document.getElementById('f-st').addEventListener('dd:change', filter);
+
+  // tabs and the assistant preview
+  document.addEventListener('itqan:state', (e) => {
+    const tab = e.detail === 'assistant' || e.detail === 'empty' || e.detail === 'loading' ? 'students' : e.detail;
+    document.querySelectorAll('.tabs-top button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.go === tab)));
+    const asA = e.detail === 'assistant', set = (id, a, en) => { const el = document.getElementById(id); el.dataset.ar = a; el.dataset.en = en; el.textContent = isEn() ? en : a; };
+    set('me-name', asA ? 'نور عادل' : 'أ. كريم سامي', asA ? 'Nour Adel' : 'Mr. Karim Samy');
+    set('me-role', asA ? 'مساعدة' : 'مدرس', asA ? 'Assistant' : 'Teacher');
+    document.getElementById('me-av').textContent = asA ? 'ن' : 'ك';
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(renderProfile)));
+</script>
+</body>
+</html>

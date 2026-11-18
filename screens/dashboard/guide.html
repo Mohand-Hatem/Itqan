@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كيف تعمل اللوحة · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff guide: the dashboard cycle for the teacher and assistants, from setting up the academy to releasing grades. The source of truth for how the dashboard is used.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; align-items: end; margin-top: 24px; }
+  .intro h2 { font-size: clamp(28px, 3vw, 38px); font-weight: 800; }
+  .intro p { color: var(--ink-2); font-size: 16px; max-width: 62ch; margin-top: 8px; }
+  .legend { display: flex; gap: 8px; flex-wrap: wrap; }
+  .role { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; padding-inline: 4px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: var(--paper); box-shadow: var(--shadow); }
+  .role .avatar { width: 28px; height: 28px; border-width: 1.5px; }
+  .role.both { padding-inline: 4px 12px; }
+  .role.both .avatar + .avatar { margin-inline-start: -10px; }
+
+  /* the cycle */
+  .cycle { margin-top: 22px; padding: 22px; }
+  .cycle ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; position: relative; }
+  .cycle ol::before { content: ""; position: absolute; top: 25px; inset-inline: 8%; border-top: 2px dashed #D9C69A; z-index: 0; }
+  .cycle li { position: relative; z-index: 1; }
+  .cycle a { display: grid; justify-items: center; gap: 8px; text-align: center; text-decoration: none; color: var(--ink); padding: 4px; border-radius: 14px; }
+  .cycle a:hover .n { background: var(--sun); transform: translateY(-2px); }
+  .cycle .n { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); border: 2px solid var(--ink); font-family: var(--f-display); font-weight: 800; font-size: 20px; transition: background-color .18s, transform .18s var(--ease-out); }
+  .cycle b { font-size: 14px; line-height: 1.35; }
+  .cycle small { font-size: 12px; color: var(--ink-2); }
+  .loop { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .loop svg { width: 17px; height: 17px; }
+
+  /* steps */
+  .steps { display: grid; margin-top: 12px; }
+  .step { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: center; padding: 34px 4px; border-bottom: 2px dashed #E3D3AE; scroll-margin-top: 16px; }
+  .step:last-child { border-bottom: 0; }
+  .step:nth-child(even) .shot { order: -1; }
+  .s-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .s-top .n { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--sun); font-family: var(--f-display); font-weight: 800; font-size: 19px; flex: none; }
+  .step h3 { font-size: 23px; font-weight: 800; }
+  .step .lead { color: var(--ink-2); margin: 12px 0 14px; font-size: 15.5px; max-width: 56ch; }
+  .todo { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .todo li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.6; }
+  .todo li > svg { width: 20px; height: 20px; flex: none; margin-top: 3px; padding: 3px; border-radius: 50%; background: var(--mint-tint); color: #22694F; box-sizing: content-box; }
+  .todo .who-tag { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--sun-tint); color: #7A5200; margin-inline-start: 6px; vertical-align: 2px; }
+  .rule-box { display: flex; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: var(--blue-tint); color: #183A8C; font-size: 14px; }
+  .rule-box svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .go { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .go .btn { min-height: 46px; font-size: 15.5px; }
+
+  /* real UI slices, the same parts the screens use */
+  /* the slice is the one card; its rows are plain rows, never cards of their own */
+  .shot { display: grid; gap: 0; background: var(--paper); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 14px 18px; }
+  .shot .cap { padding-bottom: 8px; }
+  .shot .cap { font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .shot .cap svg { width: 15px; height: 15px; }
+  .mini { display: flex; align-items: center; gap: 10px; padding: 11px 0; font-size: 14px; border-top: 1px solid var(--line); }
+  .mini .k { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .mini .k svg { width: 17px; height: 17px; }
+  .mini b { font-weight: 600; }
+  .mini div { flex: 1; min-width: 0; }
+  .mini small { display: block; font-size: 12px; color: var(--ink-2); }
+  .mini .chip { font-size: 11.5px; min-height: 22px; }
+  .k-ch { background: var(--ink); color: var(--sun); } .k-le { background: #F3EBDA; } .k-vi { background: var(--blue-tint); color: #1F47B0; } .k-fi { background: var(--mint-tint); color: #22694F; }
+  .mini.indent { padding-inline-start: 28px; } .mini.indent2 { padding-inline-start: 56px; }
+  .sw { width: 38px; height: 22px; border-radius: 999px; border: 2px solid var(--ink); background: var(--sun); position: relative; flex: none; }
+  .sw::after { content: ""; position: absolute; top: 2px; inset-inline-end: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); }
+  .sw.off { background: var(--paper); } .sw.off::after { inset-inline-end: auto; inset-inline-start: 2px; }
+  .brand-mini { display: grid; gap: 0; padding-bottom: 12px; }
+  .brand-mini .bar { display: flex; align-items: center; gap: 8px; padding: 0 0 10px; font-family: var(--f-display); font-weight: 800; }
+  .brand-mini .bar svg { width: 28px; height: 28px; }
+  .brand-mini .hero { background: var(--sun); padding: 16px; font-family: var(--f-display); font-weight: 800; font-size: 18px; border-radius: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .ways .mini { flex-direction: column; text-align: center; padding: 14px 8px; gap: 6px; border-top: 0; }
+  .ways .mini + .mini { border-inline-start: 1px solid var(--line); }
+  .ways .mini small { font-size: 11.5px; }
+  .mini .btn { min-height: 32px; padding: 0 10px; font-size: 13px; box-shadow: 0 2px 0 var(--ink); }
+  .mini .avatar { width: 32px; height: 32px; }
+  .mini .left { font-weight: 700; color: #B8341A; font-variant-numeric: tabular-nums; }
+
+  .closing { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+  .closing h3 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+  .closing h3 .avatar { width: 36px; height: 36px; }
+  .closing ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px; }
+  .closing li { display: flex; gap: 8px; align-items: flex-start; }
+  .closing li svg { width: 17px; height: 17px; flex: none; margin-top: 4px; }
+  .closing .yes svg { color: #22694F; } .closing .no svg { color: #B8341A; }
+
+  @media (max-width: 1100px) { .step { grid-template-columns: minmax(0, 1fr); } .step:nth-child(even) .shot { order: 0; } .cycle ol { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 18px; } .cycle ol::before { display: none; } }
+  @media (max-width: 680px) { .intro { grid-template-columns: 1fr; } .step { padding: 26px 0; } .closing { grid-template-columns: 1fr; } .ways { grid-template-columns: 1fr; } .ways .mini + .mini { border-inline-start: 0; border-top: 1px solid var(--line); } .mini.indent2 { padding-inline-start: 28px; } }
+</style>
+</head>
+<body data-page="guide" data-unread="3" data-title-en="How the dashboard works · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="How it works">كيف تعمل اللوحة</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <h2 data-en="From an empty academy to released grades">من أكاديمية فارغة حتى إعلان الدرجات</h2>
+        <p data-en="Six steps the teacher and assistants repeat all year. Each step says who does it, what to do, the rule behind it, and which screen to open.">ست خطوات يكررها المدرس والمساعدون طوال العام. كل خطوة تقول من يقوم بها، وماذا يفعل، والقاعدة التي تحكمها، وأي شاشة يفتح.</p>
+      </div>
+      <div class="legend" aria-label="الأدوار" data-en-aria-label="Roles">
+        <span class="role"><span class="avatar av-teacher" aria-hidden="true">ك</span><span data-en="Teacher">المدرس</span></span>
+        <span class="role"><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Assistant">المساعد</span></span>
+        <span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span>
+      </div>
+    </section>
+
+    <nav class="panel cycle" aria-label="دورة العمل" data-en-aria-label="The cycle">
+      <ol>
+        <li><a href="#s1"><span class="n" data-en="1">١</span><b data-en="Set up the academy">جهّز الأكاديمية</b><small data-en="Teacher · once">المدرس · مرة واحدة</small></a></li>
+        <li><a href="#s2"><span class="n" data-en="2">٢</span><b data-en="Build the course">ابنِ الكورس</b><small data-en="Both">الاثنان</small></a></li>
+        <li><a href="#s3"><span class="n" data-en="3">٣</span><b data-en="Prepare the quizzes">جهّز الاختبارات</b><small data-en="Both">الاثنان</small></a></li>
+        <li><a href="#s4"><span class="n" data-en="4">٤</span><b data-en="Bring the students in">أدخل الطلاب</b><small data-en="Both">الاثنان</small></a></li>
+        <li><a href="#s5"><span class="n" data-en="5">٥</span><b data-en="Follow up every day">تابع يوميًا</b><small data-en="Both">الاثنان</small></a></li>
+        <li><a href="#s6"><span class="n" data-en="6">٦</span><b data-en="Exam day and grades">يوم الاختبار والدرجات</b><small data-en="Both">الاثنان</small></a></li>
+      </ol>
+      <p class="loop"><i data-i="refresh-cw"></i><span data-en="Steps 2 to 6 repeat with every new chapter, until the term ends.">الخطوات من ٢ إلى ٦ تتكرر مع كل فصل جديد حتى نهاية الترم.</span></p>
+    </nav>
+
+    <div class="steps">
+      <!-- 1 -->
+      <section class="step" id="s1" aria-labelledby="h1">
+        <div>
+          <div class="s-top"><span class="n" data-en="1">١</span><h3 id="h1" data-en="Set up the academy">جهّز الأكاديمية</h3><span class="role"><span class="avatar av-teacher" aria-hidden="true">ك</span><span data-en="Teacher only">المدرس فقط</span></span></div>
+          <p class="lead" data-en="Done once, before the first student signs up. Students see this on your website and in every email.">مرة واحدة قبل أن يسجّل أول طالب. هذا ما يراه الطلاب في موقعك وفي كل إيميل.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="Add the academy name, logo and two colours.">أضف اسم الأكاديمية والشعار ولونين.</span></li>
+            <li><i data-i="check"></i><span data-en="Write the home page headline and the About pages.">اكتب عنوان الصفحة الرئيسية وصفحات التعريف.</span></li>
+            <li><i data-i="check"></i><span data-en="Choose how many devices each new student gets (1 to 5).">اختر عدد الأجهزة لكل طالب جديد (من ١ إلى ٥).</span></li>
+            <li><i data-i="check"></i><span data-en="Add your assistants. They change their first password at the first sign-in.">أضف مساعديك، ويغيّرون كلمة السر الأولى عند أول دخول.</span></li>
+          </ul>
+          <div class="go"><a class="btn" href="profile.html#academy"><i data-i="palette"></i><span data-en="Open academy settings">افتح إعدادات الأكاديمية</span></a><a class="btn btn-light" href="accounts.html"><i data-i="user-round-plus"></i><span data-en="Add an assistant">أضف مساعدًا</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="globe"></i><span data-en="What a student sees">ما يراه الطالب</span></span>
+          <div class="mini brand-mini"><div class="bar" id="mini-logo"><span data-en="Physics with Mr. Karim">الفيزياء مع أ. كريم</span></div><div class="hero" data-en="Physics gets easier, step by step">الفيزياء تبقى أسهل خطوة بخطوة</div></div>
+          <div class="mini"><span class="avatar av-assistant">ن</span><div><b data-en="Nour Adel">نور عادل</b><small data-en="Assistant · must change password">مساعدة · يجب تغيير كلمة السر</small></div><span class="chip warn" data-en="New">جديد</span></div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="step" id="s2" aria-labelledby="h2">
+        <div>
+          <div class="s-top"><span class="n" data-en="2">٢</span><h3 id="h2" data-en="Build the course">ابنِ الكورس</h3><span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span></div>
+          <p class="lead" data-en="A course is a tree: chapters, then lectures or folders, then the videos, files and quiz links inside them.">الكورس شجرة: فصول، ثم محاضرات أو مجلدات، ثم الفيديوهات والملفات وروابط الاختبارات بداخلها.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="Create the course. It starts as a draft that students cannot see.">أنشئ الكورس، ويبدأ مسودة لا يراها الطلاب.</span></li>
+            <li><i data-i="check"></i><span data-en="Add chapters and lectures, up to 5 levels deep.">أضف الفصول والمحاضرات حتى ٥ مستويات.</span></li>
+            <li><i data-i="check"></i><span data-en="Upload MP4 videos (up to 5 GB) and PDF, Word or slides (up to 100 MB). Mark each file view only or downloadable.">ارفع فيديو MP4 (حتى ٥ ج.ب) وملفات PDF أو Word أو عرض (حتى ١٠٠ م.ب)، واجعل كل ملف للعرض فقط أو قابلًا للتحميل.</span></li>
+            <li><i data-i="check"></i><span data-en="Publish the items, then the course.">انشر العناصر، ثم انشر الكورس.</span></li>
+          </ul>
+          <p class="rule-box"><i data-i="eye"></i><span data-en="A student sees an item only when it and everything above it are published. One hidden chapter hides all of its lectures.">يرى الطالب العنصر فقط إذا كان هو وكل ما فوقه منشورًا. فصل واحد مخفي يخفي كل محاضراته.</span></p>
+          <div class="go"><a class="btn" href="courses.html"><i data-i="library-big"></i><span data-en="Open courses">افتح الكورسات</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="list-tree"></i><span data-en="The content tree">شجرة المحتوى</span></span>
+          <div class="mini"><span class="k k-ch"><i data-i="book-marked"></i></span><div><b data-en="Chapter 1: Current and Ohm’s law">الفصل الأول: التيار وقانون أوم</b></div><span class="sw"></span></div>
+          <div class="mini indent"><span class="k k-le"><i data-i="notebook-text"></i></span><div><b data-en="Lecture 1: Current and voltage">المحاضرة ١: شدة التيار وفرق الجهد</b></div><span class="sw"></span></div>
+          <div class="mini indent2"><span class="k k-vi"><i data-i="square-play"></i></span><div><b data-en="Lecture video">شرح المحاضرة</b><small data-en="Video · 52:14">فيديو · ٥٢:١٤</small></div><span class="sw"></span></div>
+          <div class="mini indent2"><span class="k k-fi"><i data-i="file-text"></i></span><div><b data-en="Lecture summary">ملخص المحاضرة</b><small>PDF</small></div><span class="chip off" data-en="View only">عرض فقط</span><span class="sw"></span></div>
+          <div class="mini indent"><span class="k k-le"><i data-i="folder"></i></span><div><b data-en="Extra problems">مسائل إضافية</b><small data-en="Not published: hidden with what is inside">غير منشور: مخفي مع ما بداخله</small></div><span class="sw off"></span></div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="step" id="s3" aria-labelledby="h3">
+        <div>
+          <div class="s-top"><span class="n" data-en="3">٣</span><h3 id="h3" data-en="Prepare the quizzes">جهّز الاختبارات</h3><span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span></div>
+          <p class="lead" data-en="Questions live in banks. A quiz picks from them, by hand or at random.">الأسئلة تعيش في البنوك، والاختبار يختار منها يدويًا أو عشوائيًا.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="Write questions in a bank: global banks serve every course, course banks stay with one course.">اكتب الأسئلة في بنك: البنوك العامة لكل الكورسات، وبنوك الكورس تبقى داخله.</span></li>
+            <li><i data-i="check"></i><span data-en="Build the quiz for the whole course, or only for the chapters and lectures you tick.">ابنِ الاختبار للكورس كله، أو للفصول والمحاضرات التي تختارها فقط.</span></li>
+            <li><i data-i="check"></i><span data-en="Set the window, duration, attempts and pass mark.">حدّد الموعد والمدة وعدد المحاولات ودرجة النجاح.</span></li>
+            <li><i data-i="check"></i><span data-en="Decide when students see their grade and the review.">قرّر متى يرى الطالب درجته والمراجعة.</span></li>
+          </ul>
+          <p class="rule-box"><i data-i="lock"></i><span data-en="Correct answers never reach a student before the review opens. Each attempt freezes its questions, so later bank edits never change past grades.">لا تصل الإجابات الصحيحة لأي طالب قبل فتح المراجعة، وكل محاولة تُثبّت أسئلتها فلا يغيّر تعديل البنك الدرجات السابقة.</span></p>
+          <div class="go"><a class="btn" href="quizzes.html"><i data-i="clipboard-check"></i><span data-en="Open quizzes">افتح الاختبارات</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="settings"></i><span data-en="A quiz, set up">اختبار جاهز</span></span>
+          <div class="mini"><span class="k k-ch"><i data-i="clipboard-check"></i></span><div><b data-en="Magnetism test">اختبار المغناطيسية</b><small data-en="Term 2 · Chapter 1 only">الترم الثاني · الفصل الأول فقط</small></div><span class="chip info" data-en="Scheduled">مجدول</span></div>
+          <div class="mini"><div class="chips">
+            <span class="chip off" data-en="25 questions by hand">٢٥ سؤالًا يدويًا</span><span class="chip off" data-en="40 minutes">٤٠ دقيقة</span><span class="chip off" data-en="1 attempt">محاولة واحدة</span><span class="chip off" data-en="Pass 50%">النجاح ٥٠٪</span>
+            <span class="chip ok" data-en="Grade after everyone submits">الدرجة بعد تسليم الجميع</span><span class="chip ok" data-en="Full review next morning">المراجعة الكاملة صباح اليوم التالي</span>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="step" id="s4" aria-labelledby="h4">
+        <div>
+          <div class="s-top"><span class="n" data-en="4">٤</span><h3 id="h4" data-en="Bring the students in">أدخل الطلاب</h3><span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span></div>
+          <p class="lead" data-en="Pick the way that fits how the student paid. Each one ends with the student in the course.">اختر الطريقة المناسبة لطريقة دفع الطالب، وكلها تنتهي بالطالب داخل الكورس.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="Access codes: generate a batch, print it with the booklets. Each code opens one course once.">أكواد الوصول: أنشئ دفعة واطبعها مع الملازم، وكل كود يفتح كورسًا واحدًا مرة واحدة.</span><span class="who-tag" data-en="Teacher">المدرس</span></li>
+            <li><i data-i="check"></i><span data-en="Invitation: send an email link; the student picks their own password.">الدعوة: أرسل رابطًا بالإيميل، والطالب يختار كلمة سره.</span></li>
+            <li><i data-i="check"></i><span data-en="Create directly: you set a first password and hand it over. No email is sent.">الإنشاء المباشر: تضع كلمة سر أولى وتسلّمها له، ولا يُرسل إيميل.</span></li>
+          </ul>
+          <p class="rule-box"><i data-i="shield-check"></i><span data-en="Under 18: nothing opens until a guardian agrees, by email link or a signed paper form you record.">أقل من ١٨ سنة: لا يُفتح شيء حتى يوافق ولي الأمر، برابط الإيميل أو باستمارة ورقية تسجّلها.</span></p>
+          <div class="go"><a class="btn" href="create-student.html"><i data-i="user-round-plus"></i><span data-en="New student">طالب جديد</span></a><a class="btn btn-light" href="accounts.html"><i data-i="lock"></i><span data-en="Codes and invitations">الأكواد والدعوات</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="users-round"></i><span data-en="Three ways in">ثلاث طرق للدخول</span></span>
+          <div class="ways">
+            <div class="mini"><span class="k k-ch"><i data-i="lock"></i></span><b data-en="Code">كود</b><small data-en="Sold with the booklet">يُباع مع الملزمة</small></div>
+            <div class="mini"><span class="k k-vi"><i data-i="mail"></i></span><b data-en="Invitation">دعوة</b><small data-en="Email link">رابط بالإيميل</small></div>
+            <div class="mini"><span class="k k-fi"><i data-i="user-round-plus"></i></span><b data-en="Direct">مباشر</b><small data-en="You set the password">أنت تضع كلمة السر</small></div>
+          </div>
+          <div class="mini"><span class="avatar av-student">ع</span><div><b data-en="Omar Hassan">عمر حسن</b><small data-en="Under 18 · content closed">أقل من ١٨ · المحتوى مغلق</small></div><span class="chip warn" data-en="Waiting for guardian">بانتظار ولي الأمر</span></div>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="step" id="s5" aria-labelledby="h5">
+        <div>
+          <div class="s-top"><span class="n" data-en="5">٥</span><h3 id="h5" data-en="Follow up every day">تابع يوميًا</h3><span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span></div>
+          <p class="lead" data-en="Most days start at the bell. A few minutes there keeps every student able to study.">معظم الأيام تبدأ من الجرس، ودقائق قليلة هناك تُبقي كل طالب قادرًا على المذاكرة.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="Device requests: each student studies on one device. Approve a change after a quick check; it removes the old device.">طلبات الأجهزة: كل طالب يذاكر من جهاز واحد. اقبل التغيير بعد تأكد سريع، فيُلغى الجهاز القديم.</span></li>
+            <li><i data-i="check"></i><span data-en="Students’ questions under lectures: answer them, or hide a comment that breaks the rules.">أسئلة الطلاب تحت المحاضرات: أجب عنها، أو أخفِ تعليقًا مخالفًا.</span></li>
+            <li><i data-i="check"></i><span data-en="Glance at the overview: who has been away for 7 days, and the average grade.">ألقِ نظرة على النظرة العامة: من غاب ٧ أيام، ومتوسط الدرجات.</span></li>
+          </ul>
+          <div class="go"><a class="btn" href="notifications.html"><i data-i="bell"></i><span data-en="Open notifications">افتح الإشعارات</span></a><a class="btn btn-light" href="analytics.html"><i data-i="layout-dashboard"></i><span data-en="Open overview">افتح النظرة العامة</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="bell"></i><span data-en="Waiting for you">بانتظارك</span></span>
+          <div class="mini"><span class="avatar av-student">ي</span><div><b data-en="Youssef Ahmed">يوسف أحمد</b><small data-en="Device change · “my phone broke”">تغيير جهاز · «موبايلي اتكسر»</small></div><span class="btn btn-sm" data-en="Approve">اقبل</span></div>
+          <div class="mini"><span class="avatar av-student">م</span><div><b data-en="Mariam Khaled">مريم خالد</b><small data-en="Sign out of the school laptop">الخروج من لابتوب المدرسة</small></div><span class="btn btn-sm" data-en="Approve">اقبل</span></div>
+          <div class="mini"><span class="k k-fi"><i data-i="message-square"></i></span><div><b data-en="New question on Lecture 2">سؤال جديد على المحاضرة ٢</b><small data-en="Omar: why does resistance rise with heat?">عمر: ليه المقاومة بتزيد مع الحرارة؟</small></div></div>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="step" id="s6" aria-labelledby="h6">
+        <div>
+          <div class="s-top"><span class="n" data-en="6">٦</span><h3 id="h6" data-en="Exam day and grades">يوم الاختبار والدرجات</h3><span class="role both"><span class="avatar av-teacher" aria-hidden="true">ك</span><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="Both">الاثنان</span></span></div>
+          <p class="lead" data-en="Keep the live results open while the quiz runs. The server clock decides, and answers save on their own.">اترك النتائج المباشرة مفتوحة أثناء الاختبار. ساعة الخادم هي الحكم، والإجابات تُحفظ وحدها.</p>
+          <ul class="todo">
+            <li><i data-i="check"></i><span data-en="A student lost time to a power cut? Give only them 5 or 10 more minutes.">طالب ضاع وقته بسبب انقطاع الكهرباء؟ أعطه هو فقط ٥ أو ١٠ دقائق إضافية.</span></li>
+            <li><i data-i="check"></i><span data-en="Device broke mid-exam? Move the attempt to the device they open next.">تعطل جهازه أثناء الامتحان؟ انقل المحاولة للجهاز الذي يفتح منه بعد ذلك.</span></li>
+            <li><i data-i="check"></i><span data-en="When the quiz is set to “when I release it”, release the grades yourself, then open the review.">إذا كان الاختبار على «عندما أعلنها أنا»، أعلن الدرجات بنفسك ثم افتح المراجعة.</span></li>
+          </ul>
+          <p class="rule-box"><i data-i="shield-check"></i><span data-en="Every action in steps 1 to 6 goes into the activity log, which the teacher can read at any time.">كل إجراء في الخطوات من ١ إلى ٦ يُسجَّل في سجل النشاط، ويقرؤه المدرس في أي وقت.</span></p>
+          <div class="go"><a class="btn" href="quizzes.html"><i data-i="users-round"></i><span data-en="Open live results">افتح النتائج المباشرة</span></a><a class="btn btn-light" href="notifications.html"><i data-i="shield-check"></i><span data-en="Activity log">سجل النشاط</span></a></div>
+        </div>
+        <div class="shot" aria-hidden="true">
+          <span class="cap"><i data-i="clock-3"></i><span data-en="Live, during the quiz">مباشر أثناء الاختبار</span></span>
+          <div class="mini"><span class="avatar av-student">م</span><div><b data-en="Mariam Khaled">مريم خالد</b><small data-en="In progress">تحل الآن</small></div><span class="left num" data-en="01:35">٠١:٣٥</span><span class="btn btn-sm btn-light" data-en="Help">ساعد</span></div>
+          <div class="mini"><span class="avatar av-student">ع</span><div><b data-en="Omar Hassan">عمر حسن</b><small data-en="Submitted">سلّم</small></div><b class="num" data-en="9 / 10">٩ / ١٠</b></div>
+          <div class="mini"><span class="k k-ch"><i data-i="eye"></i></span><div><b data-en="Full exam: term 1">امتحان شامل: الترم الأول</b><small data-en="201 of 214 submitted">سلّم ٢٠١ من ٢١٤</small></div><span class="btn btn-sm" data-en="Release grades">أعلن الدرجات</span></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="closing">
+      <section class="panel"><h3><span class="avatar av-assistant" aria-hidden="true">ن</span><span data-en="An assistant can">المساعد يستطيع</span></h3>
+        <ul class="yes">
+          <li><i data-i="check"></i><span data-en="Steps 2 to 6: courses, quizzes, students, requests and exam day">الخطوات من ٢ إلى ٦: الكورسات والاختبارات والطلاب والطلبات ويوم الاختبار</span></li>
+          <li><i data-i="check"></i><span data-en="Invite and create students, record guardian consent">دعوة الطلاب وإنشاؤهم وتسجيل موافقة ولي الأمر</span></li>
+        </ul></section>
+      <section class="panel"><h3><span class="avatar av-teacher" aria-hidden="true">ك</span><span data-en="Only the teacher can">المدرس وحده يستطيع</span></h3>
+        <ul class="no">
+          <li><i data-i="x"></i><span data-en="Academy settings, assistants and access codes">إعدادات الأكاديمية والمساعدين وأكواد الوصول</span></li>
+          <li><i data-i="x"></i><span data-en="Delete a course, end a student’s access, read the activity log">حذف كورس، إنهاء اشتراك طالب، قراءة سجل النشاط</span></li>
+        </ul></section>
+    </div>
+  </main>
+</div>
+
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  // the cap logo in the "what a student sees" slice
+  document.getElementById('mini-logo').insertAdjacentHTML('afterbegin', document.querySelector('.side .brand-mark').outerHTML);
+</script>
+</body>
+</html>

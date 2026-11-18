@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الاختبارات · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: quizzes (whole course or chosen parts), global and course question banks, quiz settings and live results.">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  /* views by body[data-state] */
+  .view { display: none; }
+  [data-state="list"] .v-list, [data-state="empty"] .v-list, [data-state="loading"] .v-list,
+  [data-state="banks"] .v-banks, [data-state="builder"] .v-builder, [data-state="results"] .v-results { display: block; }
+  [data-state="list"] .tabs-top, [data-state="empty"] .tabs-top, [data-state="loading"] .tabs-top, [data-state="banks"] .tabs-top { display: inline-flex; }
+  .tabs-top { display: none; margin-top: 22px; }
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .when-full { display: none; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .find { position: relative; }
+  .find svg { position: absolute; inset-inline-start: 14px; top: 50%; translate: 0 -50%; width: 17px; height: 17px; color: var(--ink-3); pointer-events: none; }
+  .find input { min-height: 42px; width: 220px; padding-inline: 40px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font-size: 14px; }
+  .find input:focus { outline: none; border-color: var(--ink); }
+  .toolbar .btn, .acts-row .btn { min-height: 44px; font-size: 16px; padding: 0 18px; }
+
+  /* tables */
+  .tbl-wrap { overflow-x: auto; position: relative; } /* keeps .sr-only header labels inside the scroll box */
+  .tbl { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 14.5px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 12px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl tbody tr:hover { background: #FFF8E8; }
+  .qt b { display: block; font-weight: 600; }
+  .qt b button { all: unset; cursor: pointer; }
+  .qt b button:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .qt b button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+  .qt small { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+  .scope { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; background: #F3EBDA; color: var(--ink); font-weight: 500; }
+  .scope svg { width: 13px; height: 13px; }
+  .muted { color: var(--ink-2); }
+  .att { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .meter { width: 70px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; flex: none; }
+  .meter i { display: block; height: 100%; width: var(--p); background: var(--ink); border-radius: inherit; }
+  .chip.live::before { animation: live 1.4s ease-in-out infinite; }
+  @keyframes live { 50% { transform: scale(1.7); opacity: .4; } }
+  .live-n { display: block; font-size: 12px; color: #22694F; margin-top: 4px; }
+
+  /* builder */
+  .crumbs + .b-head { margin-top: 8px; }
+  .b-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .b-head h2 { font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .b-head p { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+  .acts-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .b-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .b-main { display: grid; gap: 18px; }
+  .stack { display: grid; gap: 14px; }
+  .opt-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pick { position: relative; display: grid; gap: 4px; padding: 14px 16px; padding-inline-start: 46px; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; background: var(--paper); transition: border-color .15s, background-color .15s; }
+  .pick:hover { border-color: #D9C69A; }
+  .pick input { position: absolute; inset-inline-start: 14px; top: 16px; width: 20px; height: 20px; accent-color: var(--ink); margin: 0; }
+  .pick b { font-size: 15px; }
+  .pick small { font-size: 13px; color: var(--ink-2); }
+  .pick:has(input:checked) { border-color: var(--ink); background: #FFFBF0; }
+  .pick:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .parts { display: grid; gap: 6px; padding: 12px; border-radius: 12px; background: #FBF5E8; }
+  .parts[hidden] { display: none; }
+  .parts label { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 14px; cursor: pointer; }
+  .parts label.sub { padding-inline-start: 26px; }
+  .parts input { width: 18px; height: 18px; accent-color: var(--ink); margin: 0; }
+  .parts .n { margin-inline-start: auto; font-size: 12.5px; color: var(--ink-3); }
+
+  .qlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: q; }
+  .q { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px 12px; align-items: start; background: var(--paper); counter-increment: q; }
+  .q.open { border-color: var(--ink); }
+  .q .no { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 600; }
+  .q .txt { font-weight: 500; font-size: 14.5px; line-height: 1.6; }
+  .q .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .q .meta .chip { font-size: 12px; min-height: 22px; }
+  .q .meta .chip::before { display: none; }
+  .q .tools { display: flex; gap: 2px; }
+  .opts { grid-column: 2 / -1; list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .opts li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: #FBF5E8; font-size: 14px; }
+  .opts li.ok { background: var(--mint-tint); font-weight: 600; }
+  .opts .mk { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 2px solid var(--ink-3); display: grid; place-items: center; }
+  .opts .mk.sq { border-radius: 6px; }
+  .opts li.ok .mk { border-color: #22694F; background: #22694F; color: #fff; }
+  .opts .mk svg { width: 14px; height: 14px; }
+  .explain { grid-column: 2 / -1; font-size: 13px; color: var(--ink-2); padding: 10px 12px; border-radius: 10px; border: 1px dashed #D9C69A; }
+  .more-q { text-align: center; font-size: 13.5px; color: var(--ink-2); padding: 6px; }
+  .rand { display: grid; gap: 10px; }
+  .rand[hidden] { display: none; }
+  .rand-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+  .num-in { width: 90px; min-height: 44px; text-align: center; padding: 0 10px; }
+
+  .side-set { position: sticky; top: 16px; display: grid; gap: 4px; }
+  .set { display: grid; gap: 8px; padding-block: 14px; border-top: 1px solid var(--line); }
+  .set:first-of-type { border-top: 0; padding-top: 4px; }
+  .set > .lbl { font-size: 13px; font-weight: 600; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .set > .lbl svg { width: 15px; height: 15px; }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .two label { display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); min-width: 0; }
+  .set .input { min-height: 44px; font-size: 14.5px; padding: 0 10px; min-width: 0; width: 100%; }
+  .set .seg { display: flex; } .set .seg button { flex: 1; justify-content: center; }
+  .set p { font-size: 12.5px; color: var(--ink-2); }
+  .set .dd-btn { width: 100%; justify-content: space-between; }
+  .set .dd-btn .dd-val { margin-inline-end: auto; }
+  .set .dd-menu { inset-inline: 0; min-width: 0; }
+  .guard { display: flex; gap: 10px; padding: 12px; border-radius: 12px; background: var(--blue-tint); color: #183A8C; font-size: 13px; }
+  .guard svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  /* banks */
+  .banks-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .bank-list { display: grid; gap: 4px; position: sticky; top: 16px; }
+  .bank-group { font-size: 12.5px; font-weight: 600; color: var(--ink-2); padding: 12px 10px 4px; display: flex; align-items: center; gap: 6px; }
+  .bank-group:first-child { padding-top: 0; }
+  .bank-group svg { width: 15px; height: 15px; }
+  .bank { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: none; font: inherit; font-size: 14.5px; color: var(--ink); cursor: pointer; text-align: start; width: 100%; }
+  .bank:hover { background: #FFF8E8; }
+  .bank[aria-current="true"] { background: var(--sun-tint); font-weight: 600; }
+  .bank .n { margin-inline-start: auto; font-size: 12.5px; color: var(--ink-2); font-weight: 500; }
+  .q-editor { display: grid; gap: 14px; border: 2px solid var(--ink); }
+  .q-editor[hidden] { display: none; }
+  .ed-opts { display: grid; gap: 8px; }
+  .ed-opt { display: flex; align-items: center; gap: 10px; }
+  .ed-opt input[type="radio"], .ed-opt input[type="checkbox"] { width: 22px; height: 22px; accent-color: #22694F; margin: 0; flex: none; }
+  .ed-opt .input { min-height: 44px; font-size: 14.5px; }
+  .q-editor textarea.input { font: inherit; font-size: 15px; min-height: 80px; padding: 12px 16px; resize: vertical; line-height: 1.6; }
+  .ed-foot { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .ed-foot .btn { min-height: 44px; font-size: 15.5px; }
+
+  /* results */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+  .stat { display: grid; gap: 2px; }
+  .stat span { font-size: 13.5px; color: var(--ink-2); }
+  .stat b { font-size: 28px; font-weight: 600; line-height: 1.2; }
+  .stat small { font-size: 12.5px; color: var(--ink-2); }
+  .release { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
+  .release .bub { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); flex: none; }
+  .release .bub svg { width: 21px; height: 21px; }
+  .release div { flex: 1; min-width: 220px; }
+  .release b { display: block; font-size: 15px; }
+  .release p { font-size: 13.5px; color: var(--ink-2); }
+  .who { display: flex; align-items: center; gap: 10px; }
+  .who .avatar { width: 36px; height: 36px; font-size: 15px; background: var(--paper); }
+  .who small { display: block; font-size: 12px; color: var(--ink-2); direction: ltr; text-align: start; }
+  .left { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .left.low { color: #B8341A; }
+  .score b { font-weight: 600; }
+
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 40px 12px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 48ch; }
+  [data-state="loading"] .tbl td > * { color: transparent; background: var(--line); border-radius: 8px; animation: pulse 1.2s ease-in-out infinite; }
+  [data-state="loading"] .tbl td > * * { visibility: hidden; }
+
+  @media (max-width: 1150px) { .b-grid, .banks-grid { grid-template-columns: minmax(0, 1fr); } .side-set, .bank-list { position: static; } .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 760px) { .opt-cards, .two { grid-template-columns: 1fr; } .find { flex: 1; } .find input { width: 100%; } }
+</style>
+</head>
+<body data-page="quizzes" data-unread="3" data-state="list" data-title-en="Quizzes · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Quizzes">الاختبارات</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="seg tabs-top" role="group" aria-label="الأقسام" data-en-aria-label="Sections">
+      <button type="button" data-go="list" aria-pressed="true"><i data-i="clipboard-check"></i><span data-en="Quizzes">الاختبارات</span></button>
+      <button type="button" data-go="banks" aria-pressed="false"><i data-i="library-big"></i><span data-en="Question banks">بنوك الأسئلة</span></button>
+    </div>
+
+    <!-- ============ quizzes (GET /quizzes) ============ -->
+    <section class="view v-list" aria-labelledby="t-list">
+      <div class="head">
+        <div><h2 id="t-list" data-en="Your quizzes">اختباراتك</h2><p data-en="A quiz covers a whole course or only the chapters and lectures you pick">الاختبار يشمل الكورس كله أو فصولًا ومحاضرات تختارها</p></div>
+        <div class="toolbar">
+          <label class="find"><span class="sr-only" data-en="Find a quiz">ابحث عن اختبار</span><i data-i="search"></i><input type="search" id="find" placeholder="ابحث عن اختبار" data-en-placeholder="Find a quiz" autocomplete="off"></label>
+          <div class="dd" id="f-course">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Course:">الكورس:</span><span class="dd-val" data-en="All">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالكورس" data-en-aria-label="Filter by course">
+              <div class="dd-title" data-en="Filter by course">تصفية بالكورس</div>
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="All courses">كل الكورسات</span><span class="dd-n num" data-en="5">٥</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="t1"><span class="dd-label" data-en="Physics, term 1">الفيزياء · الترم الأول</span><span class="dd-n num" data-en="3">٣</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="t2"><span class="dd-label" data-en="Physics, term 2">الفيزياء · الترم الثاني</span><span class="dd-n num" data-en="2">٢</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <button class="btn" type="button" data-go="builder"><i data-i="plus"></i><span data-en="New quiz">اختبار جديد</span></button>
+        </div>
+      </div>
+      <div class="panel when-full">
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th scope="col" data-en="Quiz">الاختبار</th><th scope="col" data-en="When">الموعد</th><th scope="col" data-en="Questions">الأسئلة</th>
+              <th scope="col" data-en="Attempts">المحاولات</th><th scope="col" data-en="Status">الحالة</th><th scope="col"><span class="sr-only" data-en="Actions">إجراءات</span></th>
+            </tr></thead>
+            <tbody id="quiz-rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel empty when-empty">
+        <span class="bub"><i data-i="clipboard-check"></i></span>
+        <b data-en="No quizzes yet">لا اختبارات بعد</b>
+        <p data-en="Fill a question bank first, then build a quiz from it for a whole course or just one chapter.">املأ بنك أسئلة أولًا، ثم ابنِ منه اختبارًا للكورس كله أو لفصل واحد.</p>
+        <div class="acts-row"><button class="btn" type="button" data-go="builder"><i data-i="plus"></i><span data-en="Build the first quiz">ابنِ أول اختبار</span></button><button class="btn btn-light" type="button" data-go="banks"><i data-i="library-big"></i><span data-en="Open question banks">افتح بنوك الأسئلة</span></button></div>
+      </div>
+    </section>
+
+    <!-- ============ quiz builder (POST/PATCH /quizzes) ============ -->
+    <section class="view v-builder" aria-labelledby="t-b">
+      <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb"><a href="#" data-go="list" data-en="Quizzes">الاختبارات</a><i data-i="chevron-right"></i><span aria-current="page" data-en="Magnetism test">اختبار المغناطيسية</span></nav>
+      <div class="b-head">
+        <div>
+          <h2 id="t-b"><span data-en="Magnetism test">اختبار المغناطيسية</span><span class="chip info" data-en="Scheduled">مجدول</span></h2>
+          <p data-en="Physics, term 2 · saved 2 minutes ago">الفيزياء · الترم الثاني · حُفظ منذ دقيقتين</p>
+        </div>
+        <div class="acts-row">
+          <button class="btn btn-light" type="button" data-toast="saved"><span data-en="Save draft">احفظ كمسودة</span></button>
+          <button class="btn" type="button" data-toast="published"><i data-i="check"></i><span data-en="Publish quiz">انشر الاختبار</span></button>
+        </div>
+      </div>
+
+      <div class="b-grid">
+        <div class="b-main">
+          <!-- FR-X02: whole course (global) or chosen chapters/lectures (customised) → quiz_targets -->
+          <section class="panel stack" aria-labelledby="t-aud">
+            <div class="panel-head" style="margin:0"><h3 id="t-aud" data-en="Who takes this quiz">لمن هذا الاختبار</h3><p class="sub" data-en="Only students enrolled in the course see it">يراه فقط الطلاب المسجلون في الكورس</p></div>
+            <div class="opt-cards">
+              <label class="pick"><input type="radio" name="scope" value="course"><b data-en="Whole course">الكورس كله</b><small data-en="Shows at the course level for every enrolled student">يظهر على مستوى الكورس لكل طالب مسجل</small></label>
+              <label class="pick"><input type="radio" name="scope" value="parts" checked><b data-en="Chosen chapters or lectures">فصول أو محاضرات محددة</b><small data-en="Shows inside the parts you tick">يظهر داخل الأجزاء التي تختارها</small></label>
+            </div>
+            <div class="parts" id="parts">
+              <label><input type="checkbox" checked><span data-en="Chapter 1: Magnetic effect of current">الفصل الأول: التأثير المغناطيسي للتيار</span><span class="n" data-en="3 lectures">٣ محاضرات</span></label>
+              <label class="sub"><input type="checkbox" checked><span data-en="Lecture 1: Flux density">المحاضرة ١: كثافة الفيض</span></label>
+              <label class="sub"><input type="checkbox" checked><span data-en="Lecture 2: Force on a wire">المحاضرة ٢: القوة على سلك</span></label>
+              <label><input type="checkbox"><span data-en="Chapter 2: Electromagnetic induction">الفصل الثاني: الحث الكهرومغناطيسي</span><span class="n" data-en="4 lectures">٤ محاضرات</span></label>
+            </div>
+          </section>
+
+          <!-- FR-X02: manual or random selection -->
+          <section class="panel stack" aria-labelledby="t-qs">
+            <div class="panel-head" style="margin:0">
+              <h3 id="t-qs"><span data-en="Questions">الأسئلة</span> <span class="muted num" style="font-weight:500;font-size:15px" data-en="(25 · 32 marks)">(٢٥ · ٣٢ درجة)</span></h3>
+              <div class="seg" role="group" aria-label="طريقة اختيار الأسئلة" data-en-aria-label="How questions are chosen">
+                <button type="button" data-sel="manual" aria-pressed="true" data-en="Pick by hand">اختيار يدوي</button>
+                <button type="button" data-sel="random" aria-pressed="false" data-en="Random from banks">عشوائي من البنوك</button>
+              </div>
+            </div>
+            <div id="manual" class="stack">
+              <ol class="qlist" id="qlist"></ol>
+              <p class="more-q" data-en="+ 20 more questions">+ ٢٠ سؤالًا آخر</p>
+              <div class="acts-row"><button class="btn btn-light btn-sm" type="button" data-go="banks"><i data-i="library-big"></i><span data-en="Add from a bank">أضف من بنك</span></button><button class="btn btn-light btn-sm" type="button" data-go="banks" data-new-q><i data-i="plus"></i><span data-en="Write a new question">اكتب سؤالًا جديدًا</span></button></div>
+            </div>
+            <div id="random" class="rand" hidden>
+              <p class="muted" style="font-size:14px" data-en="Each student gets a different draw from the banks you tick.">كل طالب يحصل على مجموعة مختلفة من البنوك التي تختارها.</p>
+              <div class="parts">
+                <label><input type="checkbox" checked><span data-en="Term 2 · Chapter 1: Magnetism">الترم الثاني · الفصل الأول: المغناطيسية</span><span class="n" data-en="52 questions">٥٢ سؤالًا</span></label>
+                <label><input type="checkbox" checked><span data-en="Global · Units and laws">عام · وحدات وقوانين</span><span class="n" data-en="64 questions">٦٤ سؤالًا</span></label>
+                <label><input type="checkbox"><span data-en="Global · Electricity basics">عام · أساسيات الكهربية</span><span class="n" data-en="120 questions">١٢٠ سؤالًا</span></label>
+              </div>
+              <div class="rand-row"><label for="rcount" data-en="Questions per student">عدد الأسئلة لكل طالب</label><input class="input num-in num" id="rcount" type="number" min="1" max="116" value="25"><span class="muted" data-en="of 116 available">من ١١٦ متاحة</span></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- FR-X03, X07, X08 -->
+        <aside class="panel side-set" aria-labelledby="t-set">
+          <div class="panel-head" style="margin:0"><h3 id="t-set" data-en="Quiz settings">إعدادات الاختبار</h3></div>
+          <div class="set">
+            <span class="lbl"><i data-i="clock-3"></i><span data-en="Window">الموعد</span></span>
+            <div class="two">
+              <label><span data-en="Opens">يفتح</span><input class="input" type="datetime-local" value="2026-11-22T19:00"></label>
+              <label><span data-en="Closes">يغلق</span><input class="input" type="datetime-local" value="2026-11-22T23:00"></label>
+            </div>
+          </div>
+          <div class="set">
+            <div class="two">
+              <label><span data-en="Duration (minutes)">المدة (دقائق)</span><input class="input num" type="number" min="1" value="40"></label>
+              <label><span data-en="Grace (seconds)">فترة السماح (ثوانٍ)</span><input class="input num" type="number" min="0" value="10"></label>
+              <label><span data-en="Attempts allowed">المحاولات المسموحة</span><input class="input num" type="number" min="1" value="1"></label>
+              <label><span data-en="Pass mark (%)">درجة النجاح (٪)</span><input class="input num" type="number" min="0" max="100" value="50"></label>
+            </div>
+            <p data-en="The server clock decides. Answers save as the student goes, and the attempt submits itself at the deadline plus the grace time.">ساعة الخادم هي الحكم. الإجابات تُحفظ تلقائيًا، والمحاولة تُسلَّم وحدها عند انتهاء الوقت وفترة السماح.</p>
+          </div>
+          <div class="set">
+            <div class="sw-row"><span data-en="Shuffle questions">خلط ترتيب الأسئلة</span><button class="switch" type="button" role="switch" aria-checked="true" aria-label="خلط ترتيب الأسئلة" data-en-aria-label="Shuffle questions"><span class="track"></span></button></div>
+            <div class="sw-row"><span data-en="Shuffle answer choices">خلط الاختيارات</span><button class="switch" type="button" role="switch" aria-checked="true" aria-label="خلط الاختيارات" data-en-aria-label="Shuffle answer choices"><span class="track"></span></button></div>
+            <span class="lbl" style="margin-top:6px" data-en="Moving between questions">التنقل بين الأسئلة</span>
+            <div class="seg" role="group" aria-label="التنقل" data-en-aria-label="Navigation">
+              <button type="button" aria-pressed="true" data-en="Free">حر</button>
+              <button type="button" aria-pressed="false" data-en="In order, no going back">بالترتيب بلا رجوع</button>
+            </div>
+          </div>
+          <div class="set">
+            <span class="lbl" data-en="When the student sees the grade">متى يرى الطالب درجته</span>
+            <div class="dd">
+              <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val" data-en="After everyone submits">بعد تسليم الجميع</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+              <div class="dd-menu" role="listbox" hidden aria-label="إعلان الدرجة" data-en-aria-label="Grade release">
+                <button class="dd-item" type="button" role="option" aria-selected="false" data-value="on_submit"><span class="dd-label" data-en="Right after submitting">بعد التسليم مباشرة</span><span class="tick"><i data-i="check"></i></span></button>
+                <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all_submitted"><span class="dd-label" data-en="After everyone submits">بعد تسليم الجميع</span><span class="tick"><i data-i="check"></i></span></button>
+                <button class="dd-item" type="button" role="option" aria-selected="false" data-value="on_close"><span class="dd-label" data-en="When the quiz closes">عند إغلاق الاختبار</span><span class="tick"><i data-i="check"></i></span></button>
+                <button class="dd-item" type="button" role="option" aria-selected="false" data-value="manual"><span class="dd-label" data-en="When I release it">عندما أعلنها أنا</span><span class="tick"><i data-i="check"></i></span></button>
+              </div>
+            </div>
+            <p data-en="If someone never submits, the grades come out at closing time.">إذا لم يسلّم أحد الطلاب، تُعلن الدرجات عند موعد الإغلاق.</p>
+          </div>
+          <div class="set">
+            <span class="lbl" data-en="What the review shows">ماذا تعرض المراجعة</span>
+            <div class="dd">
+              <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val" data-en="Full review with explanations">مراجعة كاملة مع الشرح</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+              <div class="dd-menu" role="listbox" hidden aria-label="نوع المراجعة" data-en-aria-label="Review mode">
+                <button class="dd-item" type="button" role="option" aria-selected="false" data-value="grade"><span class="dd-label" data-en="Grade only">الدرجة فقط</span><span class="tick"><i data-i="check"></i></span></button>
+                <button class="dd-item" type="button" role="option" aria-selected="false" data-value="grade_answers"><span class="dd-label" data-en="Grade and correct answers">الدرجة والإجابات الصحيحة</span><span class="tick"><i data-i="check"></i></span></button>
+                <button class="dd-item" type="button" role="option" aria-selected="true" data-value="full"><span class="dd-label" data-en="Full review with explanations">مراجعة كاملة مع الشرح</span><span class="tick"><i data-i="check"></i></span></button>
+              </div>
+            </div>
+            <label class="two" style="grid-template-columns:1fr"><span data-en="Review opens">تُفتح المراجعة</span><input class="input" type="datetime-local" value="2026-11-23T10:00"></label>
+            <div class="guard"><i data-i="lock"></i><span data-en="Correct answers never reach a student before this time, not even in the page code.">لا تصل الإجابات الصحيحة لأي طالب قبل هذا الموعد، ولا حتى داخل كود الصفحة.</span></div>
+          </div>
+          <div class="set">
+            <div class="guard" style="background:#F3EBDA;color:var(--ink)"><i data-i="info"></i><span data-en="Each attempt freezes its questions when it starts. Editing a bank later never changes past results.">كل محاولة تُثبّت أسئلتها لحظة بدئها، وتعديل البنك لاحقًا لا يغيّر النتائج السابقة.</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ question banks (GET /question-banks) ============ -->
+    <section class="view v-banks" aria-labelledby="t-banks">
+      <div class="head">
+        <div><h2 id="t-banks" data-en="Question banks">بنوك الأسئلة</h2><p data-en="Global banks serve every course · course banks stay with their course">البنوك العامة تخدم كل الكورسات · بنوك الكورس تبقى داخل كورسها</p></div>
+        <div class="toolbar"><button class="btn btn-light" type="button" data-toast="bank"><i data-i="plus"></i><span data-en="New bank">بنك جديد</span></button><button class="btn" type="button" data-new-q><i data-i="plus"></i><span data-en="New question">سؤال جديد</span></button></div>
+      </div>
+      <div class="banks-grid" style="margin-top:0">
+        <nav class="panel bank-list" aria-label="البنوك" data-en-aria-label="Banks">
+          <div class="bank-group"><i data-i="globe"></i><span data-en="Global · every course">عام · لكل الكورسات</span></div>
+          <button class="bank" type="button" aria-current="false"><span data-en="Electricity basics">أساسيات الكهربية</span><span class="n num" data-en="120">١٢٠</span></button>
+          <button class="bank" type="button" aria-current="false"><span data-en="Units and laws">وحدات وقوانين</span><span class="n num" data-en="64">٦٤</span></button>
+          <div class="bank-group"><i data-i="book-open"></i><span data-en="Physics, term 1">الفيزياء · الترم الأول</span></div>
+          <button class="bank" type="button" aria-current="false"><span data-en="Ch. 1: Current and Ohm">ف١: التيار وأوم</span><span class="n num" data-en="40">٤٠</span></button>
+          <button class="bank" type="button" aria-current="false"><span data-en="Ch. 2: Kirchhoff">ف٢: كيرشوف</span><span class="n num" data-en="35">٣٥</span></button>
+          <div class="bank-group"><i data-i="book-open"></i><span data-en="Physics, term 2">الفيزياء · الترم الثاني</span></div>
+          <button class="bank" type="button" aria-current="true"><span data-en="Ch. 1: Magnetism">ف١: المغناطيسية</span><span class="n num" data-en="52">٥٢</span></button>
+          <button class="bank" type="button" aria-current="false"><span data-en="Ch. 2: Induction">ف٢: الحث</span><span class="n num" data-en="30">٣٠</span></button>
+        </nav>
+
+        <div class="stack">
+          <!-- POST /question-banks/:id/questions -->
+          <form class="panel q-editor" id="q-editor" hidden novalidate aria-labelledby="t-qe">
+            <div class="panel-head" style="margin:0"><h3 id="t-qe" data-en="New question">سؤال جديد</h3><span class="chip off" data-en="Ch. 1: Magnetism">ف١: المغناطيسية</span></div>
+            <div class="seg" role="group" aria-label="نوع السؤال" data-en-aria-label="Question type" id="qtype">
+              <button type="button" data-qt="single" aria-pressed="true" data-en="One correct answer">إجابة واحدة صحيحة</button>
+              <button type="button" data-qt="multiple" aria-pressed="false" data-en="Several correct">أكثر من إجابة</button>
+              <button type="button" data-qt="tf" aria-pressed="false" data-en="True or false">صح أو خطأ</button>
+            </div>
+            <div class="field"><label class="label" for="qe-text" data-en="Question">نص السؤال</label><textarea class="input" id="qe-text" required aria-describedby="err-qe" placeholder="اكتب السؤال كما سيظهر للطالب" data-en-placeholder="Write the question as the student will see it"></textarea><span class="err" id="err-qe" data-en="Write the question first.">اكتب نص السؤال أولًا.</span></div>
+            <div class="field" style="margin-top:0"><span class="label"><span data-en="Choices · tick the correct one">الاختيارات · علّم الصحيحة</span><button class="btn btn-ghost btn-sm" type="button" style="min-height:36px" data-add-opt><span data-en="+ Add a choice">+ أضف اختيارًا</span></button></span>
+              <div class="ed-opts" id="ed-opts"></div>
+            </div>
+            <div class="two" style="grid-template-columns:120px 1fr;align-items:end">
+              <label class="field" style="margin:0"><span class="label" data-en="Marks">الدرجة</span><input class="input num" type="number" min="0.5" step="0.5" value="1" style="min-height:44px"></label>
+              <div class="field" style="margin:0"><span class="label" data-en="Difficulty">الصعوبة</span><div class="seg" role="group" aria-label="الصعوبة" data-en-aria-label="Difficulty"><button type="button" aria-pressed="false" data-en="Easy">سهل</button><button type="button" aria-pressed="true" data-en="Medium">متوسط</button><button type="button" aria-pressed="false" data-en="Hard">صعب</button></div></div>
+            </div>
+            <div class="field" style="margin-top:0"><label class="label" for="qe-exp"><span data-en="Explanation">الشرح</span><span class="hint" data-en="Shown only in the full review">يظهر فقط في المراجعة الكاملة</span></label><textarea class="input" id="qe-exp" style="min-height:60px" placeholder="لماذا هذه الإجابة صحيحة؟" data-en-placeholder="Why is this the right answer?"></textarea></div>
+            <div class="ed-foot"><button class="btn btn-ghost" type="button" data-close-editor data-en="Cancel">إلغاء</button><button class="btn btn-light" type="button"><i data-i="image"></i><span data-en="Add an image">أضف صورة</span></button><button class="btn" type="submit"><span data-en="Save question">احفظ السؤال</span></button></div>
+          </form>
+
+          <section class="panel stack" aria-labelledby="t-bq">
+            <div class="panel-head" style="margin:0">
+              <h3 id="t-bq"><span data-en="Ch. 1: Magnetism">ف١: المغناطيسية</span> <span class="muted num" style="font-weight:500;font-size:15px" data-en="· 52 questions">· ٥٢ سؤالًا</span></h3>
+              <div class="seg" role="group" aria-label="تصفية بالصعوبة" data-en-aria-label="Filter by difficulty"><button type="button" aria-pressed="true" data-en="All">الكل</button><button type="button" aria-pressed="false" data-en="Easy">سهل</button><button type="button" aria-pressed="false" data-en="Medium">متوسط</button><button type="button" aria-pressed="false" data-en="Hard">صعب</button></div>
+            </div>
+            <ol class="qlist" id="bank-q"></ol>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ results (GET /quizzes/:id/results) ============ -->
+    <section class="view v-results" aria-labelledby="t-r">
+      <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb"><a href="#" data-go="list" data-en="Quizzes">الاختبارات</a><i data-i="chevron-right"></i><span aria-current="page" data-en="Short quiz: Ohm’s law">اختبار قصير: قانون أوم</span></nav>
+      <div class="b-head" style="margin-top:8px">
+        <div><h2 id="t-r"><span data-en="Short quiz: Ohm’s law">اختبار قصير: قانون أوم</span><span class="chip ok live" data-en="Open now">مفتوح الآن</span></h2>
+          <p data-en="Physics, term 1 · Lecture 2 · closes today at 10:00 pm">الفيزياء · الترم الأول · المحاضرة ٢ · يغلق اليوم ١٠:٠٠ م</p></div>
+        <div class="acts-row"><button class="btn btn-light" type="button" data-go="builder"><i data-i="pencil"></i><span data-en="Settings">الإعدادات</span></button></div>
+      </div>
+      <div class="stats">
+        <div class="panel stat"><span data-en="Submitted">سلّموا</span><b class="num" data-en="85">٨٥</b><small data-en="of 214 enrolled">من ٢١٤ مسجلًا</small></div>
+        <div class="panel stat"><span data-en="Taking it now">يحلون الآن</span><b class="num" style="color:#22694F" data-en="12">١٢</b><small data-en="answers save as they go">إجاباتهم تُحفظ تلقائيًا</small></div>
+        <div class="panel stat"><span data-en="Average">المتوسط</span><b class="num" data-en="7.4 / 10">٧٫٤ / ١٠</b><small data-en="submitted attempts">للمحاولات المسلَّمة</small></div>
+        <div class="panel stat"><span data-en="Passed">نجحوا</span><b class="num" data-en="70">٧٠</b><small data-en="pass mark 50%">درجة النجاح ٥٠٪</small></div>
+      </div>
+      <div class="panel release">
+        <span class="bub"><i data-i="eye"></i></span>
+        <div><b data-en="Grades show right after submitting">الدرجة تظهر للطالب بعد التسليم مباشرة</b><p data-en="Correct answers and explanations open after the quiz closes, at 10:00 pm.">الإجابات الصحيحة والشرح تُفتح بعد إغلاق الاختبار، الساعة ١٠:٠٠ م.</p></div>
+        <button class="btn btn-light btn-sm" type="button" data-toast="release"><span data-en="Open the review now">افتح المراجعة الآن</span></button>
+      </div>
+      <section class="panel" style="margin-top:18px" aria-labelledby="t-att">
+        <div class="panel-head"><h3 id="t-att" data-en="Attempts">المحاولات</h3>
+          <div class="seg" role="group" aria-label="تصفية المحاولات" data-en-aria-label="Filter attempts"><button type="button" aria-pressed="true" data-af="all" data-en="All">الكل</button><button type="button" aria-pressed="false" data-af="live" data-en="Taking it now">يحلون الآن</button><button type="button" aria-pressed="false" data-af="done" data-en="Submitted">سلّموا</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" style="min-width:760px">
+            <thead><tr><th scope="col" data-en="Student">الطالب</th><th scope="col" data-en="Started">بدأ</th><th scope="col" data-en="State">الحالة</th><th scope="col" data-en="Time left / score">الوقت المتبقي / الدرجة</th><th scope="col"><span class="sr-only" data-en="Help this student">مساعدة الطالب</span></th></tr></thead>
+            <tbody id="att-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="list" aria-pressed="true" data-en="Quizzes">الاختبارات</button>
+  <button type="button" data-state="builder" aria-pressed="false" data-en="Builder">بناء اختبار</button>
+  <button type="button" data-state="banks" aria-pressed="false" data-en="Banks">البنوك</button>
+  <button type="button" data-state="results" aria-pressed="false" data-en="Live results">النتائج المباشرة</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="No quizzes">بلا اختبارات</button>
+  <button type="button" data-state="loading" aria-pressed="false" data-en="Loading">تحميل</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (ar, en) => `<span data-en="${en}" data-ar="${ar}">${isEn() ? en : ar}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+  // ---------- quizzes ----------
+  const ST = {
+    live: ['ok live', 'مفتوح الآن', 'Open now'], scheduled: ['info', 'مجدول', 'Scheduled'], awaiting: ['bad', 'بانتظار إعلانك', 'Waiting for you'],
+    released: ['off', 'الدرجات معلنة', 'Grades out'], draft: ['warn', 'مسودة', 'Draft'],
+  };
+  const quizzes = [
+    { id: 'q2', c: 't1', ar: 'اختبار قصير: قانون أوم', en: 'Short quiz: Ohm’s law', course: ['الترم الأول', 'Term 1'], scope: ['المحاضرة ٢', 'Lecture 2'], whole: false, when: ['يغلق اليوم ١٠:٠٠ م', 'Closes today 10:00 pm'], q: ['١٠ أسئلة · عشوائي من بنكين', '10 questions · random, 2 banks'], att: [97, 214], st: 'live', live: ['١٢ يحلون الآن', '12 taking it now'] },
+    { id: 'q3', c: 't1', ar: 'امتحان شامل: الترم الأول', en: 'Full exam: term 1', course: ['الترم الأول', 'Term 1'], scope: ['الكورس كله', 'Whole course'], whole: true, when: ['أُغلق ١٥ نوفمبر', 'Closed 15 Nov'], q: ['٤٠ سؤالًا · عشوائي', '40 questions · random'], att: [201, 214], st: 'awaiting' },
+    { id: 'q4', c: 't2', ar: 'اختبار المغناطيسية', en: 'Magnetism test', course: ['الترم الثاني', 'Term 2'], scope: ['الفصل الأول', 'Chapter 1'], whole: false, when: ['يفتح السبت ٢٢ نوفمبر ٧:٠٠ م', 'Opens Sat 22 Nov 7:00 pm'], q: ['٢٥ سؤالًا · يدوي', '25 questions · by hand'], att: [0, 188], st: 'scheduled' },
+    { id: 'q1', c: 't1', ar: 'اختبار الفصل الأول: التيار وأوم', en: 'Chapter 1 test: current and Ohm', course: ['الترم الأول', 'Term 1'], scope: ['الفصل الأول', 'Chapter 1'], whole: false, when: ['أُغلق ١٠ نوفمبر', 'Closed 10 Nov'], q: ['٢٠ سؤالًا · يدوي', '20 questions · by hand'], att: [186, 214], st: 'released' },
+    { id: 'q5', c: 't2', ar: 'تدريب: الحث الكهرومغناطيسي', en: 'Practice: induction', course: ['الترم الثاني', 'Term 2'], scope: ['الكورس كله', 'Whole course'], whole: true, when: ['بدون موعد', 'No date yet'], q: ['١٥ سؤالًا · يدوي', '15 questions · by hand'], att: [0, 188], st: 'draft' },
+  ];
+  document.getElementById('quiz-rows').innerHTML = quizzes.map((z) => `
+    <tr data-c="${z.c}" data-name="${z.ar} ${z.en.toLowerCase()}">
+      <td class="qt"><b><button type="button" data-go="${z.st === 'live' ? 'results' : 'builder'}">${t(z.ar, z.en)}</button></b>
+        <small>${t(z.course[0], z.course[1])} · <span class="scope">${ic(z.whole ? 'book-open' : 'list-tree')}${t(z.scope[0], z.scope[1])}</span></small></td>
+      <td class="muted">${t(z.when[0], z.when[1])}</td>
+      <td class="muted">${t(z.q[0], z.q[1])}</td>
+      <td><span class="att"><span class="meter" role="img" aria-label="${z.att[0]} / ${z.att[1]}"><i style="--p:${Math.round(z.att[0] / z.att[1] * 100)}%"></i></span><span class="num">${t(`${ar(z.att[0])} / ${ar(z.att[1])}`, `${z.att[0]} / ${z.att[1]}`)}</span></span></td>
+      <td><span class="chip ${ST[z.st][0]}">${t(ST[z.st][1], ST[z.st][2])}</span>${z.live ? `<span class="live-n">${t(...z.live)}</span>` : ''}</td>
+      <td><div class="dd">
+        <button class="ibtn dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="خيارات ${z.ar}" data-en-aria-label="Options for ${z.en}">${ic('ellipsis')}</button>
+        <div class="dd-menu" role="menu" hidden>
+          <button class="dd-item" type="button" role="menuitem" data-go="builder">${ic('pencil')}${t('عدّل الاختبار', 'Edit quiz')}</button>
+          <button class="dd-item" type="button" role="menuitem" data-go="results">${ic('users')}${t('المحاولات والنتائج', 'Attempts and results')}</button>
+          ${z.st === 'awaiting' ? `<button class="dd-item" type="button" role="menuitem" data-toast="grades">${ic('eye')}${t('أعلن الدرجات الآن', 'Release grades now')}</button>` : ''}
+          <div class="dd-sep"></div>
+          <button class="dd-item danger" type="button" role="menuitem">${ic('trash-2')}${t('احذف الاختبار', 'Delete quiz')}</button>
+        </div></div></td>
+    </tr>`).join('');
+
+  // ---------- questions (one bank, reused by the builder) ----------
+  const DIFF = { easy: ['ok', 'سهل', 'Easy'], medium: ['warn', 'متوسط', 'Medium'], hard: ['bad', 'صعب', 'Hard'] };
+  const TYPE = { single: ['إجابة واحدة', 'One answer'], multiple: ['أكثر من إجابة', 'Several answers'], tf: ['صح أو خطأ', 'True or false'] };
+  const questions = [
+    { type: 'single', ar: 'وحدة قياس كثافة الفيض المغناطيسي هي:', en: 'The unit of magnetic flux density is:', marks: 1, d: 'easy', opts: [['التسلا', 'Tesla', 1], ['الويبر', 'Weber'], ['الهنري', 'Henry'], ['الأمبير', 'Ampere']], exp: ['التسلا = ويبر لكل متر مربع.', 'One tesla is one weber per square metre.'] },
+    { type: 'multiple', ar: 'أيّ مما يلي يزيد كثافة الفيض عند مركز ملف دائري؟ (اختر كل ما ينطبق)', en: 'Which of these raise the flux density at the centre of a circular coil? (pick all that apply)', marks: 2, d: 'medium', opts: [['زيادة شدة التيار', 'More current', 1], ['زيادة عدد اللفات', 'More turns', 1], ['زيادة نصف القطر', 'A bigger radius'], ['عكس اتجاه التيار', 'Reversing the current']] },
+    { type: 'tf', ar: 'خطوط الفيض حول سلك مستقيم يمر به تيار دوائر متحدة المركز.', en: 'Flux lines around a straight current-carrying wire are concentric circles.', marks: 1, d: 'easy', opts: [['صح', 'True', 1], ['خطأ', 'False']] },
+    { type: 'single', ar: 'سلك طوله ٠٫٥ م يمر به تيار ٤ أمبير عموديًا على مجال ٠٫٢ تسلا. القوة المؤثرة عليه:', en: 'A 0.5 m wire carries 4 A at right angles to a 0.2 T field. The force on it is:', marks: 2, d: 'hard', opts: [['٠٫٤ نيوتن', '0.4 N', 1], ['٠٫٨ نيوتن', '0.8 N'], ['١٫٦ نيوتن', '1.6 N'], ['٠٫١ نيوتن', '0.1 N']], exp: ['ق = ب × ت × ل = ٠٫٢ × ٤ × ٠٫٥ = ٠٫٤ نيوتن.', 'F = B × I × L = 0.2 × 4 × 0.5 = 0.4 N.'] },
+    { type: 'single', ar: 'قاعدة اليد اليمنى لأمبير تحدد:', en: 'Ampère’s right-hand rule gives:', marks: 1, d: 'medium', opts: [['اتجاه المجال حول سلك', 'The field direction around a wire', 1], ['مقدار القوة على سلك', 'The size of the force on a wire'], ['اتجاه التيار المستحث', 'The induced current direction'], ['قيمة الفيض الكلي', 'The total flux']] },
+  ];
+  const qCard = (q, i, open) => `
+    <li class="q${open ? ' open' : ''}">
+      <span class="no num">${t(ar(i + 1), String(i + 1))}</span>
+      <div><div class="txt">${t(q.ar, q.en)}</div>
+        <div class="meta"><span class="chip off">${t(...TYPE[q.type])}</span><span class="chip ${DIFF[q.d][0]}">${t(DIFF[q.d][1], DIFF[q.d][2])}</span><span class="chip off num">${t(`${ar(q.marks)} ${q.marks > 1 ? 'درجة' : 'درجة'}`, `${q.marks} mark${q.marks > 1 ? 's' : ''}`)}</span></div></div>
+      <div class="tools"><button class="ibtn" type="button" data-toggle-q aria-expanded="${open}" aria-label="اعرض الاختيارات" data-en-aria-label="Show choices">${ic('eye')}</button><button class="ibtn" type="button" aria-label="عدّل السؤال" data-en-aria-label="Edit question">${ic('pencil')}</button><button class="ibtn" type="button" aria-label="احذف السؤال" data-en-aria-label="Remove question">${ic('trash-2')}</button></div>
+      <ul class="opts"${open ? '' : ' hidden'}>${q.opts.map((o) => `<li class="${o[2] ? 'ok' : ''}"><span class="mk${q.type === 'multiple' ? ' sq' : ''}">${o[2] ? ic('check') : ''}</span>${t(o[0], o[1])}${o[2] ? `<span class="sr-only">${t('(الإجابة الصحيحة)', '(correct answer)')}</span>` : ''}</li>`).join('')}</ul>
+      ${q.exp ? `<p class="explain"${open ? '' : ' hidden'}>${t('الشرح: ' + q.exp[0], 'Explanation: ' + q.exp[1])}</p>` : ''}
+    </li>`;
+  document.getElementById('qlist').innerHTML = questions.map((q, i) => qCard(q, i, i === 3)).join('');
+  document.getElementById('bank-q').innerHTML = questions.map((q, i) => qCard(q, i, i === 1)).join('');
+
+  // editor choices
+  const renderOpts = (type) => {
+    const n = type === 'tf' ? [['صح', 'True'], ['خطأ', 'False']] : [['', ''], ['', ''], ['', ''], ['', '']];
+    document.getElementById('ed-opts').innerHTML = n.map((o, i) => `
+      <div class="ed-opt"><input type="${type === 'multiple' ? 'checkbox' : 'radio'}" name="correct" ${i === 0 ? 'checked' : ''} aria-label="الاختيار ${ar(i + 1)} صحيح" data-en-aria-label="Choice ${i + 1} is correct">
+        <input class="input" ${type === 'tf' ? 'readonly' : ''} value="${type === 'tf' ? (isEn() ? o[1] : o[0]) : ''}" placeholder="${isEn() ? 'Choice ' + (i + 1) : 'الاختيار ' + ar(i + 1)}" aria-label="${isEn() ? 'Choice ' + (i + 1) : 'الاختيار ' + ar(i + 1)}"></div>`).join('');
+    document.querySelector('[data-add-opt]').hidden = type === 'tf';
+  };
+  renderOpts('single');
+
+  // ---------- attempts (live quiz) ----------
+  const atts = [
+    { n: ['يوسف أحمد', 'Youssef Ahmed'], e: 'youssef@mail.example', s: ['٨:٠٢ م', '8:02 pm'], st: 'live', left: [492, '٠٨:١٢', '08:12'] },
+    { n: ['مريم خالد', 'Mariam Khaled'], e: 'mariam@mail.example', s: ['٧:٥٨ م', '7:58 pm'], st: 'live', left: [95, '٠١:٣٥', '01:35'] },
+    { n: ['عمر حسن', 'Omar Hassan'], e: 'omar@mail.example', s: ['٧:٤٠ م', '7:40 pm'], st: 'done', score: [9, 10] },
+    { n: ['سلمى إبراهيم', 'Salma Ibrahim'], e: 'salma@mail.example', s: ['٧:٣١ م', '7:31 pm'], st: 'auto', score: [4, 10] },
+    { n: ['كريم محمود', 'Karim Mahmoud'], e: 'karim.m@mail.example', s: ['٧:٢٠ م', '7:20 pm'], st: 'done', score: [7, 10] },
+  ];
+  const ATT = { live: ['ok live', 'يحل الآن', 'In progress'], done: ['off', 'سلّم', 'Submitted'], auto: ['warn', 'سُلّم عند انتهاء الوقت', 'Submitted at the deadline'] };
+  document.getElementById('att-rows').innerHTML = atts.map((a) => `
+    <tr data-af="${a.st === 'live' ? 'live' : 'done'}">
+      <td><span class="who"><span class="avatar av-student" aria-hidden="true">${a.n[0][0]}</span><span>${t(a.n[0], a.n[1])}<small>${a.e}</small></span></span></td>
+      <td class="muted num">${t(...a.s)}</td>
+      <td><span class="chip ${ATT[a.st][0]}">${t(ATT[a.st][1], ATT[a.st][2])}</span></td>
+      <td>${a.st === 'live' ? `<span class="left${a.left[0] < 120 ? ' low' : ''}">${t(a.left[1], a.left[2])}</span>` : `<span class="score num"><b>${t(ar(a.score[0]), String(a.score[0]))}</b> / ${t(ar(a.score[1]), String(a.score[1]))}</span>`}</td>
+      <td>${a.st === 'live' ? `<div class="dd">
+          <button class="btn btn-light btn-sm dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false">${ic('clock-3')}${t('ساعد', 'Help')}</button>
+          <div class="dd-menu" role="menu" hidden>
+            <div class="dd-title">${t('زد وقت هذا الطالب فقط', 'Give only this student more time')}</div>
+            <button class="dd-item" type="button" role="menuitem" data-extend="5">${ic('plus')}${t('٥ دقائق', '5 minutes')}</button>
+            <button class="dd-item" type="button" role="menuitem" data-extend="10">${ic('plus')}${t('١٠ دقائق', '10 minutes')}</button>
+            <div class="dd-sep"></div>
+            <button class="dd-item" type="button" role="menuitem" data-move>${ic('smartphone')}${t('انقل المحاولة لجهاز آخر', 'Move the attempt to another device')}</button>
+          </div></div>` : ''}</td>
+    </tr>`).join('');
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const setState = window.itqanSetState;
+  renderOpts('single'); // again, now that the saved language is applied
+  const toast = (a, e) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2800); };
+  const TOASTS = {
+    saved: ['حُفظ الاختبار كمسودة', 'Quiz saved as a draft'], published: ['نُشر الاختبار ويفتح في موعده', 'Quiz published; it opens on time'],
+    grades: ['أُعلنت الدرجات وأُبلغ الطلاب', 'Grades released and students notified'], release: ['فُتحت المراجعة للطلاب الذين سلّموا', 'Review opened for students who submitted'],
+    bank: ['أُنشئ بنك جديد', 'New bank created'],
+  };
+  const pressIn = (group, btn) => group.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, a');
+    if (!b) return;
+    if (b.dataset.go) { e.preventDefault(); setState(b.dataset.go); scrollTo({ top: 0 }); }
+    if (b.dataset.toast) toast(...TOASTS[b.dataset.toast]);
+    if (b.hasAttribute('data-new-q')) { setState('banks'); const f = document.getElementById('q-editor'); f.hidden = false; setTimeout(() => document.getElementById('qe-text').focus()); }
+    if (b.hasAttribute('data-close-editor')) document.getElementById('q-editor').hidden = true;
+    if (b.hasAttribute('data-toggle-q')) {
+      const li = b.closest('.q'), open = li.classList.toggle('open');
+      li.querySelectorAll('.opts, .explain').forEach((x) => { x.hidden = !open; }); b.setAttribute('aria-expanded', String(open));
+    }
+    if (b.dataset.qt) { pressIn(b.parentElement, b); renderOpts(b.dataset.qt); }
+    if (b.hasAttribute('data-add-opt')) {
+      const box = document.getElementById('ed-opts'), n = box.children.length + 1, type = document.querySelector('#qtype [aria-pressed="true"]').dataset.qt;
+      box.insertAdjacentHTML('beforeend', `<div class="ed-opt"><input type="${type === 'multiple' ? 'checkbox' : 'radio'}" name="correct" aria-label="${isEn() ? 'Choice ' + n + ' is correct' : 'الاختيار ' + ar(n) + ' صحيح'}"><input class="input" placeholder="${isEn() ? 'Choice ' + n : 'الاختيار ' + ar(n)}" aria-label="${isEn() ? 'Choice ' + n : 'الاختيار ' + ar(n)}"></div>`);
+      box.lastElementChild.querySelector('.input').focus();
+    }
+    if (b.dataset.sel) { pressIn(b.parentElement, b); document.getElementById('manual').hidden = b.dataset.sel !== 'manual'; document.getElementById('random').hidden = b.dataset.sel !== 'random'; }
+    if (b.dataset.af) { pressIn(b.parentElement, b); document.querySelectorAll('#att-rows tr').forEach((r) => { r.hidden = b.dataset.af !== 'all' && r.dataset.af !== b.dataset.af; }); }
+    if (b.closest('.seg') && !b.dataset.qt && !b.dataset.sel && !b.dataset.af && !b.dataset.go) pressIn(b.closest('.seg'), b);
+    if (b.classList.contains('bank')) document.querySelectorAll('.bank').forEach((x) => x.setAttribute('aria-current', String(x === b)));
+    if (b.getAttribute('role') === 'switch') b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true'));
+    if (b.dataset.extend) {
+      const row = b.closest('tr'), name = row.querySelector('.who span span').textContent;
+      toast(`أُضيفت ${ar(b.dataset.extend)} دقائق لـ ${name}`, `Added ${b.dataset.extend} minutes for ${name}`);
+      const left = row.querySelector('.left'); left.classList.remove('low');
+    }
+    if (b.hasAttribute('data-move')) toast('ستُكمل المحاولة على الجهاز الذي يفتح منه الطالب الآن', 'The attempt continues on the device the student opens next');
+  });
+
+  // audience: show the parts list only for "chosen parts"
+  document.querySelectorAll('input[name="scope"]').forEach((r) => r.addEventListener('change', () => { document.getElementById('parts').hidden = r.value !== 'parts' || !r.checked; }));
+
+  // list filters
+  const filter = () => {
+    const q = document.getElementById('find').value.trim().toLowerCase(), c = document.querySelector('#f-course [aria-selected="true"]').dataset.value;
+    document.querySelectorAll('#quiz-rows tr').forEach((r) => { r.hidden = (c !== 'all' && r.dataset.c !== c) || (q && !r.dataset.name.includes(q)); });
+  };
+  document.getElementById('find').addEventListener('input', filter);
+  document.getElementById('f-course').addEventListener('dd:change', filter);
+
+  // the tabs follow the current view
+  document.addEventListener('itqan:state', (e) => {
+    document.querySelectorAll('.tabs-top button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.go === (e.detail === 'banks' ? 'banks' : 'list'))));
+  });
+  // save a question (POST /question-banks/:id/questions): the text is required
+  document.getElementById('q-editor').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = document.getElementById('qe-text'), bad = !text.value.trim();
+    text.setAttribute('aria-invalid', String(bad)); document.getElementById('err-qe').classList.toggle('show', bad);
+    if (bad) { text.focus(); return; }
+    e.target.hidden = true; e.target.reset(); text.removeAttribute('aria-invalid');
+    toast('حُفظ السؤال في البنك', 'Question saved to the bank');
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(() => renderOpts(document.querySelector('#qtype [aria-pressed="true"]').dataset.qt))));
+</script>
+</body>
+</html>

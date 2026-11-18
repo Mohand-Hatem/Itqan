@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظرة عامة · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: analytics overview for the teacher and assistants (GET /analytics/overview, support requests, quiz results).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  /* KPI row: the 7 numbers of GET /analytics/overview, grouped into four cards */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .kpi { display: grid; gap: 4px; align-content: start; }
+  .kpi .bub { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 10px; }
+  .kpi .bub svg { width: 23px; height: 23px; }
+  .bub.sun { background: var(--sun-tint); color: #7A5200; }
+  .bub.mint { background: var(--mint-tint); color: #22694F; }
+  .bub.blue { background: var(--blue-tint); color: #1F47B0; }
+  .bub.coral { background: var(--coral-tint); color: #A5341B; }
+  .kpi .lbl { font-size: 14px; color: var(--ink-2); }
+  .kpi .val { font-size: 34px; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; justify-self: start; }
+  .kpi .val small { font-size: 16px; font-weight: 500; color: var(--ink-2); }
+  .kpi .foot { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; justify-self: start; }
+  .kpi .foot svg { width: 15px; height: 15px; flex: none; }
+
+  .row { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+
+  /* courses table */
+  .tbl-wrap { overflow-x: auto; margin-inline: -4px; padding-inline: 4px; }
+  .tbl { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 14.5px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 10px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl tbody tr { transition: background-color .15s; }
+  .tbl tbody tr:hover { background: #FFF8E8; }
+  .tbl .course { font-weight: 600; }
+  .tbl .course a { text-decoration: none; display: inline-block; padding-block: 12px; margin-block: -12px; } /* 44px tap area, no row growth */
+  .tbl .course a:hover { text-decoration: underline; }
+  .pub { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .pub .meter { width: 72px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; flex: none; }
+  .pub .meter i { display: block; height: 100%; width: var(--p); background: var(--ink); border-radius: inherit; }
+  .muted { color: var(--ink-2); }
+
+  /* student activity gauge */
+  .gauge { position: relative; max-width: 330px; margin: 6px auto 0; }
+  .gauge svg { width: 100%; overflow: visible; }
+  .gauge .track { stroke: var(--line); }
+  .gauge .rim { stroke: var(--ink); }
+  .gauge .fill { stroke: var(--sun); }
+  .gauge .tick { font-size: 12px; fill: var(--ink-3); font-family: var(--f-body); }
+  [dir="rtl"] .gauge .arc { transform: scaleX(-1); transform-origin: 150px 150px; } /* fills from the reading start */
+  [dir="rtl"] .ltr-tick, [dir="ltr"] .rtl-tick { display: none; }
+  .gauge .center { position: absolute; inset-inline: 0; bottom: 4px; text-align: center; }
+  .gauge .center b { display: block; font-size: 40px; font-weight: 600; line-height: 1.1; }
+  .gauge .center > span { font-size: 13.5px; color: var(--ink-2); }
+  .split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 2px dashed var(--line); }
+  .split div { display: grid; gap: 2px; }
+  .split b { font-size: 24px; font-weight: 600; line-height: 1.2; }
+  .split span { font-size: 13px; color: var(--ink-2); }
+  .split .t-mint { color: #22694F; }
+  .split .t-coral { color: #B8341A; }
+
+  /* device and sign-out requests */
+  .tabs { display: flex; gap: 6px; box-shadow: inset 0 -2px 0 var(--line); margin-bottom: 4px; overflow-x: auto; overflow-y: hidden; } /* the line is drawn inside, so nothing pokes out and scrolls */
+  .tab { position: relative; min-height: 44px; padding: 0 12px; border: 0; background: none; cursor: pointer; color: var(--ink-2); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+  .tab[aria-selected="true"]::after { content: ""; position: absolute; inset-inline: 8px; bottom: 0; height: 3px; border-radius: 3px; background: var(--ink); }
+  .tab .n { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--blue-tint); color: #1F47B0; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+  .rule { font-size: 13px; color: var(--ink-2); padding: 10px 0 4px; display: flex; gap: 8px; align-items: flex-start; }
+  .rule svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+  .reqs { list-style: none; margin: 0; padding: 0; }
+  .req { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .req:last-child { border-bottom: 0; }
+  .req[hidden] { display: none; }
+  .req .avatar { width: 40px; height: 40px; font-size: 16px; background: var(--paper); }
+  .req .who { font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .req .who time { font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+  .req .msg { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .req .acts { display: flex; gap: 8px; }
+  .req .acts .btn { min-height: 40px; padding: 0 14px; font-size: 14.5px; box-shadow: 0 2px 0 var(--ink); }
+  .req .acts .btn:hover { box-shadow: 0 4px 0 var(--ink); }
+  .req .done { display: none; }
+  .req.decided .acts { display: none; }
+  .req.decided .done { display: inline-flex; }
+  .foot-link { margin-top: 6px; }
+
+  /* quiz participation: one column of dots per quiz, one dot = 25 attempts */
+  .dots { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: end; gap: 6px; min-height: 290px; }
+  .dots li { display: grid; justify-items: center; gap: 4px; }
+  .dots .c { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); background: var(--paper); }
+  .dots .top { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+  .dots .max .top { background: var(--coral-strong); color: #fff; }
+  .dots .max .c { background: var(--coral-tint); }
+  .dots .name { font-size: 12px; color: var(--ink-2); text-align: center; line-height: 1.35; min-height: 2.7em; margin-top: 6px; }
+  .legend { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+  .legend i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); }
+
+  /* empty academy */
+  [data-state="empty"] .gauge .rim, [data-state="empty"] .gauge .fill, [data-state="empty"] .split { display: none; }
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 28px 12px; }
+  .empty .bub { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); }
+  .empty .bub svg { width: 26px; height: 26px; }
+  .empty b { font-family: var(--f-display); font-size: 18px; }
+  .empty p { color: var(--ink-2); font-size: 14px; max-width: 40ch; }
+  [data-state="empty"] .empty.when-empty { display: grid; }
+
+  @media (max-width: 1240px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 1080px) { .row { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .kpis { gap: 12px; }
+    .kpi .val { font-size: 28px; }
+    .panel { padding: 18px 16px; }
+    .req { grid-template-columns: auto minmax(0, 1fr); }
+    .req .acts, .req .done { grid-column: 1 / -1; }
+    .req .acts .btn { flex: 1; min-height: 44px; }
+  }
+</style>
+</head>
+<body data-page="analytics" data-unread="3" data-title-en="Overview · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Dashboard">لوحة التحكم</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <span class="spacer"></span>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="head">
+      <h2 data-en="Overview">نظرة عامة</h2>
+      <p data-en="Totals so far · activity counts the last 7 days">الأرقام حتى الآن · النشاط يُحسب لآخر ٧ أيام</p>
+    </div>
+
+    <!-- GET /analytics/overview → students, activeStudents7d, courses, publishedItems, quizParticipation, averageGrade, pendingRequests -->
+    <section class="kpis" aria-label="أرقام الأكاديمية" data-en-aria-label="Academy numbers">
+      <article class="panel kpi">
+        <span class="bub sun"><i data-i="users-round"></i></span>
+        <span class="lbl" data-en="Students">الطلاب</span>
+        <span class="val num data"><span class="when-full" data-en="312">٣١٢</span><span class="when-empty" data-en="0">٠</span></span>
+        <span class="foot data"><span class="when-full" data-en="184 active in the last 7 days">١٨٤ منهم نشطون آخر ٧ أيام</span><span class="when-empty" data-en="No students yet">لا طلاب بعد</span></span>
+      </article>
+      <article class="panel kpi">
+        <span class="bub blue"><i data-i="book-open"></i></span>
+        <span class="lbl" data-en="Courses">الكورسات</span>
+        <span class="val num data"><span class="when-full" data-en="5">٥</span><span class="when-empty" data-en="0">٠</span></span>
+        <span class="foot data"><span class="when-full" data-en="162 published lectures and files">١٦٢ محاضرة وملفًا منشورًا</span><span class="when-empty" data-en="Nothing published yet">لم يُنشر محتوى بعد</span></span>
+      </article>
+      <article class="panel kpi">
+        <span class="bub mint"><i data-i="clipboard-pen-line"></i></span>
+        <span class="lbl" data-en="Quiz attempts">محاولات الاختبارات</span>
+        <span class="val num data"><span class="when-full" data-en="848">٨٤٨</span><span class="when-empty" data-en="0">٠</span></span>
+        <span class="foot data"><span class="when-full" data-en="Across all quizzes so far">في كل الاختبارات حتى الآن</span><span class="when-empty" data-en="No attempts yet">لا محاولات بعد</span></span>
+      </article>
+      <article class="panel kpi">
+        <span class="bub coral"><i data-i="award"></i></span>
+        <span class="lbl" data-en="Average grade">متوسط الدرجات</span>
+        <span class="val num data"><span class="when-full" data-en="74.6%">٧٤٫٦٪</span><span class="when-empty">—</span></span>
+        <span class="foot data"><span class="when-full" data-en="Submitted attempts only">من المحاولات المسلَّمة فقط</span><span class="when-empty" data-en="Shows after the first submitted attempt">يظهر بعد أول محاولة مسلَّمة</span></span>
+      </article>
+    </section>
+
+    <div class="row">
+      <!-- GET /courses (+ enrollments count and published items from the tree) -->
+      <section class="panel" aria-labelledby="t-courses">
+        <div class="panel-head">
+          <h3 id="t-courses" data-en="Courses">الكورسات</h3>
+          <div class="dd when-full" id="status">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Status:">الحالة:</span><span class="dd-val" data-en="All">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالحالة" data-en-aria-label="Filter by status">
+              <div class="dd-title" data-en="Filter by status">تصفية بالحالة</div>
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-dot" style="background:var(--paper)"></span><span class="dd-label" data-en="All">الكل</span><span class="dd-n num" data-en="5">٥</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="published"><span class="dd-dot" style="background:var(--mint)"></span><span class="dd-label" data-en="Published">منشور</span><span class="dd-n num" data-en="3">٣</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="draft"><span class="dd-dot" style="background:var(--sun)"></span><span class="dd-label" data-en="Draft">مسودة</span><span class="dd-n num" data-en="1">١</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="archived"><span class="dd-dot" style="background:#EFE8DA"></span><span class="dd-label" data-en="Archived">مؤرشف</span><span class="dd-n num" data-en="1">١</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap when-full">
+          <table class="tbl">
+            <thead><tr>
+              <th scope="col" data-en="Course">الكورس</th>
+              <th scope="col" data-en="Students">الطلاب</th>
+              <th scope="col" data-en="Published content">المحتوى المنشور</th>
+              <th scope="col" data-en="Last edit">آخر تعديل</th>
+              <th scope="col" data-en="Status">الحالة</th>
+            </tr></thead>
+            <tbody>
+              <tr data-status="published">
+                <td class="course"><a class="data" href="courses.html" data-en="Physics, term 1">الفيزياء · الترم الأول</a></td>
+                <td class="num"><span class="data" data-en="214">٢١٤</span></td>
+                <td><span class="pub data"><span class="meter" role="img" aria-label="٦٢ من ٦٢" data-en-aria-label="62 of 62"><i style="--p:100%"></i></span><span class="num" data-en="62 / 62">٦٢ / ٦٢</span></span></td>
+                <td class="muted"><span class="data" data-en="12 Nov">١٢ نوفمبر</span></td>
+                <td><span class="chip ok" data-en="Published">منشور</span></td>
+              </tr>
+              <tr data-status="published">
+                <td class="course"><a class="data" href="courses.html" data-en="Physics, term 2">الفيزياء · الترم الثاني</a></td>
+                <td class="num"><span class="data" data-en="188">١٨٨</span></td>
+                <td><span class="pub data"><span class="meter" role="img" aria-label="٣٤ من ٥١" data-en-aria-label="34 of 51"><i style="--p:67%"></i></span><span class="num" data-en="34 / 51">٣٤ / ٥١</span></span></td>
+                <td class="muted"><span class="data" data-en="Yesterday">أمس</span></td>
+                <td><span class="chip ok" data-en="Published">منشور</span></td>
+              </tr>
+              <tr data-status="draft">
+                <td class="course"><a class="data" href="courses.html" data-en="Night-before-exam review">مراجعة ليلة الامتحان</a></td>
+                <td class="num"><span class="data" data-en="0">٠</span></td>
+                <td><span class="pub data"><span class="meter" role="img" aria-label="٨ من ٢٠" data-en-aria-label="8 of 20"><i style="--p:40%"></i></span><span class="num" data-en="8 / 20">٨ / ٢٠</span></span></td>
+                <td class="muted"><span class="data" data-en="Today">اليوم</span></td>
+                <td><span class="chip warn" data-en="Draft">مسودة</span></td>
+              </tr>
+              <tr data-status="published">
+                <td class="course"><a class="data" href="courses.html" data-en="Past exams solved, 2025">حل امتحانات سابقة ٢٠٢٥</a></td>
+                <td class="num"><span class="data" data-en="96">٩٦</span></td>
+                <td><span class="pub data"><span class="meter" role="img" aria-label="٤٠ من ٤٠" data-en-aria-label="40 of 40"><i style="--p:100%"></i></span><span class="num" data-en="40 / 40">٤٠ / ٤٠</span></span></td>
+                <td class="muted"><span class="data" data-en="3 Oct">٣ أكتوبر</span></td>
+                <td><span class="chip ok" data-en="Published">منشور</span></td>
+              </tr>
+              <tr data-status="archived">
+                <td class="course"><a class="data" href="courses.html" data-en="Summer course 2025">كورس الصيف ٢٠٢٥</a></td>
+                <td class="num"><span class="data" data-en="41">٤١</span></td>
+                <td><span class="pub data"><span class="meter" role="img" aria-label="١٨ من ١٨" data-en-aria-label="18 of 18"><i style="--p:100%"></i></span><span class="num" data-en="18 / 18">١٨ / ١٨</span></span></td>
+                <td class="muted"><span class="data" data-en="2 Sep">٢ سبتمبر</span></td>
+                <td><span class="chip off" data-en="Archived">مؤرشف</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty when-empty">
+          <span class="bub"><i data-i="library-big"></i></span>
+          <b data-en="No courses yet">لا توجد كورسات بعد</b>
+          <p data-en="Start with one course, then add its chapters, lectures and files.">ابدأ بكورس واحد، ثم أضف إليه الفصول والمحاضرات والملفات.</p>
+          <a class="btn btn-sm" href="courses.html" data-en="Create the first course">أنشئ أول كورس</a>
+        </div>
+      </section>
+
+      <!-- activeStudents7d / students -->
+      <section class="panel" aria-labelledby="t-activity">
+        <div class="panel-head">
+          <h3 id="t-activity" data-en="Student activity">نشاط الطلاب</h3>
+          <p class="sub" data-en="Opened a lecture, a quiz or signed in, last 7 days">فتح محاضرة أو اختبارًا أو سجّل الدخول، آخر ٧ أيام</p>
+        </div>
+        <div class="gauge">
+          <svg viewBox="0 0 300 165" role="img" aria-label="٥٩٪ من الطلاب نشطون" data-en-aria-label="59% of students are active">
+            <g class="arc" fill="none" stroke-linecap="round">
+              <path class="track" d="M32 150 A118 118 0 0 1 268 150" stroke-width="14"/>
+              <path class="rim" d="M32 150 A118 118 0 0 1 268 150" stroke-width="18" pathLength="100" stroke-dasharray="59 200"/>
+              <path class="fill" d="M32 150 A118 118 0 0 1 268 150" stroke-width="14" pathLength="100" stroke-dasharray="59 200"/>
+            </g>
+            <g class="tick" text-anchor="middle">
+              <text class="ltr-tick" x="6" y="154">0</text><text class="ltr-tick" x="48" y="50">25</text><text class="ltr-tick" x="150" y="8">50</text><text class="rtl-tick" x="150" y="8">٥٠</text><text class="ltr-tick" x="252" y="50">75</text><text class="ltr-tick" x="294" y="154">100</text>
+              <text class="rtl-tick" x="294" y="154">٠</text><text class="rtl-tick" x="252" y="50">٢٥</text><text class="rtl-tick" x="48" y="50">٧٥</text><text class="rtl-tick" x="6" y="154">١٠٠</text>
+            </g>
+          </svg>
+          <div class="center">
+            <b class="num data"><span class="when-full" data-en="59%">٥٩٪</span><span class="when-empty" data-en="0%">٠٪</span></b>
+            <span class="when-full" data-en="of your students are active">من طلابك نشطون</span>
+            <a class="when-empty link" href="create-student.html" data-en="Add your first student">أضف أول طالب</a>
+          </div>
+        </div>
+        <div class="split">
+          <div><b class="num data" data-en="312">٣١٢</b><span data-en="All students">كل الطلاب</span></div>
+          <div><b class="num data t-mint" data-en="184">١٨٤</b><span data-en="Active">نشطون</span></div>
+          <div><b class="num data t-coral" data-en="128">١٢٨</b><span data-en="Not seen in 7 days">غابوا ٧ أيام</span></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="row">
+      <!-- GET /support-requests?status=open → approve / reject -->
+      <section class="panel" aria-labelledby="t-req">
+        <div class="panel-head">
+          <h3 id="t-req" data-en="Requests waiting for you">طلبات بانتظارك</h3>
+          <span class="chip bad when-full"><span class="num" data-en="7 open">٧ مفتوحة</span></span>
+        </div>
+        <div class="when-full">
+          <div class="tabs" role="tablist" aria-label="نوع الطلب" data-en-aria-label="Request type">
+            <button class="tab" role="tab" aria-selected="true" data-type="all"><span data-en="All">الكل</span><span class="n num" data-en="7">٧</span></button>
+            <button class="tab" role="tab" aria-selected="false" data-type="device_change"><span data-en="Device change">تغيير جهاز</span><span class="n num" data-en="5">٥</span></button>
+            <button class="tab" role="tab" aria-selected="false" data-type="sign_out_other"><span data-en="Sign out other device">خروج من جهاز آخر</span><span class="n num" data-en="2">٢</span></button>
+          </div>
+          <p class="rule"><i data-i="info"></i><span data-en="Approving a device change removes the old device and ends its sessions, then approves the new one.">قبول تغيير الجهاز يلغي الجهاز القديم وينهي جلساته، ثم يعتمد الجهاز الجديد.</span></p>
+          <ul class="reqs">
+            <li class="req" data-type="device_change">
+              <span class="avatar av-student" aria-hidden="true">ي</span>
+              <div><div class="who"><span class="data" data-en="Youssef Ahmed">يوسف أحمد</span><span class="chip info" data-en="Device change">تغيير جهاز</span><time class="data" data-en="12 min ago">منذ ١٢ دقيقة</time></div>
+                <p class="msg data" data-en="“My phone broke, I bought a new one.”">«موبايلي اتكسر واشتريت واحد جديد.»</p></div>
+              <div class="acts"><button class="btn btn-sm" type="button" data-decide="ok" data-en="Approve">اقبل</button><button class="btn btn-sm btn-light" type="button" data-decide="no" data-en="Reject">ارفض</button></div>
+              <span class="done chip"></span>
+            </li>
+            <li class="req" data-type="sign_out_other">
+              <span class="avatar av-student" aria-hidden="true">م</span>
+              <div><div class="who"><span class="data" data-en="Mariam Khaled">مريم خالد</span><span class="chip warn" data-en="Sign out other device">خروج من جهاز آخر</span><time class="data" data-en="40 min ago">منذ ٤٠ دقيقة</time></div>
+                <p class="msg data" data-en="“I forgot to sign out on the school laptop.”">«نسيت أخرج من لابتوب المدرسة.»</p></div>
+              <div class="acts"><button class="btn btn-sm" type="button" data-decide="ok" data-en="Approve">اقبل</button><button class="btn btn-sm btn-light" type="button" data-decide="no" data-en="Reject">ارفض</button></div>
+              <span class="done chip"></span>
+            </li>
+            <li class="req" data-type="device_change">
+              <span class="avatar av-student" aria-hidden="true">ع</span>
+              <div><div class="who"><span class="data" data-en="Omar Hassan">عمر حسن</span><span class="chip info" data-en="Device change">تغيير جهاز</span><time class="data" data-en="2 hours ago">منذ ساعتين</time></div>
+                <p class="msg data" data-en="No message">بدون رسالة</p></div>
+              <div class="acts"><button class="btn btn-sm" type="button" data-decide="ok" data-en="Approve">اقبل</button><button class="btn btn-sm btn-light" type="button" data-decide="no" data-en="Reject">ارفض</button></div>
+              <span class="done chip"></span>
+            </li>
+            <li class="req" data-type="device_change">
+              <span class="avatar av-student" aria-hidden="true">س</span>
+              <div><div class="who"><span class="data" data-en="Salma Ibrahim">سلمى إبراهيم</span><span class="chip info" data-en="Device change">تغيير جهاز</span><time class="data" data-en="Yesterday">أمس</time></div>
+                <p class="msg data" data-en="“I moved to the family laptop.”">«نقلت على لابتوب البيت.»</p></div>
+              <div class="acts"><button class="btn btn-sm" type="button" data-decide="ok" data-en="Approve">اقبل</button><button class="btn btn-sm btn-light" type="button" data-decide="no" data-en="Reject">ارفض</button></div>
+              <span class="done chip"></span>
+            </li>
+          </ul>
+          <a class="link foot-link" href="accounts.html" data-en="All 7 requests">كل الطلبات (٧)</a>
+        </div>
+        <div class="empty when-empty">
+          <span class="bub"><i data-i="smartphone"></i></span>
+          <b data-en="No open requests">لا طلبات مفتوحة</b>
+          <p data-en="When a student asks to change a device or sign out elsewhere, the request shows up here.">حين يطلب طالب تغيير جهازه أو الخروج من جهاز آخر، يظهر الطلب هنا.</p>
+        </div>
+      </section>
+
+      <!-- GET /quizzes + /quizzes/:id/results → attempts per quiz -->
+      <section class="panel" aria-labelledby="t-quiz">
+        <div class="panel-head">
+          <h3 id="t-quiz" data-en="Quiz participation">المشاركة في الاختبارات</h3>
+          <p class="sub" data-en="Attempts on the last 6 quizzes">عدد المحاولات في آخر ٦ اختبارات</p>
+        </div>
+        <ol class="dots when-full" id="dots"></ol>
+        <p class="legend when-full"><i></i><span data-en="One dot = 25 attempts">الدائرة = ٢٥ محاولة</span></p>
+        <div class="empty when-empty">
+          <span class="bub"><i data-i="clipboard-check"></i></span>
+          <b data-en="No quizzes yet">لا اختبارات بعد</b>
+          <p data-en="Publish a quiz and its attempts will be counted here.">انشر اختبارًا وستُعدّ محاولاته هنا.</p>
+          <a class="link" href="quizzes.html" data-en="Build a quiz">ابنِ اختبارًا</a>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="idle" aria-pressed="true" data-en="Normal">عادي</button>
+  <button type="button" data-state="loading" aria-pressed="false" data-en="Loading">تحميل</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="New academy">أكاديمية جديدة</button>
+  <a href="../test/index.html" data-en="All screens">كل الشاشات</a>
+</nav>
+
+<script>
+  // attempts per quiz (sample of GET /quizzes/:id/results); built before itqan.js so the language switch covers it
+  (() => {
+    const quizzes = [['الكهربية', 'Electricity', 186], ['المغناطيسية', 'Magnetism', 172], ['الحث', 'Induction', 201], ['التيار المتردد', 'AC circuits', 154], ['الفيزياء الحديثة', 'Modern physics', 98], ['شامل ١', 'Mock 1', 37]];
+    const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+    const max = Math.max(...quizzes.map((q) => q[2]));
+    document.getElementById('dots').innerHTML = quizzes.map(([a, e, n]) => `
+      <li class="${n === max ? 'max' : ''}" aria-label="${a}: ${ar(n)} محاولة" data-en-aria-label="${e}: ${n} attempts">
+        <span class="top num" aria-hidden="true" data-en="${n}">${ar(n)}</span>
+        ${'<span class="c" aria-hidden="true"></span>'.repeat(Math.max(1, Math.ceil(n / 25)))}
+        <span class="name" aria-hidden="true" data-en="${e}">${a}</span>
+      </li>`).join('');
+  })();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  // courses status filter
+  document.getElementById('status').addEventListener('dd:change', (e) => {
+    document.querySelectorAll('.tbl tbody tr').forEach((tr) => { tr.hidden = e.detail !== 'all' && tr.dataset.status !== e.detail; });
+  });
+
+  // request tabs
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach((t) => t.addEventListener('click', () => {
+    tabs.forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    document.querySelectorAll('.req').forEach((r) => { r.hidden = t.dataset.type !== 'all' && r.dataset.type !== t.dataset.type; });
+  }));
+
+  // approve / reject (POST /support-requests/:id/approve · /reject): the row keeps its place and shows the decision
+  document.querySelectorAll('[data-decide]').forEach((b) => b.addEventListener('click', () => {
+    const row = b.closest('.req'), ok = b.dataset.decide === 'ok', en = document.documentElement.lang === 'en';
+    const done = row.querySelector('.done');
+    done.className = `done chip ${ok ? 'ok' : 'bad'}`;
+    done.dataset.en = ok ? 'Approved' : 'Rejected';
+    done.dataset.ar = ok ? 'تم القبول' : 'تم الرفض';
+    done.textContent = en ? done.dataset.en : done.dataset.ar;
+    row.classList.add('decided');
+    done.setAttribute('role', 'status');
+  }));
+</script>
+</body>
+</html>

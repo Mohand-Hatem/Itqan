@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الكورسات والمحتوى · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: courses and their content tree (chapters, lectures, folders, videos, files, quiz links).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  /* views, driven by body[data-state] (preview bar + "open course" / breadcrumb) */
+  [data-state="list"] .view-editor, [data-state="empty-list"] .view-editor, [data-state="loading"] .view-editor { display: none; }
+  [data-state="editor"] .view-list, [data-state="empty-course"] .view-list { display: none; }
+  .when-empty-list, .when-empty-course { display: none; }
+  [data-state="empty-list"] .when-empty-list, [data-state="empty-course"] .when-empty-course { display: grid; }
+  [data-state="empty-list"] .cards, [data-state="empty-course"] .tree-body, [data-state="empty-course"] .details, [data-state="empty-course"] .ed-stats { display: none; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toolbar .find { position: relative; }
+  .toolbar .find svg { position: absolute; inset-inline-start: 14px; top: 50%; translate: 0 -50%; width: 17px; height: 17px; color: var(--ink-3); pointer-events: none; }
+  .toolbar .find input { min-height: 42px; width: 230px; padding-inline: 40px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font-size: 14px; }
+  .toolbar .find input:focus { outline: none; border-color: var(--ink); }
+  .toolbar .btn { min-height: 44px; font-size: 16px; padding: 0 18px; }
+
+  /* course cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .cc { display: flex; flex-direction: column; gap: 12px; transition: transform .2s var(--ease-out), box-shadow .2s; }
+  .cc:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+  .cc-top { display: flex; align-items: center; justify-content: space-between; margin: -6px -8px -4px 0; margin-inline: 0 -8px; }
+  .cc h3 { font-size: 19px; font-weight: 700; line-height: 1.35; }
+  .cc h3 button { all: unset; cursor: pointer; }
+  .cc h3 button:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+  .cc h3 button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
+  .cc .desc { color: var(--ink-2); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 3.1em; }
+  .cc-stats { list-style: none; margin: 0; padding: 12px 0; display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 8px; border-block: 1px solid var(--line); }
+  .cc-stats li { display: grid; justify-items: center; gap: 2px; font-size: 12.5px; color: var(--ink-2); }
+  .cc-stats svg { width: 18px; height: 18px; color: var(--ink-2); }
+  .cc-stats b { font-size: 16px; color: var(--ink); font-weight: 600; }
+  .cc-pub { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); }
+  .meter { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: var(--p); background: var(--ink); border-radius: inherit; }
+  .cc-pub b { color: var(--ink); font-weight: 600; }
+  .cc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
+  .cc-foot .muted { font-size: 13px; color: var(--ink-2); }
+  .cc-foot .btn { min-height: 42px; font-size: 15px; padding: 0 16px; }
+
+  /* editor */
+  .ed-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; margin-top: 10px; }
+  .ed-head h2 { font-size: 26px; font-weight: 800; }
+  .ed-head .desc { color: var(--ink-2); font-size: 14.5px; margin-top: 4px; max-width: 70ch; }
+  .ed-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .ed-actions .btn { min-height: 44px; font-size: 16px; padding: 0 18px; }
+  .ed-stats { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--ink-2); }
+  .ed-stats span { display: inline-flex; align-items: center; gap: 6px; }
+  .ed-stats svg { width: 17px; height: 17px; }
+  .ed-stats b { color: var(--ink); font-weight: 600; }
+  .ed-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+
+  .tree-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tree-head h3 { font-size: 18px; font-weight: 700; margin-inline-end: auto; }
+  .tree-head .hint { width: 100%; font-size: 13px; color: var(--ink-2); margin-top: -6px; }
+  .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+  .row {
+    display: flex; align-items: center; gap: 6px; min-height: 52px; padding-block: 4px; padding-inline: calc(var(--d) * 28px) 6px;
+    border-radius: 12px; position: relative; transition: background-color .15s;
+  }
+  .row:hover { background: #FFF8E8; }
+  .row.sel { background: var(--sun-tint); }
+  /* nesting guide: a hairline under each open container, in line with its twisty */
+  .tree ul { position: relative; }
+  .tree ul::before { content: ""; position: absolute; inset-block: 0 10px; inset-inline-start: calc(var(--g) * 28px + 50px); width: 2px; border-radius: 2px; background: var(--line); }
+  .row .grip { width: 22px; display: grid; place-items: center; color: var(--ink-3); cursor: grab; flex: none; opacity: 0; transition: opacity .15s; }
+  .row:hover .grip, .row.sel .grip { opacity: 1; }
+  .row .grip svg { width: 16px; height: 16px; }
+  .tw { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border: 0; background: none; border-radius: 8px; cursor: pointer; color: var(--ink-2); }
+  .tw:hover { background: rgba(26, 23, 18, .06); color: var(--ink); }
+  .tw svg { width: 17px; height: 17px; transition: rotate .2s var(--ease-out); }
+  [dir="rtl"] .tw svg { transform: scaleX(-1); }
+  .tw[aria-expanded="true"] svg { rotate: 90deg; }
+  [dir="rtl"] .tw[aria-expanded="true"] svg { rotate: -90deg; }
+  .tw-gap { width: 30px; flex: none; }
+  .kind { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center; }
+  .kind svg { width: 18px; height: 18px; }
+  .k-chapter { background: var(--ink); color: var(--sun); }
+  .k-folder { background: var(--sun-tint); color: #7A5200; }
+  .k-lecture { background: #F3EBDA; color: var(--ink); }
+  .k-video { background: var(--blue-tint); color: #1F47B0; }
+  .k-file { background: var(--mint-tint); color: #22694F; }
+  .k-quiz { background: var(--coral-tint); color: #A5341B; }
+  .name { all: unset; flex: 1; min-width: 0; cursor: pointer; display: grid; gap: 1px; padding: 4px 6px; border-radius: 8px; }
+  .name:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px; }
+  .name b { font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lvl-1 > .row .name b { font-family: var(--f-display); font-size: 16.5px; font-weight: 700; }
+  .name small { font-size: 12.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row.off .name b { color: var(--ink-2); font-weight: 500; } /* dimmed but still 7:1 */
+  .row.off .kind { opacity: .55; }
+  .tags { display: flex; gap: 6px; align-items: center; flex: none; }
+  .tags .chip { font-size: 12px; min-height: 24px; }
+  .tags .hid { display: inline-flex; color: var(--ink-3); }
+  .tags .hid svg { width: 17px; height: 17px; }
+  .prog { display: block; height: 5px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 4px; max-width: 220px; }
+  .prog i { display: block; height: 100%; width: var(--p); background: var(--blue); border-radius: inherit; }
+  .row .switch .track { transform: scale(.9); }
+  .tree ul.closed { display: none; }
+
+  .drop { margin-top: 12px; border: 2px dashed #D9C69A; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; background: #FFFBF2; cursor: pointer; transition: border-color .15s, background-color .15s; }
+  .drop:hover { border-color: var(--ink); background: var(--sun-tint); }
+  .drop .bub { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); border: 2px solid var(--ink); flex: none; }
+  .drop .bub svg { width: 22px; height: 22px; }
+  .drop b { display: block; font-size: 14.5px; }
+  .drop small { display: block; font-size: 12.5px; color: var(--ink-2); }
+
+  /* details panel */
+  .details { position: sticky; top: 16px; display: grid; gap: 16px; }
+  .det-top { display: flex; align-items: center; gap: 10px; }
+  .det-top .kind { width: 42px; height: 42px; border-radius: 12px; }
+  .det-top small { display: block; font-size: 12.5px; color: var(--ink-2); }
+  .det-top b { display: block; font-family: var(--f-display); font-size: 18px; line-height: 1.3; }
+  .blk { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .blk > .lbl { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .blk .input { min-height: 46px; font-size: 15px; }
+  .blk p { font-size: 13px; color: var(--ink-2); }
+  .path { display: flex; flex-wrap: wrap; gap: 6px; }
+  .path .chip { font-size: 12px; }
+  .asset { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: #FBF5E8; }
+  .asset .kind { background: var(--paper); }
+  .asset div { min-width: 0; flex: 1; }
+  .asset b { display: block; font-size: 14px; direction: ltr; text-align: start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .asset small { font-size: 12.5px; color: var(--ink-2); }
+  .err-box { display: flex; gap: 10px; padding: 12px; border-radius: 12px; background: var(--coral-tint); color: #8E2A14; font-size: 13.5px; }
+  .err-box svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .det-acts { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--line); }
+  .det-acts .btn { min-height: 42px; font-size: 15px; padding: 0 14px; }
+  .btn-danger { --bg: var(--paper); --fg: #B8341A; border-color: #B8341A; box-shadow: 0 3px 0 #B8341A; }
+  .btn-danger:hover { background: var(--coral-tint); box-shadow: 0 5px 0 #B8341A; }
+
+  .deleted { margin-top: 18px; }
+  .deleted[hidden] { display: none; }
+  .del-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .del-row:last-child { border-bottom: 0; }
+  .del-row div { flex: 1; min-width: 0; }
+  .del-row b { display: block; font-size: 14.5px; }
+  .del-row small { font-size: 12.5px; color: var(--ink-2); }
+  .del-row .btn { min-height: 40px; font-size: 14.5px; padding: 0 14px; }
+
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 40px 12px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--sun-tint); }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 46ch; }
+  .empty .row-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+  /* new course dialog */
+  dialog { border: 2px solid var(--ink); border-radius: var(--r-card); padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--paper); color: var(--ink); box-shadow: var(--shadow-lift); }
+  dialog::backdrop { background: rgba(26, 23, 18, .45); }
+  dialog form { padding: 24px; display: grid; gap: 16px; }
+  dialog h2 { font-size: 22px; font-weight: 800; }
+  dialog .field + .field { margin-top: 0; }
+  dialog textarea.input { font: inherit; font-size: 16px; min-height: 96px; padding: 12px 18px; resize: vertical; line-height: 1.6; }
+  dialog .acts { display: flex; gap: 10px; justify-content: flex-end; }
+
+  [data-state="loading"] .cc :is(h3, .desc, .cc-stats, .cc-pub, .cc-foot) { color: transparent; background: var(--line); border-radius: 8px; animation: pulse 1.2s ease-in-out infinite; border-color: transparent; }
+  [data-state="loading"] .cc * > * { visibility: hidden; }
+
+  @media (max-width: 1100px) { .ed-grid { grid-template-columns: minmax(0, 1fr); } .details { position: static; } }
+  @media (max-width: 760px) {
+    .ed-head { grid-template-columns: minmax(0, 1fr); }
+    .ed-actions { justify-content: flex-start; }
+    .toolbar .find { flex: 1; } .toolbar .find input { width: 100%; }
+    .row { padding-inline-start: calc(var(--d) * 14px); }
+    .tree ul::before { inset-inline-start: calc(var(--g) * 14px + 28px); }
+    .row .grip { display: none; }
+    .tags .chip { display: none; }
+    .tags .chip.keep { display: inline-flex; }
+  }
+</style>
+</head>
+<body data-page="courses" data-unread="3" data-state="list" data-title-en="Courses & content · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Courses & content">الكورسات والمحتوى</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات: ٣ غير مقروءة" data-en-aria-label="Notifications: 3 unread"><i data-i="bell"></i><span class="dot num" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك: أ. كريم سامي، مدرس" data-en-aria-label="Your account: Mr. Karim Samy, teacher">
+          <span class="avatar" aria-hidden="true">ك</span>
+          <span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <div class="dd-head"><span class="avatar" aria-hidden="true">ك</span><span><b data-en="Mr. Karim Samy">أ. كريم سامي</b><small>karim@itqan.example</small></span></div>
+          <div class="dd-sep"></div>
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== view 1: courses (GET /courses) ===================== -->
+    <section class="view-list" aria-labelledby="t-list">
+      <div class="head">
+        <div>
+          <h2 id="t-list" data-en="Your courses">كورساتك</h2>
+          <p data-en="5 courses · draft courses stay hidden from students">٥ كورسات · المسودة لا يراها الطلاب</p>
+        </div>
+        <div class="toolbar">
+          <label class="find"><span class="sr-only" data-en="Find a course">ابحث عن كورس</span><i data-i="search"></i><input type="search" id="find" placeholder="ابحث عن كورس" data-en-placeholder="Find a course" autocomplete="off"></label>
+          <div class="dd" id="status">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Status:">الحالة:</span><span class="dd-val" data-en="All">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالحالة" data-en-aria-label="Filter by status">
+              <div class="dd-title" data-en="Filter by status">تصفية بالحالة</div>
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-dot" style="background:var(--paper)"></span><span class="dd-label" data-en="All">الكل</span><span class="dd-n num" data-en="5">٥</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="published"><span class="dd-dot" style="background:var(--mint)"></span><span class="dd-label" data-en="Published">منشور</span><span class="dd-n num" data-en="3">٣</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="draft"><span class="dd-dot" style="background:var(--sun)"></span><span class="dd-label" data-en="Draft">مسودة</span><span class="dd-n num" data-en="1">١</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="archived"><span class="dd-dot" style="background:#EFE8DA"></span><span class="dd-label" data-en="Archived">مؤرشف</span><span class="dd-n num" data-en="1">١</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <button class="btn" type="button" data-new-course><i data-i="plus"></i><span data-en="New course">كورس جديد</span></button>
+        </div>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="panel empty when-empty-list">
+        <span class="bub"><i data-i="library-big"></i></span>
+        <b data-en="No courses yet">لا توجد كورسات بعد</b>
+        <p data-en="A course holds chapters, and each chapter holds its lectures, videos, files and quizzes. Start with one course; it stays a draft until you publish it.">الكورس يضم فصولًا، وكل فصل يضم محاضراته وفيديوهاته وملفاته واختباراته. ابدأ بكورس واحد، ويبقى مسودة حتى تنشره.</p>
+        <div class="row-btns"><button class="btn" type="button" data-new-course><i data-i="plus"></i><span data-en="Create the first course">أنشئ أول كورس</span></button></div>
+      </div>
+    </section>
+
+    <!-- ===================== view 2: one course's content tree (GET /courses/:id/tree) ===================== -->
+    <section class="view-editor" aria-labelledby="t-course">
+      <nav class="crumbs" aria-label="المسار" data-en-aria-label="Breadcrumb">
+        <a href="#" data-back data-en="Courses">الكورسات</a><i data-i="chevron-right"></i><span aria-current="page" data-en="Physics, term 1">الفيزياء · الترم الأول</span>
+      </nav>
+      <div class="ed-head">
+        <div>
+          <h2 id="t-course" data-en="Physics, term 1">الفيزياء · الترم الأول</h2>
+          <p class="desc" data-en="The full term 1 syllabus: current electricity and its laws, with problems for every lesson.">المنهج كامل للترم الأول: الكهربية التيارية وقوانينها مع حل مسائل كل درس.</p>
+        </div>
+        <div class="ed-actions">
+          <!-- PATCH /courses/:id {status} -->
+          <div class="dd" id="course-status">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Course:">الكورس:</span><span class="dd-val" data-en="Published">منشور</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="حالة الكورس" data-en-aria-label="Course status" style="min-width:300px">
+              <div class="dd-title" data-en="Who can see this course">من يرى هذا الكورس</div>
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="published"><span class="dd-dot" style="background:var(--mint)"></span><span style="display:grid"><span class="dd-label" data-en="Published">منشور</span><small class="muted" style="font-size:12.5px;font-weight:400" data-en="Enrolled students see the published items">يرى المسجلون العناصر المنشورة</small></span><span class="tick" style="margin-inline-start:auto"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="draft"><span class="dd-dot" style="background:var(--sun)"></span><span style="display:grid"><span class="dd-label" data-en="Draft">مسودة</span><small class="muted" style="font-size:12.5px;font-weight:400" data-en="Hidden from every student">مخفي عن كل الطلاب</small></span><span class="tick" style="margin-inline-start:auto"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="archived"><span class="dd-dot" style="background:#EFE8DA"></span><span style="display:grid"><span class="dd-label" data-en="Archived">مؤرشف</span><small class="muted" style="font-size:12.5px;font-weight:400" data-en="Enrolled students keep access, no new codes">يبقى للمسجلين، بلا أكواد جديدة</small></span><span class="tick" style="margin-inline-start:auto"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <button class="btn btn-light" type="button" id="show-deleted" aria-expanded="false" aria-controls="deleted"><i data-i="trash-2"></i><span data-en="Deleted">المحذوفات</span><span class="num" id="del-n"></span></button>
+          <!-- POST /content-items {kind} -->
+          <div class="dd" id="add">
+            <button class="btn dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false"><i data-i="plus"></i><span data-en="Add">أضف</span><span class="chev" style="color:inherit"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="menu" hidden aria-label="أضف إلى الكورس" data-en-aria-label="Add to the course">
+              <div class="dd-title" id="add-where" data-en="Adds inside the selected item">يُضاف داخل العنصر المحدد</div>
+              <button class="dd-item" type="button" role="menuitem" data-add="chapter"><i data-i="book-marked"></i><span data-en="Chapter">فصل</span></button>
+              <button class="dd-item" type="button" role="menuitem" data-add="lecture"><i data-i="notebook-text"></i><span data-en="Lecture">محاضرة</span></button>
+              <button class="dd-item" type="button" role="menuitem" data-add="folder"><i data-i="folder"></i><span data-en="Folder">مجلد</span></button>
+              <div class="dd-sep"></div>
+              <button class="dd-item" type="button" role="menuitem" data-add="video"><i data-i="square-play"></i><span data-en="Video (MP4)">فيديو (MP4)</span></button>
+              <button class="dd-item" type="button" role="menuitem" data-add="file"><i data-i="file-text"></i><span data-en="File (PDF, Word, slides, image)">ملف (PDF، Word، عرض، صورة)</span></button>
+              <button class="dd-item" type="button" role="menuitem" data-add="quiz"><i data-i="file-question"></i><span data-en="Quiz link">رابط اختبار</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="ed-stats">
+          <span><i data-i="book-marked"></i><b class="num" data-en="3">٣</b><span data-en="chapters">فصول</span></span>
+          <span><i data-i="notebook-text"></i><b class="num" data-en="3">٣</b><span data-en="lectures">محاضرات</span></span>
+          <span><i data-i="square-play"></i><b class="num" data-en="3">٣</b><span data-en="videos">فيديوهات</span></span>
+          <span><i data-i="file-text"></i><b class="num" data-en="5">٥</b><span data-en="files">ملفات</span></span>
+          <span><i data-i="users"></i><b class="num" data-en="214">٢١٤</b><span data-en="enrolled">طالبًا مسجلًا</span></span>
+        </div>
+      </div>
+
+      <div class="ed-grid">
+        <section class="panel" aria-labelledby="t-tree">
+          <div class="tree-head">
+            <h3 id="t-tree" data-en="Course content">محتوى الكورس</h3>
+            <div class="seg" role="group" aria-label="فتح وطي الفصول" data-en-aria-label="Expand or collapse">
+              <button type="button" data-expand="1" aria-pressed="false" data-en="Expand all">افتح الكل</button>
+              <button type="button" data-expand="0" aria-pressed="false" data-en="Collapse all">اطوِ الكل</button>
+            </div>
+            <p class="hint" data-en="Drag ⠿ to reorder · up to 5 levels · a student sees an item only when it and everything above it are published">اسحب ⠿ لإعادة الترتيب · حتى ٥ مستويات · يرى الطالب العنصر فقط إذا كان هو وكل ما فوقه منشورًا</p>
+          </div>
+          <div class="tree-body">
+            <ul class="tree" id="tree"></ul>
+            <!-- POST /uploads → presigned PUT to R2 → POST /uploads/:id/confirm -->
+            <div class="drop" role="button" tabindex="0" aria-describedby="drop-limits">
+              <span class="bub"><i data-i="cloud-upload"></i></span>
+              <span><b id="drop-target"></b><small id="drop-limits" data-en="PDF, Word, PowerPoint up to 100 MB · JPG, PNG, WebP up to 10 MB · MP4 up to 5 GB">PDF وWord وPowerPoint حتى ١٠٠ م.ب · JPG وPNG وWebP حتى ١٠ م.ب · MP4 حتى ٥ ج.ب</small></span>
+            </div>
+          </div>
+          <div class="empty when-empty-course">
+            <span class="bub"><i data-i="book-marked"></i></span>
+            <b data-en="This course is empty">الكورس فارغ</b>
+            <p data-en="Start with a chapter, then add its lectures. Inside a lecture go the video, the PDF summary and a quiz link.">ابدأ بفصل، ثم أضف محاضراته. داخل كل محاضرة يوضع الفيديو وملخص PDF ورابط الاختبار.</p>
+            <div class="row-btns"><button class="btn" type="button" data-first="chapter"><i data-i="book-marked"></i><span data-en="Add the first chapter">أضف أول فصل</span></button><button class="btn btn-light" type="button" data-first="folder"><i data-i="folder"></i><span data-en="Add a folder">أضف مجلدًا</span></button></div>
+          </div>
+        </section>
+
+        <aside class="panel details" id="details" aria-label="تفاصيل العنصر" data-en-aria-label="Item details"></aside>
+      </div>
+
+      <!-- GET /courses/:id/tree?deleted=true → POST /content-items/:id/restore -->
+      <section class="panel deleted" id="deleted" hidden aria-labelledby="t-del">
+        <div class="panel-head"><h3 id="t-del" data-en="Deleted items">العناصر المحذوفة</h3><p class="sub" data-en="Restoring brings back the item with everything that was deleted with it, at the end of its old place.">الاستعادة ترجع العنصر مع كل ما حُذف معه، في آخر مكانه القديم.</p></div>
+        <div id="del-list"></div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<dialog id="new-course" aria-labelledby="t-new">
+  <form method="dialog" data-fake="list">
+    <h2 id="t-new" data-en="New course">كورس جديد</h2>
+    <div class="field">
+      <label class="label" for="c-title" data-en="Course name">اسم الكورس</label>
+      <input class="input" id="c-title" required minlength="3" placeholder="مثال: الفيزياء · الترم الأول" data-en-placeholder="e.g. Physics, term 1" aria-describedby="err-title">
+      <span class="err" id="err-title" data-en="Write a name of at least 3 letters.">اكتب اسمًا من ٣ أحرف على الأقل.</span>
+    </div>
+    <div class="field">
+      <label class="label" for="c-desc"><span data-en="Short description">وصف قصير</span><span class="hint" data-en="Optional">اختياري</span></label>
+      <textarea class="input" id="c-desc" placeholder="ماذا سيتعلم الطالب في هذا الكورس؟" data-en-placeholder="What will the student learn here?"></textarea>
+    </div>
+    <p class="hint" data-en="The course starts as a draft. Students see nothing until you publish it.">يبدأ الكورس مسودة، ولا يرى الطلاب شيئًا حتى تنشره.</p>
+    <div class="acts">
+      <button class="btn btn-ghost" type="button" data-close-dialog data-en="Cancel">إلغاء</button>
+      <button class="btn" type="submit"><span class="spin" aria-hidden="true"></span><span data-en="Create course">أنشئ الكورس</span></button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="list" aria-pressed="true" data-en="Courses">الكورسات</button>
+  <button type="button" data-state="editor" aria-pressed="false" data-en="Course content">محتوى الكورس</button>
+  <button type="button" data-state="empty-list" aria-pressed="false" data-en="New academy">أكاديمية جديدة</button>
+  <button type="button" data-state="empty-course" aria-pressed="false" data-en="Empty course">كورس فارغ</button>
+  <button type="button" data-state="loading" aria-pressed="false" data-en="Loading">تحميل</button>
+  <a href="analytics.html" data-en="Overview">نظرة عامة</a>
+</nav>
+
+<script>
+  // ---------- sample data (shapes follow GET /courses and GET /courses/:id/tree) ----------
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (ar, en) => `<span data-en="${en}" data-ar="${ar}">${isEn() ? en : ar}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const STATUS = { published: ['ok', 'منشور', 'Published'], draft: ['warn', 'مسودة', 'Draft'], archived: ['off', 'مؤرشف', 'Archived'] };
+
+  const courses = [
+    { id: 'c1', ar: 'الفيزياء · الترم الأول', en: 'Physics, term 1', dAr: 'المنهج كامل للترم الأول: الكهربية التيارية وقوانينها مع حل مسائل كل درس.', dEn: 'The full term 1 syllabus: current electricity and its laws, with problems for every lesson.', status: 'published', n: [['٦', '6'], ['٤٢', '42'], ['٢٠', '20'], ['٢١٤', '214']], pub: [62, 62, '٦٢ / ٦٢'], edit: ['١٢ نوفمبر', '12 Nov'] },
+    { id: 'c2', ar: 'الفيزياء · الترم الثاني', en: 'Physics, term 2', dAr: 'المغناطيسية والحث الكهرومغناطيسي والتيار المتردد، مع اختبار بعد كل فصل.', dEn: 'Magnetism, induction and AC circuits, with a quiz after every chapter.', status: 'published', n: [['٥', '5'], ['٢٨', '28'], ['٢٣', '23'], ['١٨٨', '188']], pub: [34, 51, '٣٤ / ٥١'], edit: ['أمس', 'Yesterday'] },
+    { id: 'c3', ar: 'مراجعة ليلة الامتحان', en: 'Night-before-exam review', dAr: 'مراجعة مركزة لأهم أفكار المنهج في ٦ ساعات.', dEn: 'A focused 6-hour review of the key ideas.', status: 'draft', n: [['٣', '3'], ['٦', '6'], ['١٤', '14'], ['٠', '0']], pub: [8, 20, '٨ / ٢٠'], edit: ['اليوم', 'Today'] },
+    { id: 'c4', ar: 'حل امتحانات سابقة ٢٠٢٥', en: 'Past exams solved, 2025', dAr: 'حل نماذج امتحانات الأعوام السابقة خطوة بخطوة.', dEn: 'Past exam papers solved step by step.', status: 'published', n: [['٤', '4'], ['٣٠', '30'], ['١٠', '10'], ['٩٦', '96']], pub: [40, 40, '٤٠ / ٤٠'], edit: ['٣ أكتوبر', '3 Oct'] },
+    { id: 'c5', ar: 'كورس الصيف ٢٠٢٥', en: 'Summer course 2025', dAr: 'تأسيس الرياضيات اللازمة للفيزياء قبل بداية العام.', dEn: 'Maths foundations for physics before the year starts.', status: 'archived', n: [['٣', '3'], ['١٢', '12'], ['٦', '6'], ['٤١', '41']], pub: [18, 18, '١٨ / ١٨'], edit: ['٢ سبتمبر', '2 Sep'] },
+  ];
+
+  const KIND = {
+    chapter: ['book-marked', 'فصل', 'Chapter'], lecture: ['notebook-text', 'محاضرة', 'Lecture'], folder: ['folder', 'مجلد', 'Folder'],
+    video: ['square-play', 'فيديو', 'Video'], file: ['file-text', 'ملف', 'File'], quiz: ['file-question', 'رابط اختبار', 'Quiz link'],
+  };
+  const CONTAINER = ['chapter', 'lecture', 'folder'];
+  const v = (id, ar, en, a) => ({ id, kind: 'video', ar, en, pub: true, ...a });
+  const f = (id, ar, en, a) => ({ id, kind: 'file', ar, en, pub: true, ...a });
+  let tree = [
+    { id: 'ch1', kind: 'chapter', ar: 'الفصل الأول: التيار الكهربي وقانون أوم', en: 'Chapter 1: Current and Ohm’s law', pub: true, open: true, kids: [
+      { id: 'l1', kind: 'lecture', ar: 'المحاضرة ١: شدة التيار وفرق الجهد', en: 'Lecture 1: Current and voltage', pub: true, open: true, kids: [
+        v('v1', 'شرح المحاضرة', 'Lecture video', { file: 'lecture-01.mp4', size: ['١٫٢ ج.ب', '1.2 GB'], dur: ['٥٢:١٤', '52:14'] }),
+        f('f1', 'ملخص المحاضرة', 'Lecture summary', { file: 'summary-01.pdf', type: 'PDF', size: ['٢٫٤ م.ب', '2.4 MB'], policy: 'view_only' }),
+        f('f2', 'واجب المحاضرة', 'Homework sheet', { file: 'homework-01.pdf', type: 'PDF', size: ['١٫١ م.ب', '1.1 MB'], policy: 'downloadable' }),
+      ] },
+      { id: 'l2', kind: 'lecture', ar: 'المحاضرة ٢: قانون أوم والمقاومة', en: 'Lecture 2: Ohm’s law and resistance', pub: true, open: true, kids: [
+        v('v2', 'شرح المحاضرة', 'Lecture video', { file: 'lecture-02.mp4', size: ['٩٨٠ م.ب', '980 MB'], dur: ['٤٧:٣٠', '47:30'] }),
+        { id: 'q1', kind: 'quiz', ar: 'اختبار قصير: قانون أوم', en: 'Short quiz: Ohm’s law', pub: true, meta: ['١٠ أسئلة · ١٥ دقيقة', '10 questions · 15 min'] },
+      ] },
+      { id: 'fo1', kind: 'folder', ar: 'مسائل إضافية', en: 'Extra problems', pub: false, open: true, kids: [
+        f('f3', 'بنك مسائل الفصل', 'Chapter problem bank', { file: 'problem-bank.pdf', type: 'PDF', size: ['٤٫٨ م.ب', '4.8 MB'], policy: 'downloadable' }),
+        f('f4', 'صورة السبورة', 'Whiteboard photo', { file: 'board.jpg', type: 'JPG', size: ['٨٢٠ ك.ب', '820 KB'], policy: 'view_only' }),
+      ] },
+    ] },
+    { id: 'ch2', kind: 'chapter', ar: 'الفصل الثاني: قانونا كيرشوف', en: 'Chapter 2: Kirchhoff’s laws', pub: true, open: true, kids: [
+      { id: 'l3', kind: 'lecture', ar: 'المحاضرة ٣: قانون كيرشوف الأول', en: 'Lecture 3: Kirchhoff’s first law', pub: true, open: true, kids: [
+        v('v3', 'شرح المحاضرة', 'Lecture video', { file: 'lecture-03.mp4', size: ['١٫٤ ج.ب', '1.4 GB'], dur: ['—', '—'], upload: 64, pub: false }),
+        f('f5', 'عرض المحاضرة', 'Lecture slides', { file: 'kirchhoff-slides.pptx', type: 'PPTX', size: ['١٨ م.ب', '18 MB'], failed: true, pub: false }),
+      ] },
+    ] },
+    { id: 'ch3', kind: 'chapter', ar: 'الفصل الثالث: التأثير المغناطيسي للتيار', en: 'Chapter 3: Magnetic effect of current', pub: false, open: false, kids: [
+      { id: 'l4', kind: 'lecture', ar: 'المحاضرة ٤: كثافة الفيض المغناطيسي', en: 'Lecture 4: Magnetic flux density', pub: false, open: true, kids: [] },
+    ] },
+  ];
+  let deleted = [
+    { node: { id: 'd1', kind: 'lecture', ar: 'مراجعة الترم القديمة', en: 'Old term review', pub: true, kids: [] }, parent: 'ch1', when: ['منذ ٣ أيام', '3 days ago'], with: ['مع ٤ عناصر داخلها', 'with 4 items inside'] },
+    { node: f('d2', 'ملخص قديم', 'Old summary', { file: 'old-summary.pdf', type: 'PDF', size: ['١ م.ب', '1 MB'], policy: 'view_only' }), parent: 'l1', when: ['أمس', 'yesterday'], with: ['', ''] },
+  ];
+  let selected = 'v1';
+
+  // ---------- helpers ----------
+  const walk = (list, fn, parents = []) => list.forEach((n) => { fn(n, parents); if (n.kids) walk(n.kids, fn, [...parents, n]); });
+  const find = (id) => { let hit = null; walk(tree, (n, p) => { if (n.id === id) hit = { n, p }; }); return hit; };
+  const toast = (ar, en) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(ar, en); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  const metaOf = (n) => n.kind === 'video' ? [`فيديو · ${n.dur[0]} · ${n.size[0]}`, `Video · ${n.dur[1]} · ${n.size[1]}`]
+    : n.kind === 'file' ? [`${n.type} · ${n.size[0]}`, `${n.type} · ${n.size[1]}`]
+    : n.kind === 'quiz' ? n.meta
+    : [`${n.kids.length ? String(n.kids.length).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]) + ' عناصر' : 'فارغ'}`, `${n.kids.length ? n.kids.length + ' items' : 'Empty'}`];
+  const kindIcon = (n) => n.kind === 'file' && n.type === 'PPTX' ? 'presentation' : n.kind === 'file' && /JPG|PNG|WEBP/.test(n.type) ? 'image' : KIND[n.kind][0];
+
+  // ---------- course cards ----------
+  function renderCards() {
+    const S = ['book-marked', 'square-play', 'file-text', 'users'], L = [['فصول', 'chapters'], ['فيديو', 'videos'], ['ملف', 'files'], ['طالب', 'students']];
+    document.getElementById('cards').innerHTML = courses.map((c) => `
+      <article class="panel cc" data-status="${c.status}" data-name="${c.ar} ${c.en.toLowerCase()}">
+        <div class="cc-top"><span class="chip ${STATUS[c.status][0]}">${t(STATUS[c.status][1], STATUS[c.status][2])}</span>
+          <div class="dd">
+            <button class="ibtn dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="خيارات ${c.ar}" data-en-aria-label="Options for ${c.en}">${ic('ellipsis')}</button>
+            <div class="dd-menu" role="menu" hidden>
+              <button class="dd-item" type="button" role="menuitem" data-open="${c.id}">${ic('list-tree')}${t('افتح المحتوى', 'Open content')}</button>
+              <button class="dd-item" type="button" role="menuitem">${ic('pencil')}${t('عدّل الاسم والوصف', 'Edit name and description')}</button>
+              <button class="dd-item" type="button" role="menuitem">${ic('archive')}${t(c.status === 'archived' ? 'أعد النشر' : 'أرشف الكورس', c.status === 'archived' ? 'Publish again' : 'Archive course')}</button>
+              <div class="dd-sep"></div>
+              <button class="dd-item danger" type="button" role="menuitem">${ic('trash-2')}${t('احذف الكورس', 'Delete course')}<span class="dd-tag">${t('للمدرس', 'Teacher')}</span></button>
+            </div>
+          </div>
+        </div>
+        <h3><button type="button" data-open="${c.id}">${t(c.ar, c.en)}</button></h3>
+        <p class="desc">${t(c.dAr, c.dEn)}</p>
+        <ul class="cc-stats">${c.n.map((x, i) => `<li>${ic(S[i])}<b class="num">${t(x[0], x[1])}</b>${t(L[i][0], L[i][1])}</li>`).join('')}</ul>
+        <div class="cc-pub">${t('المنشور', 'Published')}<span class="meter" role="img" aria-label="${c.pub[0]} / ${c.pub[1]}"><i style="--p:${Math.round(c.pub[0] / c.pub[1] * 100)}%"></i></span><b class="num">${t(c.pub[2], `${c.pub[0]} / ${c.pub[1]}`)}</b></div>
+        <div class="cc-foot"><span class="muted">${t('آخر تعديل ' + c.edit[0], 'Edited ' + c.edit[1])}</span><button class="btn btn-sm btn-light" type="button" data-open="${c.id}">${t('افتح المحتوى', 'Open content')}</button></div>
+      </article>`).join('');
+  }
+
+  // ---------- content tree ----------
+  function rowTags(n, parents) {
+    const hiddenAbove = n.pub && parents.some((p) => !p.pub);
+    let out = '';
+    if (n.upload != null) out += `<span class="chip info keep">${t('يُرفع ' + String(n.upload).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]) + '٪', `Uploading ${n.upload}%`)}</span>`;
+    else if (n.failed) out += `<span class="chip bad keep">${t('فشل الرفع', 'Upload failed')}</span>`;
+    else if (n.kind === 'file') out += `<span class="chip ${n.policy === 'downloadable' ? 'ok' : 'off'}">${n.policy === 'downloadable' ? t('قابل للتحميل', 'Downloadable') : t('عرض فقط', 'View only')}</span>`;
+    if (hiddenAbove) out += `<span class="hid" title="${'مخفي عن الطلاب لأن ما فوقه غير منشور'}" data-en-title="Hidden: something above it is not published">${ic('eye-off')}</span>`;
+    return out;
+  }
+  function renderTree() {
+    const node = (n, depth, parents) => {
+      const cont = CONTAINER.includes(n.kind);
+      const busy = n.upload != null || n.failed;
+      return `<li class="lvl-${depth}" data-id="${n.id}">
+        <div class="row${n.id === selected ? ' sel' : ''}${n.pub ? '' : ' off'}" style="--d:${depth - 1}">
+          <span class="grip" aria-hidden="true">${ic('grip-vertical')}</span>
+          ${cont ? `<button class="tw" type="button" data-tw="${n.id}" aria-expanded="${!!n.open}" aria-label="${n.open ? 'اطوِ' : 'افتح'} ${n.ar}" data-en-aria-label="${n.open ? 'Collapse' : 'Expand'} ${n.en}">${ic('chevron-right')}</button>` : '<span class="tw-gap"></span>'}
+          <span class="kind k-${n.kind}">${ic(kindIcon(n))}</span>
+          <button class="name" type="button" data-sel="${n.id}" aria-current="${n.id === selected}"><b>${t(n.ar, n.en)}</b><small>${t(...metaOf(n))}</small>${n.upload != null ? `<span class="prog"><i style="--p:${n.upload}%"></i></span>` : ''}</button>
+          <span class="tags">${rowTags(n, parents)}</span>
+          <button class="switch" type="button" role="switch" aria-checked="${n.pub}" data-pub="${n.id}" ${busy ? 'disabled style="opacity:.4;cursor:not-allowed"' : ''} aria-label="منشور: ${n.ar}" data-en-aria-label="Published: ${n.en}"><span class="track"></span></button>
+        </div>
+        ${cont && n.kids.length ? `<ul class="${n.open ? '' : 'closed'}" style="--g:${depth - 1}">${n.kids.map((k) => node(k, depth + 1, [...parents, n])).join('')}</ul>` : ''}
+      </li>`;
+    };
+    document.getElementById('tree').innerHTML = tree.map((n) => node(n, 1, [])).join('');
+    renderDetails();
+    renderDeleted();
+  }
+
+  function renderDetails() {
+    const hit = find(selected);
+    const box = document.getElementById('details');
+    if (!hit) { box.innerHTML = `<p class="muted">${t('اختر عنصرًا من الشجرة لترى تفاصيله.', 'Pick an item in the tree to see its details.')}</p>`; return; }
+    const { n, p } = hit, k = KIND[n.kind], cont = CONTAINER.includes(n.kind);
+    const visible = n.pub && p.every((x) => x.pub);
+    const target = cont ? n : p[p.length - 1];
+    document.getElementById('drop-target').innerHTML = target ? t(`ارفع ملفات إلى «${target.ar}»`, `Upload files into “${target.en}”`) : t('اختر فصلًا أو محاضرة للرفع إليها', 'Pick a chapter or lecture to upload into');
+    let media = '';
+    if (n.kind === 'video' || n.kind === 'file') {
+      media = `<div class="blk"><span class="lbl">${t('الملف', 'File')}</span>
+        <div class="asset"><span class="kind k-${n.kind}">${ic(kindIcon(n))}</span><div><b>${n.file}</b><small>${t(...metaOf(n))}</small></div>
+          ${n.upload != null ? `<span class="chip info">${t('يُرفع', 'Uploading')}</span>` : n.failed ? `<span class="chip bad">${t('فشل', 'Failed')}</span>` : `<span class="chip ok">${t('جاهز', 'Ready')}</span>`}</div>
+        ${n.upload != null ? `<span class="prog" style="max-width:none"><i style="--p:${n.upload}%"></i></span><p>${t('لا تغلق الصفحة حتى يكتمل الرفع. الفيديو يُرفع مباشرة إلى التخزين السحابي.', 'Keep this page open until the upload ends. The video goes straight to cloud storage.')}</p>` : ''}
+        ${n.failed ? `<div class="err-box">${ic('triangle-alert')}<span>${t('لم يطابق الملف المرفوع الحجم أو النوع المعلن، فحُذف. ارفعه مرة أخرى.', 'The uploaded file did not match its declared size or type, so it was removed. Upload it again.')}</span></div>` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${n.failed ? `<button class="btn btn-sm" type="button" data-retry="${n.id}">${ic('refresh-cw')}${t('ارفع مرة أخرى', 'Upload again')}</button>` : n.upload != null ? `<button class="btn btn-sm btn-light" type="button">${ic('x')}${t('ألغِ الرفع', 'Cancel upload')}</button>` : `<button class="btn btn-sm btn-light" type="button">${ic('cloud-upload')}${t('استبدل الملف', 'Replace file')}</button>`}</div>
+      </div>`;
+      if (n.kind === 'file' && !n.failed) media += `<div class="blk"><span class="lbl">${t('صلاحية الملف للطلاب', 'What students can do')}</span>
+        <div class="seg" role="group" aria-label="صلاحية الملف" data-en-aria-label="File permission">
+          <button type="button" data-policy="view_only" aria-pressed="${n.policy === 'view_only'}">${ic('eye')}${t('عرض فقط', 'View only')}</button>
+          <button type="button" data-policy="downloadable" aria-pressed="${n.policy === 'downloadable'}">${ic('download')}${t('قابل للتحميل', 'Downloadable')}</button>
+        </div>
+        <p>${n.policy === 'view_only' ? t('يفتح داخل المنصة فقط، بدون زر تحميل.', 'Opens inside the platform only, with no download button.') : t('يستطيع الطالب تحميل نسخة على جهازه.', 'The student can save a copy to the device.')}</p></div>`;
+    }
+    if (n.kind === 'quiz') media = `<div class="blk"><span class="lbl">${t('الاختبار المرتبط', 'Linked quiz')}</span><div class="asset"><span class="kind k-quiz">${ic('file-question')}</span><div><b style="direction:inherit">${t(n.ar, n.en)}</b><small>${t(...n.meta)}</small></div></div><a class="link" href="quizzes.html">${t('افتح الاختبار في صفحة الاختبارات', 'Open it on the Quizzes page')}</a></div>`;
+    if (cont) media = `<div class="blk"><span class="lbl">${t('بداخله', 'Inside')}</span><p>${t(...metaOf(n))} · ${t(`المستوى ${'٠١٢٣٤٥٦٧٨٩'[p.length + 1]} من ٥`, `level ${p.length + 1} of 5`)}</p>
+      <button class="btn btn-sm btn-light" type="button" data-add-in="${n.id}" style="justify-self:start">${ic('plus')}${t('أضف داخله', 'Add inside')}</button></div>`;
+
+    box.innerHTML = `
+      <div class="det-top"><span class="kind k-${n.kind}">${ic(kindIcon(n))}</span><span><small>${t(k[1], k[2])}</small><b>${t(n.ar, n.en)}</b></span></div>
+      <div class="blk"><label class="lbl" for="det-title">${t('العنوان', 'Title')}</label><input class="input" id="det-title" value="${isEn() ? n.en : n.ar}"></div>
+      <div class="blk"><span class="lbl">${t('الظهور للطلاب', 'Visible to students')}</span>
+        <button class="switch" type="button" role="switch" aria-checked="${n.pub}" data-pub="${n.id}" ${n.upload != null || n.failed ? 'disabled style="opacity:.4"' : ''}><span class="track"></span>${n.pub ? t('منشور', 'Published') : t('غير منشور', 'Not published')}</button>
+        <div class="path">${[...p, n].map((x) => `<span class="chip ${x.pub ? 'ok' : 'warn'}">${t(x.ar.split(':')[0], x.en.split(':')[0])}</span>`).join('')}</div>
+        <p>${visible ? t('يراه الطلاب المسجلون لأنه هو وكل ما فوقه منشور.', 'Enrolled students see it: it and everything above it are published.') : n.upload != null || n.failed ? t('يُنشر بعد اكتمال رفع الملف.', 'It can be published once the file upload is done.') : t('لا يراه الطلاب: هو أو شيء فوقه غير منشور.', 'Students do not see it: it or something above it is not published.')}</p>
+      </div>
+      ${media}
+      <div class="det-acts">
+        <button class="btn btn-sm btn-light" type="button">${ic('list-tree')}${t('انقل إلى…', 'Move to…')}</button>
+        <button class="btn btn-sm btn-danger" type="button" data-del="${n.id}">${ic('trash-2')}${t('احذف', 'Delete')}</button>
+        <p class="hint" style="width:100%">${cont ? t('الحذف ينقله مع كل ما بداخله إلى المحذوفات، ويمكن استعادته.', 'Deleting moves it and everything inside to Deleted items. You can restore it.') : t('ينتقل إلى المحذوفات ويمكن استعادته.', 'It moves to Deleted items and can be restored.')}</p>
+      </div>`;
+  }
+
+  function renderDeleted() {
+    document.getElementById('del-n').innerHTML = deleted.length ? t(` (${String(deleted.length).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d])})`, ` (${deleted.length})`) : '';
+    document.getElementById('del-list').innerHTML = deleted.length ? deleted.map((d, i) => `
+      <div class="del-row"><span class="kind k-${d.node.kind}">${ic(kindIcon(d.node))}</span>
+        <div><b>${t(d.node.ar, d.node.en)}</b><small>${t(`حُذف ${d.when[0]} ${d.with[0]}`, `Deleted ${d.when[1]} ${d.with[1]}`)}</small></div>
+        <button class="btn btn-light" type="button" data-restore="${i}">${ic('rotate-ccw')}${t('استعد', 'Restore')}</button></div>`).join('')
+      : `<p class="muted" style="padding:8px 0">${t('لا عناصر محذوفة.', 'Nothing deleted.')}</p>`;
+  }
+
+  renderCards();
+  renderTree();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  // after itqan.js: actions
+  const setState = window.itqanSetState;
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, a');
+    if (!b) return;
+    if (b.dataset.open) { setState('editor'); scrollTo({ top: 0 }); }
+    if (b.hasAttribute('data-back')) { e.preventDefault(); setState('list'); }
+    if (b.dataset.tw) { const { n } = find(b.dataset.tw); n.open = !n.open; renderTree(); document.querySelector(`[data-tw="${n.id}"]`).focus(); }
+    if (b.dataset.sel) { selected = b.dataset.sel; renderTree(); document.querySelector(`[data-sel="${selected}"]`).focus(); }
+    if (b.dataset.pub && !b.disabled) {
+      const { n } = find(b.dataset.pub); n.pub = !n.pub; renderTree();
+      toast(n.pub ? `نُشر «${n.ar}»` : `أُخفي «${n.ar}» عن الطلاب`, n.pub ? `Published “${n.en}”` : `Hid “${n.en}” from students`);
+    }
+    if (b.dataset.expand) { const open = b.dataset.expand === '1'; walk(tree, (n) => { if (n.kids) n.open = open; }); renderTree(); }
+    if (b.dataset.policy) { find(selected).n.policy = b.dataset.policy; renderTree(); }
+    if (b.dataset.retry) { const { n } = find(b.dataset.retry); n.failed = false; n.upload = 8; renderTree(); }
+    if (b.dataset.del) {
+      const { n, p } = find(b.dataset.del), list = p.length ? p[p.length - 1].kids : tree;
+      list.splice(list.indexOf(n), 1);
+      deleted.unshift({ node: n, parent: p.length ? p[p.length - 1].id : null, when: ['الآن', 'just now'], with: n.kids?.length ? ['مع ما بداخله', 'with what is inside'] : ['', ''] });
+      selected = p.length ? p[p.length - 1].id : tree[0]?.id; renderTree();
+      toast(`حُذف «${n.ar}» · تجده في المحذوفات`, `Deleted “${n.en}” · find it in Deleted items`);
+    }
+    if (b.dataset.restore) {
+      const d = deleted.splice(+b.dataset.restore, 1)[0], par = d.parent && find(d.parent);
+      (par ? par.n.kids : tree).push(d.node); selected = d.node.id; renderTree();
+      toast(`استُعيد «${d.node.ar}» في آخر مكانه`, `Restored “${d.node.en}” at the end of its place`);
+    }
+    if (b.dataset.add || b.dataset.addIn || b.dataset.first) {
+      const kind = b.dataset.add || b.dataset.first || 'lecture';
+      const sel = b.dataset.first ? null : find(b.dataset.addIn || selected);
+      let parent = kind === 'chapter' || !sel ? null : CONTAINER.includes(sel.n.kind) ? sel.n : sel.p[sel.p.length - 1];
+      if (parent && sel && sel.p.length + 1 >= 5 && parent === sel.n) { toast('لا يمكن الإضافة أعمق من ٥ مستويات', 'Cannot add deeper than 5 levels'); return; }
+      const k = KIND[kind], id = 'n' + Date.now();
+      const item = { id, kind, ar: `${k[1]} جديد`, en: `New ${k[2].toLowerCase()}`, pub: false, open: true, kids: CONTAINER.includes(kind) ? [] : undefined,
+        ...(kind === 'video' ? { file: 'new-video.mp4', size: ['٠ م.ب', '0 MB'], dur: ['—', '—'], upload: 12 } : kind === 'file' ? { file: 'new-file.pdf', type: 'PDF', size: ['٠ م.ب', '0 MB'], policy: 'view_only', upload: 30 } : kind === 'quiz' ? { meta: ['اختر اختبارًا', 'Pick a quiz'] } : {}) };
+      if (parent) { parent.open = true; parent.kids.push(item); } else tree.push(item);
+      if (b.dataset.first) setState('editor');
+      selected = id; renderTree(); document.getElementById('det-title').select();
+    }
+    if (b.hasAttribute('data-new-course')) document.getElementById('new-course').showModal();
+    if (b.hasAttribute('data-close-dialog')) document.getElementById('new-course').close();
+  });
+
+  document.getElementById('show-deleted').addEventListener('click', (e) => {
+    const box = document.getElementById('deleted'), open = box.hidden;
+    box.hidden = !open; e.currentTarget.setAttribute('aria-expanded', String(open));
+    if (open) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  // rename from the details panel updates the tree on blur
+  document.addEventListener('change', (e) => {
+    if (e.target.id !== 'det-title') return;
+    const { n } = find(selected); n[isEn() ? 'en' : 'ar'] = e.target.value.trim() || n[isEn() ? 'en' : 'ar']; renderTree();
+  });
+
+  // course list: search + status filter
+  const filterCards = () => {
+    const q = document.getElementById('find').value.trim().toLowerCase(), st = document.querySelector('#status [aria-selected="true"]').dataset.value;
+    document.querySelectorAll('.cc').forEach((c) => { c.hidden = (st !== 'all' && c.dataset.status !== st) || (q && !c.dataset.name.includes(q)); });
+  };
+  document.getElementById('find').addEventListener('input', filterCards);
+  document.getElementById('status').addEventListener('dd:change', filterCards);
+  document.getElementById('course-status').addEventListener('dd:change', (e) => toast(...{ published: ['الكورس منشور للمسجلين', 'Course published to enrolled students'], draft: ['الكورس مسودة ومخفي عن الطلاب', 'Course is a draft, hidden from students'], archived: ['الكورس مؤرشف: يبقى للمسجلين', 'Course archived: enrolled students keep it'] }[e.detail]));
+
+  // new course dialog: itqan.js validates [data-fake] forms, then sets the state; close and confirm here
+  document.addEventListener('itqan:state', (e) => {
+    const dlg = document.getElementById('new-course');
+    if (dlg.open && e.detail === 'list') { dlg.close(); toast('أُنشئ الكورس كمسودة', 'Course created as a draft'); }
+  });
+  // the language switch re-renders the generated parts so their labels follow
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(renderDetails)));
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإشعارات والسجل · لوحة الإدارة</title>
+<meta name="description" content="Itqan staff dashboard sketch: notifications inbox (GET /notifications, live over SSE) and the academy activity log (GET /audit-logs, teacher only).">
+<meta name="theme-color" content="#1A1712">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22%3E%3Crect x=%222%22 y=%222%22 width=%2240%22 height=%2240%22 rx=%2213%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M13.5 20.5v6.2c0 3.6 17 3.6 17 0v-6.2L22 24.3z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M13.8 24.6c3.2 2.4 13.2 2.4 16.4 0%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%222.2%22/%3E%3Cpath d=%22M22 9.5 37.5 16 22 22.5 6.5 16z%22 fill=%22%231A1712%22 stroke=%22%231A1712%22 stroke-width=%221.6%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M22 16l11.5 3.4v6.4%22 fill=%22none%22 stroke=%22%23FFC22E%22 stroke-width=%221.8%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M32 25.6h3l.9 6h-4.8z%22 fill=%22%23FFC22E%22 stroke=%22%231A1712%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2222%22 cy=%2216%22 r=%221.6%22 fill=%22%23FFC22E%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../test/shared/itqan.css">
+<link rel="stylesheet" href="shared/dash.css">
+<style>
+  .view { display: none; }
+  [data-state="inbox"] .v-inbox, [data-state="empty"] .v-inbox, [data-state="assistant"] .v-inbox, [data-state="log"] .v-log { display: block; }
+  [data-state="assistant"] .t-only { display: none !important; }
+  .when-empty { display: none; }
+  [data-state="empty"] .when-empty { display: grid; }
+  [data-state="empty"] .when-full { display: none !important; }
+  .tabs-top { margin-top: 22px; display: inline-flex; }
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toolbar .btn { min-height: 44px; font-size: 15.5px; padding: 0 16px; }
+
+  /* inbox */
+  .inbox { display: grid; gap: 18px; max-width: 920px; }
+  .day { display: grid; gap: 4px; padding: 10px; }
+  .day > h3 { font-size: 13.5px; font-weight: 600; color: var(--ink-2); padding: 6px 10px 4px; font-family: var(--f-body); }
+  .nt { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 12px; border-radius: 14px; transition: background-color .15s; }
+  .nt:hover { background: #FFF8E8; }
+  .nt.unread { background: #FFFBF0; }
+  .nt.unread:hover { background: var(--sun-tint); }
+  .nt .ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+  .nt .ico svg { width: 20px; height: 20px; }
+  .i-dev { background: var(--blue-tint); color: #1F47B0; }
+  .i-out { background: var(--sun-tint); color: #7A5200; }
+  .i-qa { background: var(--mint-tint); color: #22694F; }
+  .i-quiz { background: var(--coral-tint); color: #A5341B; }
+  .i-ok { background: var(--mint-tint); color: #22694F; }
+  .i-sys { background: #F3EBDA; color: var(--ink); }
+  .nt b { display: block; font-size: 15px; font-weight: 600; line-height: 1.45; }
+  .nt.unread b { font-weight: 700; }
+  .nt p { font-size: 14px; color: var(--ink-2); margin-top: 2px; }
+  .nt .act { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .nt .act .btn { min-height: 38px; font-size: 14px; padding: 0 12px; box-shadow: 0 2px 0 var(--ink); }
+  .nt .side-meta { display: grid; justify-items: end; gap: 8px; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+  .nt .dot-u { width: 10px; height: 10px; border-radius: 50%; background: var(--coral-strong); }
+  .nt:not(.unread) .dot-u { visibility: hidden; }
+  .nt .mark { all: unset; position: absolute; inset: 0; border-radius: 14px; cursor: pointer; }
+  .nt .mark:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .nt .act, .nt .act * { position: relative; z-index: 1; }
+  .nt.fresh { animation: arrive .5s var(--ease-out); box-shadow: inset 0 0 0 2px var(--ink); }
+  @keyframes arrive { from { opacity: 0; transform: translateY(-10px); } }
+  .live-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #22694F; }
+  .live-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
+
+  /* log */
+  .log-note { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 14px; background: #F3EBDA; font-size: 13.5px; margin-bottom: 14px; }
+  .log-note svg { width: 18px; height: 18px; flex: none; }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 14px; }
+  .filters label { display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
+  .filters .input { min-height: 42px; font-size: 14px; padding: 0 12px; width: 170px; }
+  .tbl-wrap { overflow-x: auto; position: relative; }
+  .tbl { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 14.5px; }
+  .tbl th { text-align: start; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 10px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .tbl tbody tr.row:hover { background: #FFF8E8; }
+  .tbl .when { white-space: nowrap; color: var(--ink-2); font-size: 13.5px; }
+  .who { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .who .avatar { width: 30px; height: 30px; font-size: 13px; }
+  .who .avatar.sys { background: #F3EBDA; }
+  .what b { font-weight: 500; }
+  .what code { display: inline-block; margin-top: 4px; font-size: 12px; color: var(--ink-2); background: #F3EBDA; padding: 1px 8px; border-radius: 6px; direction: ltr; }
+  .row.fail { background: #FFF4F0; }
+  .row.fail .what b { color: #8E2A14; font-weight: 600; }
+  .more { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; cursor: pointer; color: var(--ink-2); }
+  .more:hover { background: var(--sun-tint); color: var(--ink); }
+  .more svg { width: 18px; height: 18px; transition: rotate .2s var(--ease-out); }
+  [dir="rtl"] .more svg { transform: scaleX(-1); }
+  .more[aria-expanded="true"] svg { rotate: 90deg; }
+  [dir="rtl"] .more[aria-expanded="true"] svg { rotate: -90deg; }
+  .detail td { background: #FBF5E8; padding: 12px 16px; }
+  .detail dl { margin: 0; display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 14px; font-size: 13.5px; }
+  .detail dt { color: var(--ink-2); }
+  .detail dd { margin: 0; overflow-wrap: anywhere; }
+  .pager { display: flex; justify-content: center; margin-top: 14px; }
+
+  .empty { justify-items: center; text-align: center; gap: 10px; padding: 44px 12px; }
+  .empty .bub { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--mint-tint); color: #22694F; }
+  .empty .bub svg { width: 28px; height: 28px; }
+  .empty b { font-family: var(--f-display); font-size: 20px; }
+  .empty p { color: var(--ink-2); font-size: 14.5px; max-width: 46ch; }
+  .note-bar { display: none; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 16px; border-radius: 14px; background: var(--blue-tint); color: #183A8C; font-size: 14px; }
+  [data-state="assistant"] .note-bar { display: flex; }
+  .note-bar svg { width: 18px; height: 18px; flex: none; }
+
+  @media (max-width: 680px) {
+    .nt { grid-template-columns: auto minmax(0, 1fr); }
+    .nt .side-meta { grid-column: 2; display: flex; gap: 8px; align-items: center; justify-content: flex-start; }
+    .filters .input { width: 100%; } .filters label { flex: 1 1 140px; }
+    .detail dl { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-page="notifications" data-unread="3" data-state="inbox" data-title-en="Notifications & log · Staff dashboard">
+<a class="skip" href="#main" data-en="Skip to content">انتقل إلى المحتوى</a>
+
+<div class="app">
+  <main class="main" id="main">
+    <header class="dash-bar">
+      <button class="round menu-btn" type="button" aria-controls="side" aria-expanded="false" aria-label="فتح القائمة" data-en-aria-label="Open menu"><i data-i="menu"></i></button>
+      <h1 data-en="Notifications & log">الإشعارات والسجل</h1>
+      <label class="search">
+        <span class="sr-only" data-en="Search students">ابحث عن طالب</span>
+        <i data-i="search"></i>
+        <input type="search" placeholder="ابحث عن طالب بالاسم أو الإيميل" data-en-placeholder="Search a student by name or email" autocomplete="off">
+      </label>
+      <button class="lang" type="button">English</button>
+      <a class="round" href="notifications.html" aria-label="الإشعارات" data-en-aria-label="Notifications" id="bell"><i data-i="bell"></i><span class="dot num" id="bell-n" data-en="3">٣</span></a>
+      <div class="dd">
+        <button class="me dd-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="حسابك" data-en-aria-label="Your account">
+          <span class="avatar" aria-hidden="true" data-who-av>ك</span>
+          <span><b data-who-name data-en="Mr. Karim Samy">أ. كريم سامي</b><small data-who-role data-en="Teacher">مدرس</small></span>
+          <span class="chev"><i data-i="chevron-down"></i></span>
+        </button>
+        <div class="dd-menu" role="menu" hidden aria-label="حسابك" data-en-aria-label="Your account">
+          <a class="dd-item" role="menuitem" href="profile.html"><i data-i="user-round"></i><span data-en="My profile">ملفي الشخصي</span></a>
+          <a class="dd-item t-only" role="menuitem" href="profile.html#academy"><i data-i="settings"></i><span data-en="Academy settings">إعدادات الأكاديمية</span><span class="dd-tag" data-en="Teacher">للمدرس</span></a>
+          <div class="dd-sep"></div>
+          <a class="dd-item danger" role="menuitem" href="../test/login.html"><i data-i="log-out"></i><span data-en="Sign out">تسجيل الخروج</span></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="seg tabs-top" role="group" aria-label="الأقسام" data-en-aria-label="Sections">
+      <button type="button" data-go="inbox" aria-pressed="true"><i data-i="bell"></i><span data-en="Notifications">الإشعارات</span></button>
+      <button type="button" data-go="log" aria-pressed="false" class="t-only"><i data-i="shield-check"></i><span data-en="Activity log">سجل النشاط</span></button>
+    </div>
+    <div class="note-bar"><i data-i="info"></i><span data-en="The activity log is for the teacher. You see your own notifications here.">سجل النشاط للمدرس فقط، وهنا تجد إشعاراتك.</span></div>
+
+    <!-- ============ inbox: GET /notifications · PATCH /notifications/read · SSE notification.created ============ -->
+    <section class="view v-inbox" aria-labelledby="t-in">
+      <div class="head">
+        <div><h2 id="t-in" data-en="Notifications">الإشعارات</h2><p><span class="live-pill" data-en="Live: new ones appear on their own">مباشر: الجديد يظهر وحده</span></p></div>
+        <div class="toolbar when-full">
+          <div class="seg" role="group" aria-label="عرض" data-en-aria-label="Show">
+            <button type="button" data-f="all" aria-pressed="true" data-en="All">الكل</button>
+            <button type="button" data-f="unread" aria-pressed="false"><span data-en="Unread">غير المقروءة</span> <span class="num" id="unread-n" data-en="(3)">(٣)</span></button>
+          </div>
+          <button class="btn btn-light" type="button" id="read-all"><i data-i="check-check"></i><span data-en="Mark all as read">علّم الكل مقروءًا</span></button>
+        </div>
+      </div>
+      <div class="inbox when-full" id="inbox"></div>
+      <div class="panel empty when-empty" style="max-width:920px">
+        <span class="bub"><i data-i="check-check"></i></span>
+        <b data-en="You are all caught up">لا جديد الآن</b>
+        <p data-en="Device requests, students’ questions and quiz results will show here the moment they happen.">طلبات الأجهزة وأسئلة الطلاب ونتائج الاختبارات تظهر هنا لحظة حدوثها.</p>
+      </div>
+    </section>
+
+    <!-- ============ activity log: GET /audit-logs?actorUserId&action&from&to&cursor (teacher only) ============ -->
+    <section class="view v-log" aria-labelledby="t-log">
+      <div class="head">
+        <div><h2 id="t-log" data-en="Activity log">سجل النشاط</h2><p data-en="Every staff action in your academy, newest first">كل إجراء للطاقم في أكاديميتك، الأحدث أولًا</p></div>
+      </div>
+      <div class="log-note"><i data-i="lock"></i><span data-en="Entries cannot be edited or deleted, and never hold passwords, codes or tokens.">لا يمكن تعديل أي سطر أو حذفه، ولا يحتوي السجل كلمات سر أو أكوادًا أو رموز دخول.</span></div>
+      <section class="panel">
+        <div class="filters">
+          <div class="dd" id="f-who">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="Who:">من:</span><span class="dd-val" data-en="Everyone">الكل</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالشخص" data-en-aria-label="Filter by person" style="inset-inline:0 auto">
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="Everyone">الكل</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="karim"><span class="dd-label" data-en="Mr. Karim Samy">أ. كريم سامي</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="nour"><span class="dd-label" data-en="Nour Adel">نور عادل</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="signin"><span class="dd-label" data-en="Sign-in attempts">محاولات الدخول</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <div class="dd" id="f-what">
+            <button class="dd-btn dd-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="dd-key" data-en="About:">عن:</span><span class="dd-val" data-en="Everything">كل شيء</span><span class="chev"><i data-i="chevron-down"></i></span></button>
+            <div class="dd-menu" role="listbox" hidden aria-label="تصفية بالنوع" data-en-aria-label="Filter by kind" style="inset-inline:0 auto">
+              <button class="dd-item" type="button" role="option" aria-selected="true" data-value="all"><span class="dd-label" data-en="Everything">كل شيء</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="content"><i data-i="library-big"></i><span class="dd-label" data-en="Courses and content">الكورسات والمحتوى</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="quiz"><i data-i="clipboard-check"></i><span class="dd-label" data-en="Quizzes">الاختبارات</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="people"><i data-i="users-round"></i><span class="dd-label" data-en="Students and devices">الطلاب والأجهزة</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="access"><i data-i="lock"></i><span class="dd-label" data-en="Codes and invitations">الأكواد والدعوات</span><span class="tick"><i data-i="check"></i></span></button>
+              <button class="dd-item" type="button" role="option" aria-selected="false" data-value="settings"><i data-i="settings"></i><span class="dd-label" data-en="Settings">الإعدادات</span><span class="tick"><i data-i="check"></i></span></button>
+            </div>
+          </div>
+          <label><span data-en="From">من تاريخ</span><input class="input" type="date" value="2026-11-11"></label>
+          <label><span data-en="To">إلى تاريخ</span><input class="input" type="date" value="2026-11-18"></label>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th scope="col" data-en="When">الوقت</th><th scope="col" data-en="Who">من</th><th scope="col" data-en="What happened">ماذا حدث</th><th scope="col"><span class="sr-only" data-en="Details">التفاصيل</span></th></tr></thead>
+            <tbody id="log-rows"></tbody>
+          </table>
+        </div>
+        <div class="pager"><button class="btn btn-light btn-sm" type="button" data-en="Show older entries">اعرض الأقدم</button></div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span id="toast-text"></span></div>
+
+<nav class="demo" aria-label="معاينة الحالات" data-en-aria-label="Preview states">
+  <span data-en="Preview:">معاينة:</span>
+  <button type="button" data-state="inbox" aria-pressed="true" data-en="Inbox">الإشعارات</button>
+  <button type="button" data-push data-en="New one arrives">وصل إشعار</button>
+  <button type="button" data-state="log" aria-pressed="false" data-en="Activity log">السجل</button>
+  <button type="button" data-state="empty" aria-pressed="false" data-en="Nothing new">لا جديد</button>
+  <button type="button" data-state="assistant" aria-pressed="false" data-en="As assistant">كمساعد</button>
+</nav>
+
+<script>
+  const isEn = () => document.documentElement.lang === 'en';
+  const t = (a, e) => `<span data-en="${e}" data-ar="${a}">${isEn() ? e : a}</span>`;
+  const ic = (n) => `<svg aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+  // ---------- notifications (sample of GET /notifications) ----------
+  const TYPE = { device_change: ['smartphone', 'i-dev'], sign_out_other: ['monitor-x', 'i-out'], comment: ['message-square', 'i-qa'], quiz: ['clipboard-check', 'i-quiz'], consent: ['shield-check', 'i-ok'], alert: ['info', 'i-sys'] };
+  let notes = [
+    { id: 1, day: 0, type: 'device_change', unread: true, at: ['منذ ١٢ دقيقة', '12 min ago'], ti: ['يوسف أحمد يطلب تغيير جهازه', 'Youssef Ahmed asks to change his device'], bo: ['«موبايلي اتكسر واشتريت واحد جديد.» يحتاج موافقتك قبل أن يدخل من الجهاز الجديد.', '“My phone broke, I bought a new one.” He needs your approval before signing in on the new device.'], acts: [['اقبل', 'Approve', 'ok'], ['ارفض', 'Reject', 'no'], ['افتح ملفه', 'Open profile', 'accounts.html']] },
+    { id: 2, day: 0, type: 'sign_out_other', unread: true, at: ['منذ ٤٠ دقيقة', '40 min ago'], ti: ['مريم خالد تطلب الخروج من جهاز آخر', 'Mariam Khaled asks to sign out of another device'], bo: ['«نسيت أخرج من لابتوب المدرسة.»', '“I forgot to sign out on the school laptop.”'], acts: [['اقبل', 'Approve', 'ok'], ['ارفض', 'Reject', 'no']] },
+    { id: 3, day: 0, type: 'comment', unread: true, at: ['منذ ساعة', '1 hour ago'], ti: ['سؤال جديد على «المحاضرة ٢: قانون أوم»', 'New question on “Lecture 2: Ohm’s law”'], bo: ['عمر حسن: ليه المقاومة بتزيد لما السلك يسخن؟', 'Omar Hassan: why does resistance go up when the wire heats up?'], acts: [['رد على السؤال', 'Answer it', 'courses.html']] },
+    { id: 4, day: 1, type: 'quiz', unread: false, at: ['أمس ١١:٠٠ م', 'Yesterday 11:00 pm'], ti: ['أُغلق «امتحان شامل: الترم الأول»', '“Full exam: term 1” closed'], bo: ['سلّم ٢٠١ من ٢١٤. الدرجات بانتظار إعلانك.', '201 of 214 submitted. The grades are waiting for you to release them.'], acts: [['افتح النتائج', 'Open results', 'quizzes.html']] },
+    { id: 5, day: 1, type: 'consent', unread: false, at: ['أمس ٦:١٥ م', 'Yesterday 6:15 pm'], ti: ['وافق ولي أمر يوسف أحمد', 'Youssef Ahmed’s guardian agreed'], bo: ['وافق الأب عبر رابط الإيميل، وفُتح المحتوى ليوسف.', 'The father agreed through the email link, and Youssef’s content is open.'], acts: [] },
+    { id: 6, day: 2, type: 'alert', unread: false, at: ['الأحد', 'Sunday'], ti: ['صيانة مجدولة للمنصة', 'Planned platform maintenance'], bo: ['الجمعة ٢:٠٠ ص لمدة ١٥ دقيقة تقريبًا. لا تضع اختبارًا في هذا الوقت.', 'Friday at 2:00 am for about 15 minutes. Do not schedule a quiz then.'], acts: [] },
+  ];
+  const DAYS = [['اليوم', 'Today'], ['أمس', 'Yesterday'], ['هذا الأسبوع', 'This week']];
+  let filter = 'all';
+
+  function renderInbox() {
+    const list = notes.filter((n) => filter === 'all' || n.unread);
+    const box = document.getElementById('inbox');
+    box.innerHTML = DAYS.map((d, i) => {
+      const items = list.filter((n) => n.day === i);
+      if (!items.length) return '';
+      return `<section class="panel day" aria-label="${d[0]}" data-en-aria-label="${d[1]}"><h3>${t(...d)}</h3>${items.map((n) => `
+        <article class="nt${n.unread ? ' unread' : ''}${n.fresh ? ' fresh' : ''}" data-id="${n.id}">
+          <span class="ico ${TYPE[n.type][1]}">${ic(TYPE[n.type][0])}</span>
+          <div><b>${t(...n.ti)}</b><p>${t(...n.bo)}</p>
+            ${n.acts.length ? `<div class="act">${n.acts.map(([a, e, go], k) => go.endsWith('.html') ? `<a class="btn btn-sm ${k ? 'btn-light' : ''}" href="${go}">${t(a, e)}</a>` : `<button class="btn btn-sm ${go === 'ok' ? '' : 'btn-light'}" type="button" data-decide="${go}" data-id="${n.id}">${t(a, e)}</button>`).join('')}</div>` : ''}</div>
+          <span class="side-meta"><span>${t(...n.at)}</span><span class="dot-u" aria-hidden="true"></span>${n.unread ? `<span class="sr-only">${t('غير مقروء', 'unread')}</span>` : ''}</span>
+          <button class="mark" type="button" data-read="${n.id}" aria-label="${n.unread ? (isEn() ? 'Mark as read: ' : 'علّمه مقروءًا: ') : ''}${isEn() ? n.ti[1] : n.ti[0]}"></button>
+        </article>`).join('')}</section>`;
+    }).join('') || `<div class="panel" style="padding:28px;text-align:center;color:var(--ink-2)">${t('لا إشعارات غير مقروءة.', 'No unread notifications.')}</div>`;
+    const u = notes.filter((n) => n.unread).length;
+    document.getElementById('unread-n').innerHTML = t(`(${ar(u)})`, `(${u})`);
+    const bell = document.getElementById('bell-n'); bell.hidden = !u; bell.dataset.ar = ar(u); bell.dataset.en = String(u); bell.textContent = isEn() ? u : ar(u);
+    const side = document.querySelector('.nav .count'); if (side) { side.hidden = !u; side.dataset.ar = ar(u); side.dataset.en = String(u); side.textContent = isEn() ? u : ar(u); }
+    document.getElementById('bell').setAttribute('aria-label', isEn() ? `Notifications: ${u} unread` : `الإشعارات: ${ar(u)} غير مقروءة`);
+  }
+
+  // ---------- activity log (sample of GET /audit-logs) ----------
+  const P = { karim: ['ك', 'أ. كريم سامي', 'Mr. Karim Samy', 'karim@itqan.example'], nour: ['ن', 'نور عادل', 'Nour Adel', 'nour@itqan.example'] };
+  const log = [
+    { at: ['اليوم ١٠:٤٢ م', 'Today 10:42 pm'], who: 'nour', kind: 'people', act: 'support_request.approve', s: ['قبلت طلب تغيير جهاز يوسف أحمد', 'Approved Youssef Ahmed’s device change'], meta: [['الجهاز الجديد', 'New device', 'Safari على iPhone', 'Safari on iPhone'], ['الجهاز الملغى', 'Revoked device', 'Chrome على Android', 'Chrome on Android']] },
+    { at: ['اليوم ١٠:٣٠ م', 'Today 10:30 pm'], who: 'karim', kind: 'quiz', act: 'quiz.publish', s: ['نشر «اختبار المغناطيسية»', 'Published “Magnetism test”'], meta: [['يفتح', 'Opens', 'السبت ٢٢ نوفمبر ٧:٠٠ م', 'Sat 22 Nov 7:00 pm'], ['لمن', 'Who', 'الترم الثاني · الفصل الأول', 'Term 2 · Chapter 1']] },
+    { at: ['اليوم ٩:٥٨ م', 'Today 9:58 pm'], who: 'karim', kind: 'quiz', act: 'attempt.extend_time', s: ['زاد ٥ دقائق لمريم خالد في «اختبار قصير: قانون أوم»', 'Gave Mariam Khaled 5 more minutes on “Short quiz: Ohm’s law”'], meta: [['الموعد الجديد للتسليم', 'New deadline', '١٠:١٧ م', '10:17 pm']] },
+    { at: ['اليوم ٩:١٥ م', 'Today 9:15 pm'], who: 'nour', kind: 'content', act: 'media.upload', s: ['رفعت فيديو «شرح المحاضرة ٣»', 'Uploaded the “Lecture 3” video'], meta: [['الملف', 'File', 'lecture-03.mp4 · 1.4 GB', 'lecture-03.mp4 · 1.4 GB']] },
+    { at: ['اليوم ٨:٠٢ م', 'Today 8:02 pm'], who: 'signin', kind: 'people', act: 'auth.sign_in_failed', fail: true, s: ['محاولة دخول فاشلة لحساب hassan@itqan.example · كلمة سر خطأ', 'Failed sign-in for hassan@itqan.example · wrong password'], meta: [['السبب', 'Reason', 'كلمة سر خطأ (لا تُحفظ الكلمة المكتوبة)', 'Wrong password (what was typed is never stored)']] },
+    { at: ['اليوم ٧:٤٠ م', 'Today 7:40 pm'], who: 'karim', kind: 'people', act: 'member.create', s: ['أنشأ حساب الطالبة «نور الهدى سعيد»', 'Created the student account “Nour Elhoda Saeed”'], meta: [['الكورسات', 'Courses', 'الترم الأول', 'Term 1'], ['كلمة السر', 'Password', 'لا تُسجَّل', 'Never logged']] },
+    { at: ['أمس ٥:٢٠ م', 'Yesterday 5:20 pm'], who: 'karim', kind: 'settings', act: 'settings.update', s: ['غيّر إعدادات الأكاديمية', 'Changed the academy settings'], meta: [['ما تغيّر', 'Changed', 'عنوان الصفحة الرئيسية، اللون الثانوي', 'Home headline, second colour']] },
+    { at: ['أمس ٣:٠٠ م', 'Yesterday 3:00 pm'], who: 'karim', kind: 'access', act: 'code_batch.create', s: ['أنشأ دفعة ٢٠٠ كود «ملزمة نوفمبر»', 'Created a batch of 200 codes, “November booklet”'], meta: [['الكورس', 'Course', 'الترم الأول', 'Term 1'], ['الأكواد', 'Codes', 'لا تُسجَّل في السجل', 'Not written to the log']] },
+    { at: ['أمس ١٢:١٠ م', 'Yesterday 12:10 pm'], who: 'nour', kind: 'people', act: 'guardian_consent.record_offline', s: ['سجّلت موافقة ورقية لولي أمر كريم محمود', 'Recorded a paper consent for Karim Mahmoud’s guardian'], meta: [['المرجع', 'Reference', 'استمارة رقم ١١٤', 'Form #114']] },
+  ];
+  document.getElementById('log-rows').innerHTML = log.map((r, i) => `
+    <tr class="row${r.fail ? ' fail' : ''}" data-who="${r.who}" data-kind="${r.kind}">
+      <td class="when">${t(...r.at)}</td>
+      <td>${r.who === 'signin' ? `<span class="who"><span class="avatar sys" aria-hidden="true">${ic('log-in')}</span>${t('تسجيل الدخول', 'Sign-in')}</span>` : `<span class="who"><span class="avatar av-${r.who === 'karim' ? 'teacher' : 'assistant'}" aria-hidden="true">${P[r.who][0]}</span>${t(P[r.who][1], P[r.who][2])}</span>`}</td>
+      <td class="what"><b>${t(...r.s)}</b><br><code>${r.act}</code></td>
+      <td><button class="more" type="button" aria-expanded="false" aria-controls="d${i}" aria-label="التفاصيل" data-en-aria-label="Details">${ic('chevron-right')}</button></td>
+    </tr>
+    <tr class="detail" id="d${i}" hidden><td colspan="4"><dl>
+      ${r.meta.map((m) => `<dt>${t(m[0], m[1])}</dt><dd>${t(m[2], m[3])}</dd>`).join('')}
+      <dt>${t('العنوان والمتصفح', 'IP and browser')}</dt><dd><span dir="ltr">197.34.xx.xx · Chrome 131 on Windows</span></dd>
+    </dl></td></tr>`).join('');
+  renderInbox();
+</script>
+<script src="shared/dash.js"></script>
+<script src="../test/shared/itqan.js"></script>
+<script>
+  const setState = window.itqanSetState;
+  const toast = (a, e) => { const el = document.getElementById('toast'); document.getElementById('toast-text').innerHTML = t(a, e); el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); };
+  renderInbox(); // again now that the side nav count exists
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.go) setState(b.dataset.go);
+    if (b.dataset.f) { filter = b.dataset.f; b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); renderInbox(); }
+    if (b.dataset.read) { const n = notes.find((x) => x.id === +b.dataset.read); if (n.unread) { n.unread = false; n.fresh = false; renderInbox(); } }
+    if (b.dataset.decide) {
+      const n = notes.find((x) => x.id === +b.dataset.id); n.unread = false; n.acts = [];
+      n.bo = b.dataset.decide === 'ok' ? ['قبلت الطلب.', 'You approved the request.'] : ['رفضت الطلب.', 'You rejected the request.'];
+      renderInbox(); toast(b.dataset.decide === 'ok' ? 'قُبل الطلب' : 'رُفض الطلب', b.dataset.decide === 'ok' ? 'Request approved' : 'Request rejected');
+    }
+    if (b.id === 'read-all') { notes.forEach((n) => { n.unread = false; n.fresh = false; }); renderInbox(); toast('عُلّم الكل مقروءًا', 'All marked as read'); }
+    if (b.hasAttribute('data-push')) {
+      setState('inbox');
+      notes.unshift({ id: Date.now(), day: 0, type: 'device_change', unread: true, fresh: true, at: ['الآن', 'Just now'], ti: ['آدم مصطفى يطلب تغيير جهازه', 'Adam Mostafa asks to change his device'], bo: ['«غيّرت اللابتوب.»', '“I changed my laptop.”'], acts: [['اقبل', 'Approve', 'ok'], ['ارفض', 'Reject', 'no']] });
+      renderInbox(); scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (b.classList.contains('more')) { const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); document.getElementById(b.getAttribute('aria-controls')).hidden = !open; }
+  });
+
+  // log filters
+  const filterLog = () => {
+    const who = document.querySelector('#f-who [aria-selected="true"]').dataset.value, kind = document.querySelector('#f-what [aria-selected="true"]').dataset.value;
+    document.querySelectorAll('#log-rows tr.row').forEach((r) => {
+      const hide = (who !== 'all' && r.dataset.who !== who) || (kind !== 'all' && r.dataset.kind !== kind);
+      r.hidden = hide; if (hide) { r.nextElementSibling.hidden = true; r.querySelector('.more').setAttribute('aria-expanded', 'false'); }
+    });
+  };
+  document.getElementById('f-who').addEventListener('dd:change', filterLog);
+  document.getElementById('f-what').addEventListener('dd:change', filterLog);
+
+  document.addEventListener('itqan:state', (e) => {
+    const tab = e.detail === 'log' ? 'log' : 'inbox';
+    document.querySelectorAll('.tabs-top button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.go === tab)));
+    const asA = e.detail === 'assistant';
+    document.querySelectorAll('[data-who-name]').forEach((el) => { el.dataset.ar = asA ? 'نور عادل' : 'أ. كريم سامي'; el.dataset.en = asA ? 'Nour Adel' : 'Mr. Karim Samy'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    document.querySelectorAll('[data-who-role]').forEach((el) => { el.dataset.ar = asA ? 'مساعدة' : 'مدرس'; el.dataset.en = asA ? 'Assistant' : 'Teacher'; el.textContent = isEn() ? el.dataset.en : el.dataset.ar; });
+    document.querySelectorAll('[data-who-av]').forEach((el) => { el.textContent = asA ? 'ن' : 'ك'; });
+  });
+  document.querySelectorAll('.lang').forEach((b) => b.addEventListener('click', () => setTimeout(renderInbox)));
+</script>
+</body>
+</html>
